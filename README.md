@@ -1,24 +1,104 @@
-RabbitMQ learning app (Queue Quest)
+# RabbitMQ Learning App (Queue Quest)
 
 Queue Quest is an interactive learning application for RabbitMQ and event-driven systems. It includes an optional **Card Quest Challenge** - a gamified mode that teaches data engineering concepts through timed scenarios and scoring mechanics.
 
-Setup
+**Features:**
+- 🚀 **High-performance Go workers** for message processing
+- 🎮 **Interactive UI** with real-time quest cards and worker management
+- 📊 **Visual metrics** including activity graphs and throughput monitoring  
+- 🎯 **Educational scenarios** demonstrating RabbitMQ concepts
+- 🃏 **Gamified challenges** with scoring and timed scenarios
 
+## 🚀 Quick Start
+
+**One-command startup:**
+```bash
+./start_app.sh              # Normal mode with live logs
+./start_app.sh hotreload     # Auto-restart on file changes  
+./start_app.sh dev           # Multi-pane tmux layout
+```
+
+**One-command shutdown:**
+```bash
+./stop_app.sh
+```
+
+**That's it!** Open http://localhost:8000 to start learning.
+
+> **Startup Modes:**
+> - **Normal:** Live logs in terminal, Ctrl+C to stop
+> - **Hotreload:** Auto-restart when .go/.py files change (requires `air`)
+> - **Dev:** Multi-pane tmux with separate logs for each service
+
+### What the Scripts Do
+
+- **`start_app.sh [mode]`**: Unified startup script with three modes:
+  - `normal` (default): Standard startup with aggregated logs
+  - `hotreload`: Auto-restart on file changes (requires `air` tool)
+  - `dev`: Multi-pane tmux layout with separate service logs
+- **`stop_app.sh`**: Stops all services and cleans up cache/logs for a fresh restart
+
+### Service URLs
+- **Main App**: http://localhost:8000
+- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
+- **Go Backend API**: http://localhost:8001
+
+---
+
+## 🛠️ Manual Setup (Alternative)
+
+If you prefer manual setup or need to troubleshoot:
+
+### Prerequisites
 ```bash
 uv venv .venv
 source .venv/bin/activate
 uv pip install -r requirements.txt
 ```
 
-Start RabbitMQ
-
+### Start RabbitMQ
 ```bash
 docker compose up -d
 ```
 
+### Start Go Backend
+```bash
+cd workers
+go run main.go --port 8001 --webhook "http://localhost:8000/api/go-workers/webhook/events"
+```
+
+### Start Web Server
+```bash
+uvicorn app.web_server:app --reload --port 8000
+```
+
 RabbitMQ UI: [http://localhost:15672](http://localhost:15672) (guest/guest)
 
-CLI demos (optional)
+### 🔧 Troubleshooting
+
+**Port conflicts:**
+```bash
+# Check what's using the ports
+lsof -ti :8000 :8001 :5672 :15672
+
+# Force cleanup if needed
+sudo lsof -ti :8000 :8001 | xargs kill -9
+```
+
+**Container issues:**
+```bash
+# Reset containers
+docker compose down --remove-orphans
+./start_app.sh
+```
+
+**Detailed documentation:** See [STARTUP_GUIDE.md](STARTUP_GUIDE.md) for comprehensive troubleshooting.
+
+---
+
+## 📚 Additional Demos
+
+### CLI demos (optional)
 
 - Consumer (listens to `rte.retrieve.orders` on queue `demo.orders.q`):
   ```bash

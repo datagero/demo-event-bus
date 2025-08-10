@@ -1,0 +1,100 @@
+2025/08/10 19:41:44 🚀 [Go Server] Starting on port 8001
+2025/08/10 19:41:44 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+2025/08/10 19:41:44 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
+2025/08/10 19:42:02 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+2025/08/10 19:42:02 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
+2025/08/10 19:42:02 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+2025/08/10 19:42:02 🎭 [Chaos] Registered worker: alice
+2025/08/10 19:42:02 ✅ [Server] Started worker: alice
+2025/08/10 19:42:02 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+2025/08/10 19:42:02 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
+2025/08/10 19:42:09 📨 [Go Worker] alice accepted q-1754847729-126 (gather)
+2025/08/10 19:42:11 ✅ [Go Worker] alice completed q-1754847729-126 (+5 pts)
+2025/08/10 19:42:16 📨 [Go Worker] alice accepted q-1754847736-733 (gather)
+2025/08/10 19:42:17 ✅ [Go Worker] alice completed q-1754847736-733 (+5 pts)
+2025/08/10 19:42:25 📨 [Go Worker] alice accepted q-1754847745-0 (gather)
+2025/08/10 19:42:25 📨 [Go Worker] alice accepted q-1754847745-1 (slay)
+2025/08/10 19:42:27 ✅ [Go Worker] alice failed q-1754847745-1 (+0 pts)
+2025/08/10 19:42:27 📨 [Go Worker] alice accepted q-1754847746-3 (slay)
+2025/08/10 19:42:29 ✅ [Go Worker] alice completed q-1754847745-0 (+5 pts)
+2025/08/10 19:42:29 📨 [Go Worker] alice accepted q-1754847746-7 (gather)
+2025/08/10 19:42:31 ✅ [Go Worker] alice completed q-1754847746-3 (+10 pts)
+2025/08/10 19:42:31 📨 [Go Worker] alice accepted q-1754847746-4 (slay)
+2025/08/10 19:42:32 ✅ [Go Worker] alice completed q-1754847746-4 (+10 pts)
+2025/08/10 19:42:32 📨 [Go Worker] alice accepted q-1754847746-9 (slay)
+2025/08/10 19:42:32 ✅ [Go Worker] alice failed q-1754847746-7 (+0 pts)
+2025/08/10 19:42:32 📨 [Go Worker] alice accepted q-1754847746-10 (gather)
+2025/08/10 19:42:33 ✅ [Go Worker] alice completed q-1754847746-10 (+5 pts)
+2025/08/10 19:42:33 📨 [Go Worker] alice accepted q-1754847747-12 (gather)
+2025/08/10 19:42:35 ✅ [Go Worker] alice completed q-1754847747-12 (+5 pts)
+2025/08/10 19:42:35 📨 [Go Worker] alice accepted q-1754847747-14 (gather)
+2025/08/10 19:42:35 ✅ [Go Worker] alice completed q-1754847746-9 (+10 pts)
+2025/08/10 19:42:35 📨 [Go Worker] alice accepted q-1754847746-11 (slay)
+2025/08/10 19:42:36 ✅ [Go Worker] alice failed q-1754847746-11 (+0 pts)
+2025/08/10 19:42:36 📨 [Go Worker] alice accepted q-1754847747-15 (slay)
+2025/08/10 19:42:37 ✅ [Go Worker] alice failed q-1754847747-14 (+0 pts)
+2025/08/10 19:42:37 📨 [Go Worker] alice accepted q-1754847747-16 (gather)
+2025/08/10 19:42:38 ✅ [Go Worker] alice completed q-1754847747-16 (+5 pts)
+2025/08/10 19:42:38 📨 [Go Worker] alice accepted q-1754847747-17 (gather)
+2025/08/10 19:42:38 ✅ [Go Worker] alice completed q-1754847747-15 (+10 pts)
+2025/08/10 19:42:38 📨 [Go Worker] alice accepted q-1754847747-19 (slay)
+2025/08/10 19:42:39 ✅ [Go Worker] alice completed q-1754847747-19 (+10 pts)
+2025/08/10 19:42:42 ✅ [Go Worker] alice completed q-1754847747-17 (+5 pts)
+2025/08/10 19:42:42 📨 [Go Worker] alice accepted q-1754847747-18 (gather)
+2025/08/10 19:42:45 ✅ [Go Worker] alice completed q-1754847747-18 (+5 pts)
+2025/08/10 19:43:29 📨 [Go Worker] alice accepted q-1754847736-733 (gather)
+2025/08/10 19:43:31 ✅ [Go Worker] alice completed q-1754847736-733 (+5 pts)
+2025/08/10 19:43:43 📨 [Go Worker] alice accepted q-1754847736-733 (gather)
+2025/08/10 19:43:44 ✅ [Go Worker] alice failed q-1754847736-733 (+0 pts)
+2025/08/10 19:44:02 🚀 [Go Worker]  started with 0 workers, skills: [gather escort]
+2025/08/10 19:44:02 🎭 [Chaos] Registered worker: 
+2025/08/10 19:44:02 ✅ [Server] Started worker: 
+2025/08/10 19:45:31 🛑 [Go Worker] Stopping alice...
+2025/08/10 19:45:31 ✅ [Go Worker] alice stopped
+2025/08/10 19:45:31 🎭 [Chaos] Unregistered worker: alice
+2025/08/10 19:45:31 🛑 [Server] Stopped worker: alice
+2025/08/10 19:45:32 🛑 [Go Worker] Stopping ...
+2025/08/10 19:45:32 ✅ [Go Worker]  stopped
+2025/08/10 19:45:32 🎭 [Chaos] Unregistered worker: 
+2025/08/10 19:45:32 🛑 [Server] Stopped worker: 
+2025/08/10 19:45:37 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+2025/08/10 19:45:37 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
+2025/08/10 19:45:37 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+2025/08/10 19:45:37 🎭 [Chaos] Registered worker: alice
+2025/08/10 19:45:37 ✅ [Server] Started worker: alice
+2025/08/10 19:45:37 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+2025/08/10 19:45:37 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
+2025/08/10 19:45:45 📨 [Go Worker] alice accepted q-1754847945-486 (gather)
+2025/08/10 19:45:48 ✅ [Go Worker] alice completed q-1754847945-486 (+5 pts)
+2025/08/10 19:45:52 📨 [Go Worker] alice accepted q-1754847952-827 (gather)
+2025/08/10 19:45:54 ✅ [Go Worker] alice completed q-1754847952-827 (+5 pts)
+2025/08/10 19:45:57 📨 [Go Worker] alice accepted q-1754847957-0 (gather)
+2025/08/10 19:45:57 📨 [Go Worker] alice accepted q-1754847957-1 (slay)
+2025/08/10 19:45:59 ✅ [Go Worker] alice completed q-1754847957-0 (+5 pts)
+2025/08/10 19:45:59 📨 [Go Worker] alice accepted q-1754847957-5 (gather)
+2025/08/10 19:46:00 ✅ [Go Worker] alice completed q-1754847957-1 (+10 pts)
+2025/08/10 19:46:00 📨 [Go Worker] alice accepted q-1754847957-3 (slay)
+2025/08/10 19:46:02 ✅ [Go Worker] alice completed q-1754847957-5 (+5 pts)
+2025/08/10 19:46:02 📨 [Go Worker] alice accepted q-1754847957-7 (gather)
+2025/08/10 19:46:03 ✅ [Go Worker] alice completed q-1754847957-7 (+5 pts)
+2025/08/10 19:46:03 📨 [Go Worker] alice accepted q-1754847957-8 (gather)
+2025/08/10 19:46:04 ✅ [Go Worker] alice completed q-1754847957-3 (+10 pts)
+2025/08/10 19:46:04 📨 [Go Worker] alice accepted q-1754847957-4 (slay)
+2025/08/10 19:46:05 ✅ [Go Worker] alice completed q-1754847957-8 (+5 pts)
+2025/08/10 19:46:05 📨 [Go Worker] alice accepted q-1754847958-9 (gather)
+2025/08/10 19:46:06 ✅ [Go Worker] alice failed q-1754847957-4 (+0 pts)
+2025/08/10 19:46:06 📨 [Go Worker] alice accepted q-1754847958-11 (slay)
+2025/08/10 19:46:07 ✅ [Go Worker] alice completed q-1754847958-11 (+10 pts)
+2025/08/10 19:46:07 📨 [Go Worker] alice accepted q-1754847958-12 (slay)
+2025/08/10 19:46:09 ✅ [Go Worker] alice completed q-1754847958-9 (+5 pts)
+2025/08/10 19:46:09 📨 [Go Worker] alice accepted q-1754847958-17 (gather)
+2025/08/10 19:46:10 ✅ [Go Worker] alice completed q-1754847958-12 (+10 pts)
+2025/08/10 19:46:10 📨 [Go Worker] alice accepted q-1754847958-13 (slay)
+2025/08/10 19:46:11 ✅ [Go Worker] alice failed q-1754847958-17 (+0 pts)
+2025/08/10 19:46:14 ✅ [Go Worker] alice completed q-1754847958-13 (+10 pts)
+2025/08/10 19:46:14 📨 [Go Worker] alice accepted q-1754847958-14 (slay)
+2025/08/10 19:46:17 ✅ [Go Worker] alice completed q-1754847958-14 (+10 pts)
+2025/08/10 19:46:17 📨 [Go Worker] alice accepted q-1754847958-15 (slay)
+2025/08/10 19:46:19 ✅ [Go Worker] alice completed q-1754847958-15 (+10 pts)
+2025/08/10 19:46:19 📨 [Go Worker] alice accepted q-1754847959-19 (slay)
+2025/08/10 19:46:23 ✅ [Go Worker] alice completed q-1754847959-19 (+10 pts)

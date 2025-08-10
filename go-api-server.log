@@ -1,0 +1,102 @@
+2025/08/10 19:43:17 🚀 [API Server] Starting on port 9000
+2025/08/10 19:43:17 🐍 [API Server] Python service: http://localhost:8080
+2025/08/10 19:43:17 ⚡ [API Server] Workers service: http://localhost:8001
+2025/08/10 19:43:17 🐰 [API Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ws                       --> demo-event-bus-api/internal/api.SetupRoutes.HandleWebSocket.func3 (4 handlers)
+[GIN-debug] GET    /health                   --> demo-event-bus-api/internal/api/handlers.(*Handlers).Health-fm (4 handlers)
+[GIN-debug] GET    /api/health               --> demo-event-bus-api/internal/api/handlers.(*Handlers).Health-fm (4 handlers)
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] GET    /                         --> demo-event-bus-api/internal/api.SetupRoutes.func1 (4 handlers)
+[GIN-debug] POST   /api/go-workers/webhook/events --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReceiveWorkerEvents-fm (4 handlers)
+[GIN-debug] GET    /api/state                --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetGameState-fm (4 handlers)
+[GIN-debug] POST   /api/reset                --> demo-event-bus-api/internal/api/handlers.(*Handlers).ResetGame-fm (4 handlers)
+[GIN-debug] POST   /api/players/quickstart   --> demo-event-bus-api/internal/api/handlers.(*Handlers).QuickstartPlayers-fm (4 handlers)
+[GIN-debug] POST   /api/players/start        --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartPlayer-fm (4 handlers)
+[GIN-debug] POST   /api/players/delete       --> demo-event-bus-api/internal/api/handlers.(*Handlers).DeletePlayer-fm (4 handlers)
+[GIN-debug] POST   /api/players/control      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ControlPlayer-fm (4 handlers)
+[GIN-debug] GET    /api/workers/status       --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetWorkersStatus-fm (4 handlers)
+[GIN-debug] POST   /api/workers/start        --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartWorker-fm (4 handlers)
+[GIN-debug] POST   /api/workers/stop         --> demo-event-bus-api/internal/api/handlers.(*Handlers).StopWorker-fm (4 handlers)
+[GIN-debug] POST   /api/workers/control      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ControlWorker-fm (4 handlers)
+[GIN-debug] POST   /api/publish              --> demo-event-bus-api/internal/api/handlers.(*Handlers).PublishMessage-fm (4 handlers)
+[GIN-debug] POST   /api/publish/wave         --> demo-event-bus-api/internal/api/handlers.(*Handlers).PublishWave-fm (4 handlers)
+[GIN-debug] POST   /api/master/start         --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartMaster-fm (4 handlers)
+[GIN-debug] GET    /api/pending/list         --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListPendingMessages-fm (4 handlers)
+[GIN-debug] POST   /api/pending/reissue      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissuePendingMessages-fm (4 handlers)
+[GIN-debug] POST   /api/pending/reissue/all  --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllPendingMessages-fm (4 handlers)
+[GIN-debug] GET    /api/failed/list          --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListFailedMessages-fm (4 handlers)
+[GIN-debug] POST   /api/failed/reissue       --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueFailedMessages-fm (4 handlers)
+[GIN-debug] POST   /api/failed/reissue/all   --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllFailedMessages-fm (4 handlers)
+[GIN-debug] GET    /api/dlq/list             --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListDLQMessages-fm (4 handlers)
+[GIN-debug] POST   /api/dlq/reissue          --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueDLQMessages-fm (4 handlers)
+[GIN-debug] POST   /api/dlq/reissue/all      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllDLQMessages-fm (4 handlers)
+[GIN-debug] GET    /api/unroutable/list      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListUnroutableMessages-fm (4 handlers)
+[GIN-debug] POST   /api/unroutable/reissue   --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueUnroutableMessages-fm (4 handlers)
+[GIN-debug] POST   /api/unroutable/reissue/all --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllUnroutableMessages-fm (4 handlers)
+[GIN-debug] GET    /api/chaos/status         --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetChaosStatus-fm (4 handlers)
+[GIN-debug] POST   /api/chaos/arm            --> demo-event-bus-api/internal/api/handlers.(*Handlers).ArmChaos-fm (4 handlers)
+[GIN-debug] POST   /api/chaos/disarm         --> demo-event-bus-api/internal/api/handlers.(*Handlers).DisarmChaos-fm (4 handlers)
+[GIN-debug] POST   /api/chaos/config         --> demo-event-bus-api/internal/api/handlers.(*Handlers).SetChaosConfig-fm (4 handlers)
+[GIN-debug] POST   /api/scenario/run         --> demo-event-bus-api/internal/api/handlers.(*Handlers).RunScenario-fm (4 handlers)
+[GIN-debug] GET    /api/cardgame/enabled     --> demo-event-bus-api/internal/api/handlers.(*Handlers).IsCardGameEnabled-fm (4 handlers)
+[GIN-debug] GET    /api/cardgame/status      --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetCardGameStatus-fm (4 handlers)
+[GIN-debug] POST   /api/cardgame/start       --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartCardGame-fm (4 handlers)
+[GIN-debug] POST   /api/cardgame/stop        --> demo-event-bus-api/internal/api/handlers.(*Handlers).StopCardGame-fm (4 handlers)
+[GIN-debug] GET    /api/broker/routes        --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetBrokerRoutes-fm (4 handlers)
+[GIN-debug] GET    /api/broker/queues        --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetBrokerQueues-fm (4 handlers)
+[GIN-debug] GET    /api/metrics              --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetMetrics-fm (4 handlers)
+[GIN-debug] GET    /api/player_stats         --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetPlayerStats-fm (4 handlers)
+2025/08/10 19:43:17 ✅ [API Server] Server ready on http://localhost:9000
+[GIN] 2025/08/10 - 19:43:27 | 200 |    1.761291ms |             ::1 | GET      "/api/chaos/status"
+[GIN] 2025/08/10 - 19:43:28 | 404 |      59.625µs |             ::1 | HEAD     "/"
+[GIN] 2025/08/10 - 19:43:29 | 200 |     212.166µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:43:31 | 200 |      78.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:43:43 | 200 |      59.958µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:43:44 | 200 |      57.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:43:54 | 301 |      95.667µs |             ::1 | HEAD     "/static/index.html"
+[GIN] 2025/08/10 - 19:44:02 | 200 |   11.727125ms |             ::1 | POST     "/api/workers/start"
+[GIN] 2025/08/10 - 19:44:02 | 200 |      22.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:44:09 | 200 |     750.333µs |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/10 - 19:44:16 | 500 |     230.042µs |             ::1 | POST     "/api/chaos/arm"
+[GIN] 2025/08/10 - 19:45:32 | 200 |     258.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:32 | 200 |          23µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:37 | 200 |      70.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:45 | 200 |      62.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:48 | 200 |     149.709µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:52 | 200 |         119µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:54 | 200 |     127.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:57 | 200 |      64.416µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:57 | 200 |      60.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:59 | 200 |      66.084µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:45:59 | 200 |       48.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:00 | 200 |     112.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:00 | 200 |     114.958µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:02 | 200 |      78.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:02 | 200 |     103.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:03 | 200 |     206.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:03 | 200 |      75.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:04 | 200 |      119.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:04 | 200 |      59.917µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:05 | 200 |     118.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:05 | 200 |      55.791µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:06 | 200 |      81.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:06 | 200 |      43.084µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:07 | 200 |      68.416µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:07 | 200 |      24.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:09 | 200 |     100.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:09 | 200 |     101.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:10 | 200 |      88.459µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:10 | 200 |        51.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:11 | 200 |     128.916µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:14 | 200 |      33.584µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:14 | 200 |        19.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:17 | 200 |     152.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:17 | 200 |      41.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:19 | 200 |      64.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:19 | 200 |      35.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/10 - 19:46:23 | 200 |     119.125µs |             ::1 | POST     "/api/go-workers/webhook/events"

@@ -3,10 +3,36 @@ import threading
 import time
 from typing import Callable, Dict
 from app.state import GameState
-from app.bus import BusClient
+# BusClient removed - scenarios now use Go workers
+from app.rabbitmq_utils import build_message, SimpleRabbitMQ
+import random
 
+def publish_one(quest_type: str) -> dict:
+    """Publish a single quest - simplified version for scenarios."""
+    points_by_type = {"gather": 5, "slay": 10, "escort": 15}
+    difficulty_choices = [("easy", 1.0), ("medium", 2.0), ("hard", 3.5)]
+    difficulty, work_sec = random.choice(difficulty_choices)
+    points = points_by_type.get(quest_type, 5)
+    quest_id = f"q-{int(time.time())}-{random.randint(100,999)}"
+    payload = build_message(
+        case_id=quest_id,
+        event_stage="QUEST_ISSUED",
+        status="NEW",
+        source="game-master",
+        extra={
+            "quest_type": quest_type,
+            "difficulty": difficulty,
+            "work_sec": work_sec,
+            "points": points,
+            "weight": 1 if difficulty=="easy" else (2 if difficulty=="medium" else 4),
+        },
+    )
+    bus = SimpleRabbitMQ()
+    bus.publish(f"game.quest.{quest_type}", payload)
+    bus.close()
+    return payload
 
-def scenario_late_bind_escort(state: GameState, bus: BusClient, broadcast: Callable, players) -> None:
+def scenario_late_bind_escort(state: GameState, go_workers_client, broadcast: Callable, players) -> None:
     """
     Late-bind escort (backlog handoff) scenario.
     
@@ -38,7 +64,7 @@ def scenario_late_bind_escort(state: GameState, bus: BusClient, broadcast: Calla
         # 1. Publish messages before any escort queue exists (will be unroutable)
         broadcast("scenario_step", {"step": "1", "desc": "Publishing escort messages before any queue exists..."})
         for i in range(3):
-            bus.publish_one("escort")
+            publish_one("escort")
             time.sleep(0.1)
         
         time.sleep(2)
@@ -52,7 +78,7 @@ def scenario_late_bind_escort(state: GameState, bus: BusClient, broadcast: Calla
         # 3. Publish more messages (these WILL be queued)
         broadcast("scenario_step", {"step": "3", "desc": "Publishing new escort messages (these will be queued)..."})
         for i in range(2):
-            bus.publish_one("escort")
+            publish_one("escort")
             time.sleep(0.1)
         
         time.sleep(2)
@@ -67,7 +93,7 @@ def scenario_late_bind_escort(state: GameState, bus: BusClient, broadcast: Calla
         # 5. Publish more messages (pile up as Ready)
         broadcast("scenario_step", {"step": "5", "desc": "More messages arrive while worker is paused..."})
         for i in range(2):
-            bus.publish_one("escort")
+            publish_one("escort")
             time.sleep(0.1)
         
         time.sleep(2)
@@ -81,7 +107,7 @@ def scenario_late_bind_escort(state: GameState, bus: BusClient, broadcast: Calla
     threading.Thread(target=run_scenario, daemon=True).start()
 
 
-def scenario_routing_comparison(state: GameState, bus: BusClient, broadcast: Callable, players) -> None:
+def scenario_routing_comparison(state: GameState, go_workers_client, broadcast: Callable, players) -> None:
     """
     Routing mode comparison scenario.
     
@@ -105,7 +131,7 @@ def scenario_routing_comparison(state: GameState, bus: BusClient, broadcast: Cal
     threading.Thread(target=run_scenario, daemon=True).start()
 
 
-NAME_TO_SCENARIO: Dict[str, Callable[[GameState, BusClient, Callable, dict], None]] = {
+NAME_TO_SCENARIO: Dict[str, Callable[[GameState, object, Callable, dict], None]] = {
     "late_bind_escort": scenario_late_bind_escort,
     "routing_comparison": scenario_routing_comparison,
 }

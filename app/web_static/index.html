@@ -36,6 +36,9 @@
     /* Roster */
     .pill { padding: 8px 10px; border: 1px solid #2a3863; background: #0e162b; border-radius: 12px; margin: 4px; display: block; cursor: pointer; }
     .pill.selected { border-color: #6fe0a0; box-shadow: 0 0 0 1px #6fe0a0 inset; }
+    .pill.go-worker { border-left: 3px solid #00d4ff; }
+    .pill.python-worker { border-left: 3px solid #ffd43b; }  /* Kept for future Python support */
+    .type-badge { font-size: 12px; margin-left: 4px; }
     .dot { width:10px; height:10px; border-radius:50%; background:#4b4b4b; display:inline-block; }
     .dot.online { background:#2ecc71; }
     .dot.reconnecting { background:#f1c40f; }
@@ -114,6 +117,9 @@
   <header>
     <h1>🧭 Queue Quest</h1>
     <div style="display:flex; gap:8px; align-items:center">
+      <div id="worker-status" style="font-size:12px; padding:4px 8px; border-radius:6px; background:#1c2950; border:1px solid #32406a">
+        <span id="worker-mode">🚀 Go workers ready</span>
+      </div>
       <button id="help-btn">How it works</button>
       <button id="scores-btn">Leaderboard</button>
     </div>
@@ -324,12 +330,15 @@
       <div class="card" id="player-pane">
         <h3>Activity</h3>
         <canvas id="activity" width="300" height="80" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
-        <h3 style="margin-top:12px">Throughput <span class="muted" title="Lines show per-player completed count trend over time (not absolute rate). Colors map to players by legend below.">?</span></h3>
+        <h3 style="margin-top:12px">Throughput <button id="throughput-help" class="tiny-btn" style="margin-left:4px" title="Click for explanation">?</button></h3>
         <canvas id="throughput" width="300" height="100" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
         <div id="throughput-legend" class="muted" style="margin-top:6px; font-size:12px"></div>
         <h3 style="margin-top:12px">Roster</h3>
         <div id="roster"></div>
-        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Click a player pill to select; use the tiny buttons on each pill for Pause/Resume/Crash.</div>
+        <div class="muted" style="margin-top:6px; font-size:12px">
+          🚀 Go workers (blue border)<br>
+          Tip: Click a player pill to select; use the tiny buttons on each pill for Pause/Resume/Crash.
+        </div>
         <hr style="border-color:#1e2a4d; margin:10px 8px">
         <h3>Recruit 👥</h3>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">
@@ -526,11 +535,15 @@
         const wrk = meta.workers!=null ? meta.workers : 1;
         const spdTxt = spd.toFixed(2);
         const failTxt = (meta.fail_pct!=null ? meta.fail_pct : 0).toFixed(2);
-        const tip = `${name} — ${status}\nskills: ${(meta.skills||[]).join(',')}\nworkers: ${String(wrk).padStart(2,' ')}  speed: ${spdTxt}\naccepted: ${String(ps.accepted).padStart(3,' ')}  completed: ${String(ps.completed).padStart(3,' ')}  failed: ${String(ps.failed).padStart(3,' ')}\ninflight (unacked): ${String(ps.inflight).padStart(2,' ')}`;
+        const workerType = meta.type || 'go';  // Default to Go workers in Go-only system
+        const typeIcon = workerType === 'go' ? '🚀' : '🐍';
+        const typeLabel = workerType === 'go' ? 'Go' : 'Python';
+        const tip = `${name} — ${status} (${typeLabel})\nskills: ${(meta.skills||[]).join(',')}\nworkers: ${String(wrk).padStart(2,' ')}  speed: ${spdTxt}\naccepted: ${String(ps.accepted).padStart(3,' ')}  completed: ${String(ps.completed).padStart(3,' ')}  failed: ${String(ps.failed).padStart(3,' ')}\ninflight (unacked): ${String(ps.inflight).padStart(2,' ')}`;
         const skills = (meta.skills||[]).map(s=>`<span class='skill'>${s}</span>`).join(' ');
         const sel = (name===activePlayer)?' selected':'';
-        return `<span class="pill${sel}" data-name="${name}" title="${tip}">
-          <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
+        const typeClass = workerType === 'go' ? 'go-worker' : 'python-worker';
+        return `<span class="pill ${typeClass}${sel}" data-name="${name}" title="${tip}">
+          <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span class="type-badge">${typeIcon}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
           <div class="line2"><span class="stats">w${String(wrk).padStart(2,' ')} · s${spdTxt} · f${failTxt}</span>
             <span class="controls">
               <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Disconnect (real disconnect - stays offline)">⏸</button>
@@ -630,6 +643,71 @@
     function setStatus(el, label, cls){ const st=el.querySelector('.status'); if(st){ st.textContent=label; st.className = `status tag ${cls}`; } }
     function addTL(el, type, text){ const tl = el && el.querySelector('.tl'); if (!tl) return; const li = document.createElement('li'); const tag = document.createElement('span'); tag.className = `tag ${type}`; tag.textContent = type.toUpperCase(); const span = document.createElement('span'); span.textContent = ' ' + text; li.appendChild(tag); li.appendChild(span); tl.appendChild(li); }
     function addHist(id, ts, type, text){ historyByQuest[id] = historyByQuest[id]||[]; historyByQuest[id].push({ts,type,text}); }
+    
+    function addChaosTimelineEvent(player, eventType, description) {
+      console.log(`[CHAOS] Adding ${eventType} event for ${player}: ${description}`);
+      
+      // Find all quest cards that are assigned to this player (including completed ones)
+      // and add chaos events to their timelines if they were recently processed
+      let eventsAdded = 0;
+      for (const questId in quests) {
+        const quest = quests[questId];
+        // Check if this quest is assigned to the player
+        // For chaos events, we want to show them even on completed quests
+        // if they were involved in the chaos (recent processing)
+        if (quest.assigned_to === player) {
+          const questCard = document.querySelector(`[data-quest-id="${questId}"]`);
+          if (questCard) {
+            // For disconnect events, always add to any active quest by this player
+            // For reconnect events, add to any quest that was recently processed
+            let shouldAddEvent = false;
+            
+            if (eventType === 'disconnect') {
+              // Add disconnect to any quest assigned to this player (active or recently completed)
+              shouldAddEvent = true;
+            } else if (eventType === 'reconnect' || eventType === 'reconnect_failed') {
+              // Add reconnect events to quests that were recently processed (within last 30 seconds)
+              const now = Date.now() / 1000;
+              const recentThreshold = 30; // seconds
+              const history = historyByQuest[questId] || [];
+              const hasRecentActivity = history.some(h => (now - h.ts) < recentThreshold);
+              shouldAddEvent = hasRecentActivity || !quest.status.match(/completed|failed/i);
+            }
+            
+            if (shouldAddEvent) {
+              let emoji, text, className;
+              if (eventType === 'disconnect') {
+                emoji = '⚠️';
+                text = `CHAOS: ${player} disconnected`;
+                className = 'warn';
+              } else if (eventType === 'reconnect') {
+                emoji = '🔄';
+                text = `CHAOS: ${player} reconnected`;
+                className = 'ok';
+              } else if (eventType === 'reconnect_failed') {
+                emoji = '❌';
+                text = `CHAOS: ${player} reconnect failed`;
+                className = 'err';
+              }
+              
+              // Use the existing addTL function to add timeline entry
+              addTL(questCard, className, `${emoji} ${text}`);
+              
+              // Also add to history for persistence
+              const now = Date.now() / 1000;
+              addHist(questId, now, className, `${emoji} ${text}`);
+              eventsAdded++;
+              
+              console.log(`[CHAOS] Added ${eventType} to quest ${questId} timeline`);
+            }
+          } else {
+            console.log(`[CHAOS] Quest ${questId} assigned to ${player} but shouldAddEvent=false (status: ${quest.status})`);
+          }
+        }
+      }
+      console.log(`[CHAOS] Total chaos events added: ${eventsAdded}`);
+    }
+    
     function fmtTs(ts){ const d=new Date(ts*1000); return d.toLocaleTimeString(); }
     function openQuestModal(id, type){ const modal=document.getElementById('quest-modal'); const head=document.getElementById('qm-header'); const body=document.getElementById('qm-body'); head.textContent = `${id} (${type})`; const hist=historyByQuest[id]||[]; body.innerHTML = hist.map(h=>`[${fmtTs(h.ts)}] ${h.type.toUpperCase()} ${h.text}`).join('\n'); modal.classList.add('show'); }
     document.getElementById('qm-close').onclick=()=>document.getElementById('quest-modal').classList.remove('show');
@@ -650,11 +728,29 @@
       if (alice) alice.title = fmt('alice'); if (bob) bob.title = fmt('bob');
     }
 
+    // update worker status indicator in header
+    function updateWorkerStatus(msg) {
+      const workerModeEl = document.getElementById('worker-mode');
+      if (!workerModeEl) return;
+      
+      const roster = msg.roster || {};
+      
+      // Count workers (all Go workers in this system)
+      const workerCount = Object.keys(roster).length;
+      
+      if (workerCount > 0) {
+        workerModeEl.innerHTML = `🚀 Go workers (${workerCount})`;
+      } else {
+        workerModeEl.innerHTML = '🚀 Go workers ready';
+      }
+    }
+
     ws.onmessage = (ev) => {
       const msg = JSON.parse(ev.data);
       renderScores(msg); renderRoster(msg);
       updateQuickTitles(msg);
       updateChaosPlayerOptions(msg.roster);
+      updateWorkerStatus(msg);
       // aggregates per type
         if (msg.metrics && msg.metrics.per_type){
         const parts = [];
@@ -724,18 +820,17 @@
       } else if (msg.type === 'player_online') {
         const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'online'}; renderRoster({roster: rosterState});
         appendFeed('info', 'PLAYER', `${p.player} online`);
-        // push immediate activity update
-        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+        // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_reconnecting') {
         const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'reconnecting'}; renderRoster({roster: rosterState});
         appendFeed('warn', 'PLAYER', `${p.player} reconnecting`);
-        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+        // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_disconnected') {
         const p = msg.payload; 
         rosterState[p.player] = {...(rosterState[p.player]||{}), status:'disconnected'}; 
         renderRoster({roster: rosterState});
         appendFeed('err', 'PLAYER', `${p.player} CRASHED mid-processing (message will be redelivered)`);
-        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+        // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_accept') {
         const p = msg.payload; const q = ensureQuestCard(p); if (q.el){
           const whoEl = q.el.querySelector('.who');
@@ -790,7 +885,7 @@
       } else if (msg.type === 'roster') {
         // roster snapshot
         renderRoster(msg);
-        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+        // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'routing_mode') {
         const mode = (msg.payload&&msg.payload.mode) || msg.routing_mode || 'skill';
         setRoutingActive(mode);
@@ -835,6 +930,21 @@
       } else if (msg.type === 'scenario_complete') {
         const p = msg.payload;
         appendFeed('ok', 'SCENARIO', `Completed: ${p.name}`);
+      } else if (msg.type === 'chaos_disconnect') {
+        const p = msg.payload;
+        appendFeed('warn', 'CHAOS', `⚠️ ${p.player} disconnected: ${p.description}`);
+        // Add disconnect event to quest timeline if we have a current quest
+        addChaosTimelineEvent(p.player, 'disconnect', p.description);
+      } else if (msg.type === 'chaos_reconnect') {
+        const p = msg.payload;
+        appendFeed('ok', 'CHAOS', `🔄 ${p.player} reconnected: ${p.description}`);
+        // Add reconnect event to quest timeline if we have a current quest
+        addChaosTimelineEvent(p.player, 'reconnect', p.description);
+      } else if (msg.type === 'chaos_reconnect_failed') {
+        const p = msg.payload;
+        appendFeed('err', 'CHAOS', `❌ ${p.player} reconnect failed: ${p.description}`);
+        // Add failed reconnect event to quest timeline if we have a current quest
+        addChaosTimelineEvent(p.player, 'reconnect_failed', p.description);
       }
     };
 
@@ -972,6 +1082,19 @@
     const scoresModal = document.getElementById('scores-modal');
     document.getElementById('scores-btn').onclick = () => scoresModal.classList.add('show');
     document.getElementById('close-scores').onclick = () => scoresModal.classList.remove('show');
+    
+    // Throughput help toggle
+    document.getElementById('throughput-help').onclick = () => {
+      alert('Throughput Graph Explanation:\n\n' +
+            '• Shows per-player completion rate over time\n' +
+            '• Each line represents one worker/player\n' +
+            '• Y-axis: Number of quests completed per time period\n' +
+            '• X-axis: Time progression (60 data points)\n' +
+            '• Colors match the player legend below\n' +
+            '• Higher peaks = faster completion rate\n' +
+            '• This is NOT absolute rate, but trend over time');
+    };
+    
     document.getElementById('toggle-quests').onclick = () => {
       const ds = document.querySelectorAll('details');
       const anyOpen = Array.from(ds).some(d => d.open);
@@ -1178,10 +1301,26 @@
         }
       };
     });
-    // Reset app
+    // Reset app - Hard Reset
     document.getElementById('reset-app').onclick = async () => {
-      await fetch('/api/reset', { method:'POST' });
-      appendFeed('warn','RESET','App state cleared');
+      if (confirm('Hard Reset: Stop all workers, clear cache, and reload UI?')) {
+        const response = await fetch('/api/reset', { method:'POST' });
+        const result = await response.json();
+        appendFeed('warn','RESET', result.message || 'Hard reset completed');
+        
+        // Clear local UI state
+        quests = {};
+        rosterState = {};
+        act.ts = []; act.online = [];
+        thr.ts = []; thr.perPlayer = {}; thr.colors = {};
+        
+        // Clear displays
+        document.getElementById('quest-list').innerHTML = '';
+        document.getElementById('roster').innerHTML = '<div class="muted">No players yet</div>';
+        
+        // Force reload after a moment
+        setTimeout(() => window.location.reload(), 1000);
+      }
     };
     // Enhanced Chaos System
     let chaosConfig = { enabled: false };

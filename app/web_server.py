@@ -13,8 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from app.state import GameState
 
-from app.event_bus import RabbitEventBus, EXCHANGE_NAME, build_message
-from app.bus import BusClient
+# Go workers integration (mandatory)
+from app.go_workers import GoWorkersClient, create_go_workers_router
+from app.rabbitmq_utils import RabbitEventBus, EXCHANGE_NAME, build_message, publish_wave
 from app import scenarios
 from dotenv import load_dotenv
 
@@ -120,7 +121,9 @@ def save_state():
         }
         with open(STATE_CACHE_FILE, "wb") as f:
             pickle.dump(state_data, f)
-        print(f"State saved: {len(roster)} players")
+        # Count active Go workers instead of old roster
+        active_workers = len(go_workers_client.roster) if go_workers_client.enabled else 0
+        print(f"State saved: {active_workers} active Go workers, {len(roster)} cached players")
     except Exception as e:
         print(f"Failed to save state: {e}")
 
@@ -192,6 +195,39 @@ if load_state():
 else:
     print("🔄 Starting with fresh state")
 
+# Go workers integration (mandatory)
+GO_WORKERS_URL = os.getenv("GO_WORKERS_URL", "http://localhost:8001")
+go_workers_client = GoWorkersClient(GO_WORKERS_URL)
+print(f"🚀 Go workers system initialized (server: {GO_WORKERS_URL})")
+
+def create_go_worker(name: str, skills: List[str], speed: float = 1.0, workers: int = 1, fail_pct: float = 0.1) -> bool:
+    """Adapter function to create Go workers with Python worker interface."""
+    success = go_workers_client.create_worker(name, skills, speed, fail_pct, workers)
+    if success:
+        # Ensure the worker is broadcast immediately
+        broadcast("roster", {})
+    return success
+
+def delete_go_worker(name: str) -> bool:
+    """Adapter function to delete Go workers."""
+    success = go_workers_client.delete_worker(name)
+    if success:
+        # Remove from main roster if it exists there
+        if name in roster:
+            del roster[name]
+        broadcast("roster", {})
+    return success
+
+def control_go_worker(name: str, action: str) -> bool:
+    """Adapter function to control Go workers."""
+    success = go_workers_client.control_worker(name, action)
+    if success:
+        broadcast("roster", {})
+    return success
+
+# Alias for backward compatibility
+start_player_thread = create_go_worker
+
 ENABLE_SCOREBOARD_CONSUMER = os.getenv("ENABLE_SCOREBOARD_CONSUMER", "1") not in {"0", "false", "False"}
 RETRY_SEC = float(os.getenv("RABBITMQ_RETRY_SEC", "2.0"))
 
@@ -203,7 +239,7 @@ if CARD_GAME_ENABLED:
         game_state=None,  # Will be set after STATE is defined
         players_dict=roster,
         skill_ttl_dict=skill_ttl_ms,
-        start_player_fn=None  # Will be set after start_player_thread is defined
+        start_player_fn=create_go_worker  # Use Go workers instead of Python threading
     )
 
 
@@ -213,6 +249,11 @@ if CARD_GAME_ENABLED:
 def broadcast(type_: str, payload: dict):
     if broadcaster:
         snap_metrics = STATE.snapshot()
+        # Refresh Go workers status to ensure roster is current
+        go_workers_client.get_status()
+        # Use Go workers roster
+        roster = go_workers_client.roster
+        
         snap = {
             "type": type_,
             "payload": payload,
@@ -223,9 +264,15 @@ def broadcast(type_: str, payload: dict):
             "routing_mode": routing_mode,
             "metrics": snap_metrics.get("metrics", {}),
             "player_stats": snap_metrics.get("player_stats", {}),
+            "go_workers_enabled": go_workers_client.enabled,
         }
         broadcaster.broadcast_threadsafe(snap)
 
+
+# Add Go workers router after broadcast is defined
+go_workers_router = create_go_workers_router(go_workers_client, broadcast)
+app.include_router(go_workers_router)
+print("🔗 Go workers API endpoints enabled")
 
 # Initialize card game dependencies after broadcast is defined
 if card_game:
@@ -255,6 +302,7 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
         event_stage = payload.get("event_stage", "")
         player = payload.get("player") or ""
         points = int(payload.get("points", 0))
+        source = payload.get("source", "")
 
         global unroutable
         if event_stage.endswith("COMPLETED"):
@@ -270,7 +318,12 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
                     broadcast("unroutable_updated", {"count": len(unroutable)})
                 except Exception:
                     pass
-            evt_type = "result_done"
+            # Skip timeline broadcast for Go workers - webhook already handles it
+            # This prevents duplicate timeline entries
+            if not source.startswith("go-worker"):
+                evt_type = "result_done"
+            else:
+                evt_type = None  # Don't broadcast timeline event
         elif event_stage.endswith("FAILED"):
             cid = payload.get("case_id")
             if cid and cid not in processed_results and player:
@@ -282,7 +335,12 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
                     broadcast("unroutable_updated", {"count": len(unroutable)})
                 except Exception:
                     pass
-            evt_type = "result_fail"
+            # Skip timeline broadcast for Go workers - webhook already handles it
+            # This prevents duplicate timeline entries
+            if not source.startswith("go-worker"):
+                evt_type = "result_fail"
+            else:
+                evt_type = None  # Don't broadcast timeline event
         elif event_stage == "QUEST_ISSUED":
             # Ignore "issued" here to prevent late duplicates after a quest
             # is already completed/failed. The publisher already broadcasts
@@ -292,7 +350,9 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
         else:
             evt_type = "event"
 
-        broadcast(evt_type, payload)
+        # Only broadcast if we have an event type (prevents duplicates for Go workers)
+        if evt_type:
+            broadcast(evt_type, payload)
         ack()
 
     try:
@@ -339,408 +399,10 @@ def real_disconnect_player(player: str, auto_reconnect_delay: float = 0):
         threading.Thread(target=auto_reconnect, daemon=True).start()
 
 
+# Go-only worker system - old Python worker function removed
 def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_multiplier: float = 1.0, workers: int = 1):
-    # Initialize card game start_player reference
-    if card_game and not card_game.start_player:
-        card_game.start_player = start_player_thread
-    
-    def run(worker_id: int = 0):
-        thread_name = f"{player}-w{worker_id}"
-        # allow re-adding a previously deleted player name
-        try:
-            shutting_down.discard(player)
-        except Exception:
-            pass
-        queue_name = f"game.player.{player}.q"
-        # ensure registry and controls
-        controls = players.setdefault(player, {}).setdefault("controls", {"paused": False, "next_action": None, "shutdown": False})
-        def should_shutdown():
-            """Check if this worker should shut down"""
-            try:
-                return (player in shutting_down or 
-                        players.get(player, {}).get("controls", {}).get("shutdown", False))
-            except Exception:
-                return True
-        
-        # Track this worker thread (after controls are set up)
-        # Temporarily disabled for debugging
-        # try:
-        #     players[player].setdefault("threads", set()).add(thread_name)
-        # except Exception:
-        #     pass
-        
-        while True:
-            try:
-                if should_shutdown():
-                    # Clean shutdown
-                    try:
-                        roster[player] = {**roster.get(player, {}), "status": "offline"}
-                        broadcast("roster", {})
-                    except Exception:
-                        pass
-                    return
-                
-                # If paused, stay disconnected and sleep
-                if controls.get("paused"):
-                    roster[player] = {**roster.get(player, {}), "status": "disconnected"}
-                    broadcast("roster", {})
-                    time.sleep(1.0)  # Sleep and check again
-                    continue
-                    
-            except Exception:
-                return
-            # connect with retry
-            bus: RabbitEventBus | None = None
-            while bus is None:
-                try:
-                    bus = RabbitEventBus()
-                except Exception:
-                    time.sleep(RETRY_SEC)
-
-            # declarations
-            try:
-                pref = int(roster.get(player, {}).get("prefetch", 1))
-                pref = max(1, min(100, pref))
-                bus.ch.basic_qos(prefetch_count=pref)
-                if routing_mode == "player":
-                    # each player gets a copy; will skip non-skilled
-                    bus.ch.queue_declare(queue=queue_name, durable=True, auto_delete=False)
-                    bus.ch.queue_bind(queue=queue_name, exchange=EXCHANGE_NAME, routing_key="game.quest.*")
-                else:
-                    # shared per-skill queues; consume only skills
-                    for sk in skills:
-                        qn = f"game.skill.{sk}.q"
-                        bus.ch.queue_declare(queue=qn, durable=True, auto_delete=False)
-                        bus.ch.queue_bind(queue=qn, exchange=EXCHANGE_NAME, routing_key=f"game.quest.{sk}")
-                # publish presence
-                roster[player] = {**roster.get(player, {}), "status": "online"}
-                players[player]["bus"] = bus
-                broadcast("player_online", {"player": player})
-                # Save state when player comes online
-                save_state()
-            except Exception:
-                # If we're shutting down this worker, mark offline and exit quietly
-                if player in shutting_down or controls.get("shutdown"):
-                    try:
-                        roster[player] = {**roster.get(player, {}), "status": "offline"}
-                        broadcast("roster", {})
-                    except Exception:
-                        pass
-                    try:
-                        bus.close()
-                    except Exception:
-                        pass
-                    return
-                try:
-                    bus.close()
-                except Exception:
-                    pass
-                time.sleep(RETRY_SEC)
-                continue
-
-            def on_msg(ch, method, props, body):
-                payload = json.loads(body.decode("utf-8"))
-                quest_type = payload.get("quest_type")
-                difficulty = payload.get("difficulty", "medium")
-                work_sec = float(payload.get("work_sec", 2.0))
-                points = int(payload.get("points", 5))
-                quest_id = payload.get("case_id")
-
-                # pause handling: immediately requeue to avoid tight loops
-                if controls.get("paused"):
-                    ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-                    # Don't broadcast reconnecting when paused - just return
-                    time.sleep(0.2)
-                    return
-
-                import random as _rand
-                # chaos skipping
-                if (roster.get(player, {}).get("skip_rate", 0.0) or 0.0) > 0 and _rand.random() < float(roster[player].get("skip_rate", 0.0)):
-                    key = (player, quest_id)
-                    if key not in skip_logged:
-                        skip_logged.add(key)
-                        broadcast("player_skip", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
-                    ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-                    return
-
-                if routing_mode == "player" and quest_type not in skills:
-                    # log skip once per (player, quest)
-                    key = (player, quest_id)
-                    if key not in skip_logged:
-                        skip_logged.add(key)
-                        broadcast("player_skip", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
-                    ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-                    return
-
-                broadcast("player_accept", {
-                    "player": player,
-                    "quest_id": quest_id,
-                    "quest_type": quest_type,
-                    "difficulty": difficulty,
-                    "work_sec": work_sec * max(0.05, speed_multiplier),
-                    "points": points,
-                })
-                STATE.record_accepted(
-                    quest_id=quest_id,
-                    quest_type=quest_type,
-                    player=player,
-                    work_sec=work_sec * max(0.05, speed_multiplier),
-                )
-                # remember current inflight so unexpected crash can be logged
-                players.setdefault(player, {}).setdefault("runtime", {})["last_inflight"] = quest_id
-
-                # Enhanced chaos action system
-                chaos_action = None
-                
-                # Check per-player action first
-                if controls.get("next_action"):
-                    chaos_action = controls["next_action"]
-                    controls["next_action"] = None
-                # Check global chaos config
-                elif chaos_config["enabled"]:
-                    # Check if this message matches chaos target criteria
-                    target_player = chaos_config.get("target_player")
-                    target_quest_type = chaos_config.get("target_quest_type")
-                    
-                    player_matches = target_player is None or target_player == player
-                    quest_matches = target_quest_type is None or target_quest_type == quest_type
-                    
-                    if player_matches and quest_matches:
-                        chaos_action = chaos_config["action"]
-                        # Disable chaos after use (one-shot)
-                        chaos_config["enabled"] = False
-                        broadcast("chaos_triggered", {
-                            "action": chaos_action,
-                            "player": player,
-                            "quest_type": quest_type,
-                            "quest_id": quest_id
-                        })
-
-                if chaos_action:
-                    if chaos_action == "drop":
-                        # Real disconnect using shared function
-                        broadcast("msg_drop", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
-                        STATE.record_drop(player, quest_id, quest_type)
-                        real_disconnect_player(player, auto_reconnect_delay=3.0)
-                        return
-                    elif chaos_action == "requeue":
-                        broadcast("msg_requeue", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
-                        STATE.record_requeue(player, quest_id, quest_type)
-                        try:
-                            inflight_by_player.get(player, set()).discard(quest_id)
-                        except Exception:
-                            pass
-                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-                        return
-                    elif chaos_action == "dlq":
-                        broadcast("msg_dlq", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
-                        STATE.record_dlq(player, quest_id, quest_type)
-                        try:
-                            inflight_by_player.get(player, set()).discard(quest_id)
-                        except Exception:
-                            pass
-                        # record in in-memory DLQ
-                        try:
-                            dlq_messages.append({
-                                "quest_id": quest_id,
-                                "quest_type": quest_type,
-                                "player": player,
-                                "ts": time.time(),
-                            })
-                        except Exception:
-                            pass
-                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-                        return
-                    elif chaos_action == "fail_early":
-                        done_stage = "QUEST_FAILED"; status = "FAILED"; rk_suffix = "fail"
-                        result = build_message(
-                            case_id=quest_id,
-                            event_stage=done_stage,
-                            status=status,
-                            source=f"player:{player}",
-                            extra={
-                                "quest_type": quest_type,
-                                "difficulty": difficulty,
-                                "points": points,
-                                "player": player,
-                            },
-                        )
-                        try:
-                            bus.publish(f"game.quest.{quest_type}.{rk_suffix}", result)
-                        except Exception:
-                            pass
-                        # update scoreboard locally as well
-                        fails[player] = fails.get(player, 0) + 1
-                        broadcast("result_fail", result)
-                        ch.basic_ack(delivery_tag=method.delivery_tag)
-                        return
-                    elif chaos_action == "disconnect":
-                        # Disconnect player entirely
-                        roster[player] = {**roster.get(player, {}), "status": "offline"}
-                        broadcast("player_disconnect", {"player": player, "quest_id": quest_id})
-                        try:
-                            bus.conn.close()
-                        except Exception:
-                            pass
-                        return
-                    elif chaos_action == "pause":
-                        # Pause player for a short time
-                        controls["paused"] = True
-                        broadcast("player_pause", {"player": player, "quest_id": quest_id})
-                        # Auto-resume after 5 seconds
-                        threading.Timer(5.0, lambda: controls.update({"paused": False})).start()
-                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-                        return
-
-                # Work (scaled by speed multiplier; smaller is faster)
-                time.sleep(work_sec * max(0.05, speed_multiplier))
-                # chaos drop after work
-                if (roster.get(player, {}).get("drop_rate", 0.0) or 0.0) > 0 and _rand.random() < float(roster[player].get("drop_rate", 0.0)):
-                    STATE.record_drop(player, quest_id, quest_type)
-                    broadcast("msg_drop", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
-                    try:
-                        bus.conn.close()
-                    except Exception:
-                        pass
-                    return
-                # Determine outcome
-                import random
-                if random.random() < fail_pct:
-                    done_stage = "QUEST_FAILED"
-                    status = "FAILED"
-                    rk_suffix = "fail"
-                else:
-                    done_stage = "QUEST_COMPLETED"
-                    status = "SUCCESS"
-                    rk_suffix = "done"
-
-                result = build_message(
-                    case_id=quest_id,
-                    event_stage=done_stage,
-                    status=status,
-                    source=f"player:{player}",
-                    extra={
-                        "quest_type": quest_type,
-                        "difficulty": difficulty,
-                        "points": points,
-                        "player": player,
-                    },
-                )
-                try:
-                    bus.publish(f"game.quest.{quest_type}.{rk_suffix}", result)
-                except Exception:
-                    pass
-                # Result handling: if internal scoreboard consumer is disabled, update state locally;
-                # otherwise rely on the consumer to drive UI and tallies.
-                if not ENABLE_SCOREBOARD_CONSUMER:
-                    if status == "SUCCESS":
-                        scoreboard[player] = scoreboard.get(player, 0) + points
-                        STATE.record_done(player, result.get("case_id"), quest_type)
-                        broadcast("result_done", result)
-                    else:
-                        fails[player] = fails.get(player, 0) + 1
-                        STATE.record_fail(player, result.get("case_id"), quest_type)
-                        broadcast("result_fail", result)
-                    # prune any stale unroutable for this id
-                    try:
-                        from app.web_server import unroutable as _u
-                        _u[:] = [u for u in _u if (u.get("payload", {}).get("case_id") != result.get("case_id"))]
-                        broadcast("unroutable_updated", {"count": len(_u)})
-                    except Exception:
-                        pass
-                # Always clear inflight locally
-                try:
-                    inflight_by_player.get(player, set()).discard(result.get("case_id"))
-                except Exception:
-                    pass
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-
-            try:
-                if routing_mode == "player":
-                    bus.ch.basic_consume(queue=queue_name, on_message_callback=on_msg, auto_ack=False)
-                else:
-                    # consume from each skill queue
-                    for sk in skills:
-                        qn = f"game.skill.{sk}.q"
-                        bus.ch.basic_consume(queue=qn, on_message_callback=on_msg, auto_ack=False)
-                        
-                # Consuming loop with shutdown checks
-                while not should_shutdown():
-                    try:
-                        bus.conn.process_data_events(time_limit=1.0)  # 1 second timeout
-                    except Exception:
-                        break
-                        
-                # Clean shutdown of consumer
-                try:
-                    bus.ch.stop_consuming()
-                except Exception:
-                    pass
-                    
-            except Exception:
-                # Check if this is a deliberate shutdown
-                if should_shutdown():
-                    try:
-                        roster[player] = {**roster.get(player, {}), "status": "offline"}
-                        if player in players:
-                            players[player].get("threads", set()).discard(thread_name)
-                            if not players[player].get("threads"):
-                                players.pop(player, None)
-                        broadcast("roster", {})
-                    except Exception:
-                        pass
-                    try:
-                        if bus:
-                            try:
-                                bus.ch.stop_consuming()
-                            except Exception:
-                                pass
-                            bus.close()
-                    except Exception:
-                        pass
-                    return
-                # Check if player is paused - if so, don't auto-reconnect
-                if players.get(player, {}).get("controls", {}).get("paused", False):
-                    roster[player] = {**roster.get(player, {}), "status": "disconnected"}
-                    if player in players:
-                        try:
-                            players[player]["bus"] = None
-                        except Exception:
-                            pass
-                    # Don't broadcast reconnecting if paused - stay disconnected
-                    broadcast("roster", {})
-                    return
-                
-                roster[player] = {**roster.get(player, {}), "status": "reconnecting"}
-                if player in players:
-                    try:
-                        players[player]["bus"] = None
-                    except Exception:
-                        pass
-                broadcast("player_reconnecting", {"player": player})
-                # If there was an inflight quest, mark as dropped and pending again for accurate timeline/KPI
-                try:
-                    last_q = players.get(player, {}).get("runtime", {}).get("last_inflight")
-                    if last_q:
-                        qtype = quests_state.get(last_q, {}).get("quest_type", "gather")
-                        broadcast("msg_drop", {"player": player, "quest_id": last_q, "quest_type": qtype})
-                        STATE.record_drop(player, last_q, qtype)
-                        players[player]["runtime"]["last_inflight"] = None
-                except Exception:
-                    pass
-                try:
-                    bus.close()
-                except Exception:
-                    pass
-                time.sleep(RETRY_SEC)
-                continue
-
-    # Launch multiple worker threads (each holds its own connection/channel)
-    for worker_id in range(workers):
-        t = threading.Thread(target=lambda wid=worker_id: run(wid), daemon=True, 
-                           name=f"{player}-worker-{worker_id}")
-        t.start()
-
+    """Legacy function redirected to Go workers."""
+    return create_go_worker(name=player, skills=skills, speed=speed_multiplier, fail_pct=fail_pct, workers=workers)
 
 def run_master_once(count: int, delay: float, fixed_type: Optional[str] = None):
     # Retry connection
@@ -1185,7 +847,7 @@ async def api_scenario_run(req: ScenarioRequest):
 
     if req.name in scenarios.NAME_TO_SCENARIO:
         threading.Thread(
-            target=lambda: scenarios.NAME_TO_SCENARIO[req.name](STATE, BusClient(), broadcast, players),
+            target=lambda: scenarios.NAME_TO_SCENARIO[req.name](STATE, go_workers_client, broadcast, players),
             daemon=True,
         ).start()
         return {"ok": True}
@@ -1197,7 +859,7 @@ async def api_scenario_run(req: ScenarioRequest):
         global routing_mode
         routing_mode = "player"
         broadcast("routing_mode", {"mode": routing_mode})
-        threading.Thread(target=lambda: BusClient().publish_wave(1, 0.1, fixed_type="slay"), daemon=True).start()
+        threading.Thread(target=lambda: publish_wave(1, 0.1, fixed_type="slay"), daemon=True).start()
         return {"ok": True}
     if req.name == "both_complete":
         # Player-based. Start two temporary fast players on the same skill so both complete their copies.
@@ -1211,12 +873,12 @@ async def api_scenario_run(req: ScenarioRequest):
             start_player_thread("temp2", ["slay"], 0.0, 0.5, 1)
             roster["temp2"] = {"skills": ["slay"], "fail_pct": 0.0, "speed_multiplier": 0.5, "workers": 1}
         broadcast("roster", {})
-        threading.Thread(target=lambda: BusClient().publish_wave(1, 0.1, fixed_type="slay"), daemon=True).start()
+        threading.Thread(target=lambda: publish_wave(1, 0.1, fixed_type="slay"), daemon=True).start()
         return {"ok": True}
     if req.name == "dlq_poison":
         # Back-compat passthrough; scenarios handler also handles this
         players.setdefault("alice", {}).setdefault("controls", {})["next_action"] = "dlq"
-        threading.Thread(target=lambda: BusClient().publish_wave(1, 0.1, fixed_type="gather"), daemon=True).start()
+        threading.Thread(target=lambda: publish_wave(1, 0.1, fixed_type="gather"), daemon=True).start()
         return {"ok": True}
     return {"ok": False, "error": "unknown scenario"}
 
@@ -1402,17 +1064,36 @@ async def api_reset():
         roster.clear() 
         players.clear()
         shutting_down.clear()
+        
+        # Step 4: Stop all Go workers
+        if go_workers_client.enabled:
+            try:
+                # Get all workers and stop them
+                status = go_workers_client.get_status()
+                if status.get("workers", 0) > 0:
+                    # Stop each worker individually  
+                    for worker_name in list(go_workers_client.roster.keys()):
+                        go_workers_client.delete_worker(worker_name)
+                # Clear Go workers roster
+                go_workers_client.roster.clear()
+            except Exception as e:
+                print(f"Error stopping Go workers during reset: {e}")
+        
         broadcast("roster", {})
     except Exception:
         pass
+    
+    # Clear all game state
     scoreboard.clear(); fails.clear(); quests_state.clear(); player_stats.clear()
     processed_results.clear(); skip_logged.clear(); inflight_by_player.clear(); dlq_messages.clear(); unroutable.clear()
-    broadcast("reset", {})
     
-    # Clear state cache on reset
+    # Hard reset: clear state cache and reload fresh
     clear_state_cache()
     
-    return {"ok": True}
+    # Force UI refresh
+    broadcast("reset", {"hard_reset": True})
+    
+    return {"ok": True, "message": "Hard reset completed - all workers stopped, cache cleared"}
 
 
 # State persistence endpoints
@@ -1744,6 +1425,8 @@ def heartbeat_thread(loop: asyncio.AbstractEventLoop):
 @app.get("/api/health")
 async def api_health():
     return {"ok": True}
+
+# Debug endpoint removed - roster synchronization fixed
 
 
 # Card Game API Endpoints (pluggable)
