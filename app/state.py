@@ -73,17 +73,26 @@ class GameState:
         st["failed"] = st.get("failed", 0) + 1
         self.inflight_by_player.get(player, set()).discard(quest_id)
 
+    def record_expired(self, quest_id: str, quest_type: str) -> None:
+        q = self.quests_state.setdefault(quest_id, {"quest_type": quest_type})
+        q.update({"status": "expired", "expired_at": time.time()})
+
+    def record_unroutable(self, quest_id: str, quest_type: str) -> None:
+        q = self.quests_state.setdefault(quest_id, {"quest_type": quest_type})
+        q.update({"status": "unroutable", "unroutable_at": time.time()})
+
     # Metrics snapshot
     def snapshot(self) -> Dict:
         per_type: Dict[str, Dict[str, int]] = {}
         for q in self.quests_state.values():
             qt = q.get("quest_type", "?")
-            per_type.setdefault(qt, {"pending": 0, "accepted": 0, "completed": 0, "failed": 0})
+            per_type.setdefault(qt, {"pending": 0, "accepted": 0, "completed": 0, "failed": 0, "expired": 0})
             st = q.get("status", "pending")
             key = "accepted" if st == "accepted" else st
             if key in per_type[qt]:
                 per_type[qt][key] += 1
         total_pending = sum(m.get("pending", 0) for m in per_type.values())
+        total_expired = sum(m.get("expired", 0) for m in per_type.values())
         # enrich player stats with inflight
         enriched_players: Dict[str, Dict] = {}
         for p in self.roster.keys():
@@ -91,6 +100,6 @@ class GameState:
             infl = len(self.inflight_by_player.get(p, set()))
             enriched_players[p] = {**base, "inflight": infl}
         return {
-            "metrics": {"per_type": per_type, "total_pending": total_pending},
+            "metrics": {"per_type": per_type, "total_pending": total_pending, "total_expired": total_expired},
             "player_stats": enriched_players,
         }

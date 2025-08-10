@@ -23,16 +23,59 @@ class RabbitEventBus:
         self.conn = pika.BlockingConnection(params)
         self.ch = self.conn.channel()
         # durable exchange so it sticks around for demos; queues can be non-durable
-        self.ch.exchange_declare(exchange=EXCHANGE_NAME, exchange_type=EXCHANGE_TYPE, durable=True)
+        try:
+            self.ch.exchange_declare(exchange=EXCHANGE_NAME, exchange_type=EXCHANGE_TYPE, durable=True)
+        except Exception:
+            pass
+        self._return_callbacks = []
+        try:
+            self.ch.add_on_return_callback(self._on_return)
+        except Exception:
+            pass
 
-    def publish(self, routing_key, payload: dict):
+    def _on_return(self, ch, method, properties, body):
+        try:
+            p = json.loads(body.decode("utf-8"))
+        except Exception:
+            p = {"raw": body.decode("utf-8", errors="ignore")}
+        info = {
+            "payload": p,
+            "routing_key": getattr(method, "routing_key", None),
+            "exchange": getattr(method, "exchange", EXCHANGE_NAME),
+            "reply_code": getattr(method, "reply_code", None),
+            "reply_text": getattr(method, "reply_text", None),
+        }
+        for cb in list(self._return_callbacks):
+            try:
+                cb(info)
+            except Exception:
+                pass
+
+    def publish(self, routing_key, payload: dict, on_unroutable=None):
         body = json.dumps(payload).encode("utf-8")
-        self.ch.basic_publish(
-            exchange=EXCHANGE_NAME,
-            routing_key=routing_key,
-            body=body,
-            properties=pika.BasicProperties(content_type="application/json")
-        )
+        if on_unroutable:
+            self._return_callbacks.append(on_unroutable)
+        try:
+            self.ch.basic_publish(
+                exchange=EXCHANGE_NAME,
+                routing_key=routing_key,
+                body=body,
+                mandatory=True,
+                properties=pika.BasicProperties(content_type="application/json")
+            )
+            # For BlockingConnection, returned messages are delivered via process_data_events
+            if on_unroutable:
+                try:
+                    # give the broker time to deliver basic.return
+                    self.conn.process_data_events(time_limit=1.0)
+                except Exception:
+                    pass
+        finally:
+            if on_unroutable and on_unroutable in self._return_callbacks:
+                try:
+                    self._return_callbacks.remove(on_unroutable)
+                except ValueError:
+                    pass
 
     def declare_queue(self, queue_name, routing_key):
         # non-durable, auto-delete queue for easy demos

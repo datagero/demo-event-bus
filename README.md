@@ -1,6 +1,6 @@
-RabbitMQ learning app (topic exchange, routing keys, per-product queues, and "*.done" results)
+RabbitMQ learning app (Queue Quest)
 
-Setup with uv
+Setup
 
 ```bash
 uv venv .venv
@@ -16,7 +16,7 @@ docker compose up -d
 
 RabbitMQ UI: [http://localhost:15672](http://localhost:15672) (guest/guest)
 
-Run demos
+CLI demos (optional)
 
 - Consumer (listens to `rte.retrieve.orders` on queue `demo.orders.q`):
   ```bash
@@ -42,7 +42,7 @@ export RTE_EXCHANGE=my.exchange
 export RABBITMQ_URL=amqp://user:pass@localhost:5672/%2F
 ```
 
-Interactive demos
+Interactive demos (optional)
 
 - Slow processing (visualize Ready vs Unacked):
   ```bash
@@ -69,7 +69,10 @@ Interactive demos
 
 Tips
 
-- If you see `ModuleNotFoundError: No module named 'app'`, run with `PYTHONPATH=.` as shown above.
+- If RabbitMQ UI says port busy, run `scripts/teardown.sh`.
+- If Python can't import `app.*`, prefix commands with `PYTHONPATH=.`.
+- Copy `.env.example` to `.env` and adjust if you need non-default RabbitMQ creds or API URL.
+- New endpoints: `POST /api/chaos/arm`, `GET /api/chaos/state`, `GET /api/messages?status=pending|failed|dlq`, `POST /api/player/update`.
 - To change volume of burst messages: `COUNT=50 SLEEP=0`.
 - To purge a demo queue from UI: Queues -> select queue -> Purge.
 
@@ -77,7 +80,22 @@ Queue Quest (gamified learning)
 
 A tiny game built on RabbitMQ topics. The game master publishes quests; players accept and complete or fail them; a scoreboard tallies points in real time.
 
-Terminals needed: open 3+ terminals.
+Quickstart (web UI)
+
+1) Ensure RabbitMQ is running (compose up)
+2) Start the web server
+   ```bash
+   PYTHONPATH=. uvicorn app.web_server:app --reload --port 8000
+   ```
+3) Open http://localhost:8000
+4) Use Quick Play → Quick Start to recruit Alice+Bob and start a wave, or recruit from Recruit pane
+
+Keyboard shortcuts
+- w: start wave with current parameters
+- q: Quick Start (Alice+Bob + wave)
+- 1/2/3: send one gather/slay/escort
+- p/f/d: open Pending/Failed/DLQ tabs
+- x: cycle/arm Chaos mode (drop → requeue → dlq → fail_early)
 
 1) Scoreboard (Terminal A)
 ```bash
@@ -100,12 +118,12 @@ PYTHONPATH=. PLAYER=bob SKILLS=escort FAIL_PCT=0.1 python scripts/game_player.py
 PYTHONPATH=. COUNT=20 DELAY=0.1 python scripts/game_master.py
 ```
 
-What to watch in the UI
+What to watch in RabbitMQ UI
 - Exchanges → `rte.topic` → bindings for `game.quest.*`
 - Queues → `game.player.alice.q`, `game.player.bob.q`, `game.scoreboard.q`
 - See Ready/Unacked on player queues while they work (`prefetch=1`), and result events flowing to the scoreboard queue
 
-Tweak the game
+Tweak the game (CLI mode)
 - Change skills: `SKILLS=slay` or `SKILLS=gather,escort`
 - Change failure rate: `FAIL_PCT=0.5`
 - Adjust quest volume/speed: `COUNT=100 DELAY=0`
@@ -135,7 +153,56 @@ Open: http://localhost:8000
 - Watch live events and scoreboard on the right
 - Keep RabbitMQ running: `docker compose up -d`
 
-Event-driven scenarios (narrative)
+How it works (game narrative)
+
+Core loop
+- Game master publishes quests to topic `game.quest.<type>` with difficulty/weight/points
+- Players consume quests from shared per-skill queues (skill mode) or one queue per player (player mode)
+- Players accept or skip; accepted quests are Unacked until ack; results publish to `game.quest.<type>.done|fail`
+- Scoreboard subscribes to results and totals points
+
+Key concepts
+- Ready vs Unacked: Ready (queued); Unacked (delivered/processing until ack). On crash before ack → back to Ready
+- Prefetch: limits parallel messages in-flight per consumer; set per-player to visualize contention
+- Routing modes: Skill-based (single delivery fairness) vs Player-based (fanout duplicates)
+- DLQ: NACK requeue=false sends to DLQ for investigation; requeue/purge from Messages panel
+
+Scenarios (deterministic)
+- Redelivery: simulate disconnect before ack → message returns to Ready → redelivered
+- Requeue: NACK requeue=true → immediately back to Ready
+- Duplicate / Both complete: use player-based routing to show each player gets/finishes their own copy
+- DLQ poison: send a bad message to DLQ
+
+Late-bind escort (backlog handoff)
+
+This scenario demonstrates what happens when messages are published before a queue exists, and how a shared skill queue enables handoff between workers.
+
+Steps
+0) Reset state (clears UI metrics; players may keep running)
+1) Publish escort quests while no escort queue exists → they are unroutable and dropped by the broker
+2) Bob arrives and declares/binds `game.skill.escort.q` → starts consuming
+3) Publish more escort quests → these are now queued and processed
+4) Pause Bob → publish more → messages pile up as Ready in the escort queue
+5) Dave arrives (also escort) → consumes from the same queue, draining the backlog and new messages
+
+Why the early messages were lost
+- In skill-based routing we bind a single shared queue per skill (e.g., `game.skill.escort.q`). If the queue does not exist yet and no binding for `game.quest.escort` is present, RabbitMQ drops the published messages by default (no alternate-exchange/mandatory flag).
+- Once the first escort consumer declares/binds the queue, new messages are routed there and can be consumed by any worker for that skill. Pausing one worker simply builds a Ready backlog which another worker can drain later.
+
+Run it
+- From the UI: Scenarios → “Late-bind escort (backlog handoff)”
+- Via API:
+  ```bash
+  curl -s -X POST localhost:8000/api/scenario/run \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"late_bind_escort"}'
+  ```
+
+Optional: make “unroutable” visible
+- If you want to see the early messages instead of dropping them, configure an alternate exchange (AE) on `rte.topic` and bind `unroutable.q` to that AE. Then you can inspect or replay from there.
+  - In RabbitMQ UI: Exchanges → `rte.topic` → set `alternate-exchange` to `rte.ae`
+  - Create `rte.ae` (type: fanout) and queue `unroutable.q` bound to it
+  - Now anything published without a matching binding shows up in `unroutable.q`
 
 Player downtime and redelivery (at-least-once)
 - Story: A player (worker) crashes mid-quest. What happens to the message?

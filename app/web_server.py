@@ -15,7 +15,9 @@ from app.state import GameState
 from app.event_bus import RabbitEventBus, EXCHANGE_NAME, build_message
 from app.bus import BusClient
 from app import scenarios
+from dotenv import load_dotenv
 
+load_dotenv()
 app = FastAPI()
 
 # Serve static UI
@@ -64,6 +66,9 @@ quests_state: Dict[str, Dict] = {}
 player_stats: Dict[str, Dict] = {}
 inflight_by_player: Dict[str, set] = {}
 dlq_messages: list[dict] = []
+unroutable: list[dict] = []
+skill_ttl_ms: Dict[str, int] = {}
+shutting_down: set[str] = set()
 # Global one-shot chaos action for the next message picked by any player
 next_action_global: Optional[str] = None
 # Centralized game state helper
@@ -110,8 +115,8 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
             time.sleep(RETRY_SEC)
 
     q = "web.scoreboard.q"
-    # Bind to issued quests and results
-    bus.declare_queue(q, "game.quest.*")
+    # Only bind to results; avoid binding to issued so pre-queue publishes can be truly unroutable
+    bus.ch.queue_declare(queue=q, durable=False, auto_delete=True)
     bus.ch.queue_bind(queue=q, exchange=EXCHANGE_NAME, routing_key="game.quest.*.done")
     bus.ch.queue_bind(queue=q, exchange=EXCHANGE_NAME, routing_key="game.quest.*.fail")
 
@@ -121,6 +126,7 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
         player = payload.get("player") or ""
         points = int(payload.get("points", 0))
 
+        global unroutable
         if event_stage.endswith("COMPLETED"):
             # dedupe by quest id
             cid = payload.get("case_id")
@@ -128,6 +134,12 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
                 processed_results.add(cid)
                 scoreboard[player] = scoreboard.get(player, 0) + points
                 STATE.record_done(player, cid, payload.get("quest_type", "gather"))
+                # Clean up any stale unroutable entry for this id
+                try:
+                    unroutable = [u for u in unroutable if (u.get("payload", {}).get("case_id") != cid)]
+                    broadcast("unroutable_updated", {"count": len(unroutable)})
+                except Exception:
+                    pass
             evt_type = "result_done"
         elif event_stage.endswith("FAILED"):
             cid = payload.get("case_id")
@@ -135,12 +147,18 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
                 processed_results.add(cid)
                 fails[player] = fails.get(player, 0) + 1
                 STATE.record_fail(player, cid, payload.get("quest_type", "gather"))
+                try:
+                    unroutable = [u for u in unroutable if (u.get("payload", {}).get("case_id") != cid)]
+                    broadcast("unroutable_updated", {"count": len(unroutable)})
+                except Exception:
+                    pass
             evt_type = "result_fail"
         elif event_stage == "QUEST_ISSUED":
-            cid = payload.get("case_id")
-            if cid:
-                STATE.record_issued(cid, payload.get("quest_type", "gather"))
-            evt_type = "quest_issued"
+            # Ignore "issued" here to prevent late duplicates after a quest
+            # is already completed/failed. The publisher already broadcasts
+            # quest_issued immediately at publish time.
+            ack()
+            return
         else:
             evt_type = "event"
 
@@ -158,10 +176,22 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
 
 def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_multiplier: float = 1.0, workers: int = 1):
     def run():
+        # allow re-adding a previously deleted player name
+        try:
+            shutting_down.discard(player)
+        except Exception:
+            pass
         queue_name = f"game.player.{player}.q"
         # ensure registry and controls
-        controls = players.setdefault(player, {}).setdefault("controls", {"paused": False, "next_action": None})
+        controls = players.setdefault(player, {}).setdefault("controls", {"paused": False, "next_action": None, "shutdown": False})
         while True:
+            try:
+                if player in shutting_down or players.get(player, {}).get("controls", {}).get("shutdown"):
+                    roster[player] = {**roster.get(player, {}), "status": "offline"}
+                    broadcast("roster", {})
+                    return
+            except Exception:
+                return
             # connect with retry
             bus: RabbitEventBus | None = None
             while bus is None:
@@ -190,6 +220,18 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                 players[player]["bus"] = bus
                 broadcast("player_online", {"player": player})
             except Exception:
+                # If we're shutting down this worker, mark offline and exit quietly
+                if player in shutting_down or controls.get("shutdown"):
+                    try:
+                        roster[player] = {**roster.get(player, {}), "status": "offline"}
+                        broadcast("roster", {})
+                    except Exception:
+                        pass
+                    try:
+                        bus.close()
+                    except Exception:
+                        pass
+                    return
                 try:
                     bus.close()
                 except Exception:
@@ -359,22 +401,29 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                     bus.publish(f"game.quest.{quest_type}.{rk_suffix}", result)
                 except Exception:
                     pass
-                # update scoreboard locally so UI reflects even without internal consumer
-                cid = result.get("case_id")
-                if cid and cid not in processed_results:
-                    processed_results.add(cid)
+                # Result handling: if internal scoreboard consumer is disabled, update state locally;
+                # otherwise rely on the consumer to drive UI and tallies.
+                if not ENABLE_SCOREBOARD_CONSUMER:
                     if status == "SUCCESS":
                         scoreboard[player] = scoreboard.get(player, 0) + points
-                        STATE.record_done(player, cid, quest_type)
+                        STATE.record_done(player, result.get("case_id"), quest_type)
                         broadcast("result_done", result)
                     else:
                         fails[player] = fails.get(player, 0) + 1
-                        STATE.record_fail(player, cid, quest_type)
+                        STATE.record_fail(player, result.get("case_id"), quest_type)
                         broadcast("result_fail", result)
+                    # prune any stale unroutable for this id
                     try:
-                        inflight_by_player.get(player, set()).discard(cid)
+                        from app.web_server import unroutable as _u
+                        _u[:] = [u for u in _u if (u.get("payload", {}).get("case_id") != result.get("case_id"))]
+                        broadcast("unroutable_updated", {"count": len(_u)})
                     except Exception:
                         pass
+                # Always clear inflight locally
+                try:
+                    inflight_by_player.get(player, set()).discard(result.get("case_id"))
+                except Exception:
+                    pass
                 ch.basic_ack(delivery_tag=method.delivery_tag)
 
             try:
@@ -387,8 +436,24 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                         bus.ch.basic_consume(queue=qn, on_message_callback=on_msg, auto_ack=False)
                 bus.ch.start_consuming()
             except Exception:
+                # Respect shutdown: don't resurrect the player as reconnecting
+                if player in shutting_down or controls.get("shutdown"):
+                    try:
+                        roster[player] = {**roster.get(player, {}), "status": "offline"}
+                        broadcast("roster", {})
+                    except Exception:
+                        pass
+                    try:
+                        bus.close()
+                    except Exception:
+                        pass
+                    return
                 roster[player] = {**roster.get(player, {}), "status": "reconnecting"}
-                players[player]["bus"] = None
+                if player in players:
+                    try:
+                        players[player]["bus"] = None
+                    except Exception:
+                        pass
                 broadcast("player_reconnecting", {"player": player})
                 # If there was an inflight quest, mark as dropped and pending again for accurate timeline/KPI
                 try:
@@ -463,7 +528,7 @@ def run_master_once(count: int, delay: float, fixed_type: Optional[str] = None):
         pass
 
 
-def publish_one(quest_type: str):
+def publish_one(quest_type: str, reissue_of: Optional[str] = None):
     import random, time as _time
     # Retry connection until RabbitMQ is reachable
     bus: RabbitEventBus | None = None
@@ -476,7 +541,8 @@ def publish_one(quest_type: str):
     difficulty_choices = [("easy", 1.0), ("medium", 2.0), ("hard", 3.5)]
     difficulty, work_sec = random.choice(difficulty_choices)
     points = points_by_type.get(quest_type, 5)
-    quest_id = f"q-{int(_time.time())}-{random.randint(100,999)}"
+    # If reissuing, keep the same quest id so UI updates the same card
+    quest_id = reissue_of or f"q-{int(_time.time())}-{random.randint(100,999)}"
     payload = build_message(
         case_id=quest_id,
         event_stage="QUEST_ISSUED",
@@ -488,11 +554,45 @@ def publish_one(quest_type: str):
             "work_sec": work_sec,
             "points": points,
             "weight": 1 if difficulty=="easy" else (2 if difficulty=="medium" else 4),
+            **({"reissue_of": reissue_of} if reissue_of else {}),
         },
     )
-    bus.publish(f"game.quest.{quest_type}", payload)
-    STATE.record_issued(quest_id, quest_type)
-    broadcast("quest_issued", payload)
+    unr_flag = {"val": False}
+    def on_unroutable(pl):
+        try:
+            info = dict(pl)
+            payload = info.get("payload", {})
+            entry = {
+                "ts": time.time(),
+                "routing_key": info.get("routing_key"),
+                "exchange": info.get("exchange"),
+                "reply_code": info.get("reply_code"),
+                "reply_text": info.get("reply_text"),
+                "payload": payload,
+            }
+            unroutable.append(entry)
+            # Also create a quest card (status=unroutable) for visibility
+            cid = payload.get("case_id") or payload.get("id")
+            qtype = payload.get("quest_type", "gather")
+            if cid:
+                try:
+                    STATE.record_unroutable(cid, qtype)
+                    broadcast("quest_issued", { **payload, "unroutable": True })
+                except Exception:
+                    pass
+            broadcast("unroutable", entry)
+            unr_flag["val"] = True
+        except Exception:
+            pass
+    try:
+        bus.publish(f"game.quest.{quest_type}", payload, on_unroutable=on_unroutable)
+        # allow basic.return to fire before we close the connection
+        time.sleep(0.05)
+    except Exception:
+        pass
+    if not unr_flag["val"]:
+        STATE.record_issued(quest_id, quest_type)
+        broadcast("quest_issued", payload)
     try:
         bus.close()
     except Exception:
@@ -559,6 +659,83 @@ async def api_master_start(req: MasterStartRequest):
     return {"ok": True}
 
 
+def run_scenario_late_bind_escort():
+    """Demonstrate late queue bind and backlog hand-off between workers.
+
+    Steps:
+    - Publish some escort quests before any escort queue exists (lost at broker; tracked as pending in UI)
+    - Start tempb (escort) creating the queue; publish more (processed by tempb)
+    - Pause tempb; publish more (ready backlog)
+    - Start tempd (escort); tempd drains backlog and new messages
+    """
+    global routing_mode
+    routing_mode = "skill"
+    broadcast("routing_mode", {"mode": routing_mode})
+
+    # Clear transient state similar to reset and stop any existing players
+    try:
+        for name, meta in list(players.items()):
+            try:
+                meta.setdefault("controls", {})["shutdown"] = True
+                bus = meta.get("bus")
+                if bus:
+                    try:
+                        bus.conn.close()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        roster.clear(); players.clear()
+        broadcast("roster", {})
+    except Exception:
+        pass
+    # Reset transient state
+    scoreboard.clear(); fails.clear(); quests_state.clear(); player_stats.clear()
+    processed_results.clear(); skip_logged.clear(); inflight_by_player.clear(); dlq_messages.clear()
+    broadcast("reset", {})
+    # Ensure no lingering shared escort queue exists
+    try:
+        rb = RabbitEventBus()
+        try:
+            rb.ch.queue_delete(queue="game.skill.escort.q")
+        except Exception:
+            pass
+        rb.close()
+    except Exception:
+        pass
+
+    # 1) Publish before queue exists (no escort consumer yet)
+    pre_count = 4
+    for _ in range(pre_count):
+        publish_one("escort")
+        time.sleep(0.05)
+    # Give a visible gap before first worker arrives so it's clear these were pre-queue
+    broadcast("scenario", {"name": "late_bind_escort", "stage": "issued_before_queue", "count": pre_count})
+    time.sleep(2.0)
+
+    # 2) Start tempb (creates skill queue) and publish more
+    start_player_thread("tempb", ["escort"], 0.1, 0.8, 1)
+    roster["tempb"] = {"skills": ["escort"], "fail_pct": 0.1, "speed_multiplier": 0.8, "workers": 1}
+    broadcast("roster", {})
+    time.sleep(0.5)  # allow queue bind
+    for _ in range(3):
+        publish_one("escort")
+        time.sleep(0.05)
+
+    # 3) Pause tempb; publish more to build backlog
+    players.setdefault("tempb", {}).setdefault("controls", {})["paused"] = True
+    roster["tempb"] = {**roster.get("tempb", {}), "status": "reconnecting"}
+    broadcast("roster", {})
+    for _ in range(3):
+        publish_one("escort")
+        time.sleep(0.05)
+
+    # 4) Start tempd; it will drain backlog and continue
+    start_player_thread("tempd", ["escort"], 0.0, 1.0, 1)
+    roster["tempd"] = {"skills": ["escort"], "fail_pct": 0.0, "speed_multiplier": 1.0, "workers": 1}
+    broadcast("roster", {})
+
+
 @app.post("/api/player/start")
 async def api_player_start(req: PlayerStartRequest):
     skills_list = [s.strip() for s in req.skills.split(",") if s.strip()]
@@ -608,6 +785,92 @@ async def api_player_control(req: PlayerControlRequest):
     return {"ok": True}
 
 
+class PlayerDeleteRequest(BaseModel):
+    player: str
+
+
+@app.post("/api/player/delete")
+async def api_player_delete(req: PlayerDeleteRequest):
+    name = req.player
+    if name not in players and name not in roster:
+        return {"ok": False, "error": "unknown player"}
+    try:
+        shutting_down.add(name)
+        meta = players.get(name, {})
+        meta.setdefault("controls", {})["shutdown"] = True
+        bus = meta.get("bus")
+        if bus:
+            try:
+                bus.conn.close()
+            except Exception:
+                pass
+        # Attempt to delete per-player queue in player mode
+        if routing_mode == "player":
+            try:
+                rb = RabbitEventBus()
+                qn = f"game.player.{name}.q"
+                rb.ch.queue_delete(queue=qn)
+                rb.close()
+            except Exception:
+                pass
+        # In skill mode, if no remaining players require a given skill, delete its shared queue
+        try:
+            skills_of_player = list(roster.get(name, {}).get("skills", []))
+            # remove from roster first to do an accurate remaining check
+        except Exception:
+            skills_of_player = []
+    except Exception:
+        pass
+    # Remove roster & stats
+    removed_meta = roster.pop(name, None)
+    player_stats.pop(name, None)
+    inflight_by_player.pop(name, None)
+    # Keep players entry briefly so the worker loop can see shutdown flag; schedule immediate cleanup
+    try:
+        players.pop(name, None)
+    except Exception:
+        pass
+    broadcast("roster", {})
+    # Now check shared queues for deletion in skill mode
+    try:
+        skills_list = removed_meta.get("skills", []) if removed_meta else []
+        if skills_list:
+            # compute remaining skills across roster
+            remaining_skills = set()
+            for _, m in roster.items():
+                for sk in m.get("skills", []):
+                    remaining_skills.add(sk)
+            rb = None
+            for sk in skills_list:
+                if sk not in remaining_skills:
+                    try:
+                        if rb is None:
+                            rb = RabbitEventBus()
+                        rb.ch.queue_delete(queue=f"game.skill.{sk}.q")
+                    except Exception:
+                        pass
+            if rb:
+                try:
+                    rb.close()
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    return {"ok": True}
+
+
+class RetentionSetRequest(BaseModel):
+    skill: str
+    ttl_ms: int
+
+
+@app.post("/api/retention/set")
+async def api_retention_set(req: RetentionSetRequest):
+    # Set per-skill TTL; heartbeat will mark expired locally; to enforce on broker, add a policy manually
+    skill_ttl_ms[req.skill] = max(1000, int(req.ttl_ms))
+    return {"ok": True, "skill": req.skill, "ttl_ms": skill_ttl_ms[req.skill]}
+
+
 class RoutingModeRequest(BaseModel):
     mode: str  # skill|player
 
@@ -628,13 +891,7 @@ class ScenarioRequest(BaseModel):
 
 @app.post("/api/scenario/run")
 async def api_scenario_run(req: ScenarioRequest):
-    # Ensure baseline players
-    if "alice" not in roster:
-        start_player_thread("alice", ["gather", "slay"], 0.2, 1.0, 1)
-        roster["alice"] = {"skills": ["gather","slay"], "fail_pct": 0.2, "speed_multiplier": 1.0, "workers": 1}
-    if "bob" not in roster:
-        start_player_thread("bob", ["slay", "escort"], 0.1, 0.7, 2)
-        roster["bob"] = {"skills": ["slay","escort"], "fail_pct": 0.1, "speed_multiplier": 0.7, "workers": 2}
+    # Scenarios are self-contained; do not auto-start baseline players here
     broadcast("roster", {})
 
     if req.name in scenarios.NAME_TO_SCENARIO:
@@ -642,6 +899,9 @@ async def api_scenario_run(req: ScenarioRequest):
             target=lambda: scenarios.NAME_TO_SCENARIO[req.name](STATE, BusClient(), broadcast, players),
             daemon=True,
         ).start()
+        return {"ok": True}
+    if req.name == "late_bind_escort":
+        threading.Thread(target=run_scenario_late_bind_escort, daemon=True).start()
         return {"ok": True}
     if req.name == "duplicate":
         # Switch to player-based so both players get a copy
@@ -688,13 +948,13 @@ async def api_failed_retry(req: RetryFailedRequest):
         q = quests_state.get(req.quest_id)
         if not q or q.get("status") != "failed":
             return {"ok": False, "error": "not failed or not found"}
-        publish_one(q.get("quest_type", "gather"))
+        publish_one(q.get("quest_type", "gather"), reissue_of=req.quest_id)
         return {"ok": True, "count": 1}
     # retry all
     count = 0
     for qid, q in list(quests_state.items()):
         if q.get("status") == "failed":
-            publish_one(q.get("quest_type", "gather"))
+            publish_one(q.get("quest_type", "gather"), reissue_of=qid)
             count += 1
     return {"ok": True, "count": count}
 
@@ -702,6 +962,52 @@ async def api_failed_retry(req: RetryFailedRequest):
 @app.get("/api/dlq/list")
 async def api_dlq_list():
     return {"ok": True, "items": dlq_messages}
+
+
+@app.get("/api/unroutable/list")
+async def api_unroutable_list():
+    return {"ok": True, "items": unroutable}
+
+
+class UnroutableReissueRequest(BaseModel):
+    quest_id: Optional[str] = None
+
+
+@app.post("/api/unroutable/reissue")
+async def api_unroutable_reissue(req: UnroutableReissueRequest):
+    global unroutable
+    if req.quest_id:
+        remaining = []
+        reissued = 0
+        for item in unroutable:
+            payload = item.get("payload", {})
+            qid = payload.get("case_id")
+            if qid == req.quest_id:
+                qt = payload.get("quest_type", "gather")
+                # avoid reissuing if already completed/failed/accepted
+                st = quests_state.get(req.quest_id, {}).get("status")
+                if st in {"completed", "failed", "accepted"}:
+                    # drop stale unroutable entry
+                    pass
+                else:
+                    publish_one(qt, reissue_of=req.quest_id)
+                    reissued += 1
+            else:
+                remaining.append(item)
+        unroutable = remaining
+        broadcast("unroutable_updated", {"count": len(unroutable)})
+        return {"ok": True, "count": reissued}
+    # reissue all
+    for item in unroutable:
+        payload = item.get("payload", {})
+        qid = payload.get("case_id")
+        qt = payload.get("quest_type", "gather")
+        if qid:
+            publish_one(qt, reissue_of=qid)
+    cnt = len(unroutable)
+    unroutable = []
+    broadcast("unroutable_updated", {"count": 0})
+    return {"ok": True, "count": cnt}
 
 
 class DlqRequeueRequest(BaseModel):
@@ -716,7 +1022,7 @@ async def api_dlq_requeue(req: DlqRequeueRequest):
         requeued = 0
         for item in dlq_messages:
             if item.get("quest_id") == req.quest_id:
-                publish_one(item.get("quest_type", "gather"))
+                publish_one(item.get("quest_type", "gather"), reissue_of=req.quest_id)
                 requeued += 1
             else:
                 remaining.append(item)
@@ -725,7 +1031,7 @@ async def api_dlq_requeue(req: DlqRequeueRequest):
         return {"ok": True, "count": requeued}
     # requeue all
     for item in dlq_messages:
-        publish_one(item.get("quest_type", "gather"))
+        publish_one(item.get("quest_type", "gather"), reissue_of=item.get("quest_id"))
     cnt = len(dlq_messages)
     dlq_messages = []
     broadcast("dlq_updated", {"count": 0})
@@ -742,15 +1048,110 @@ async def api_dlq_purge():
 @app.post("/api/reset")
 async def api_reset():
     # Clear transient game state (players keep running)
-    scoreboard.clear()
-    fails.clear()
-    quests_state.clear()
-    player_stats.clear()
-    processed_results.clear()
-    skip_logged.clear()
-    inflight_by_player.clear()
-    dlq_messages.clear()
+    # Also stop all players and clear routes/unroutable list
+    try:
+        old_players = list(players.keys())
+        for name, meta in list(players.items()):
+            try:
+                meta.setdefault("controls", {})["shutdown"] = True
+                bus = meta.get("bus")
+                if bus:
+                    try:
+                        bus.conn.close()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        # Delete per-player queues in player mode
+        try:
+            if routing_mode == "player":
+                rb = RabbitEventBus()
+                for pname in old_players:
+                    try:
+                        rb.ch.queue_delete(queue=f"game.player.{pname}.q")
+                    except Exception:
+                        pass
+                try:
+                    rb.close()
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        # Always attempt to delete shared skill queues for our demo skills
+        try:
+            rb2 = RabbitEventBus()
+            for sk in ["gather","slay","escort"]:
+                try:
+                    rb2.ch.queue_delete(queue=f"game.skill.{sk}.q")
+                except Exception:
+                    pass
+            try:
+                rb2.close()
+            except Exception:
+                pass
+        except Exception:
+            pass
+        roster.clear(); players.clear(); broadcast("roster", {})
+    except Exception:
+        pass
+    scoreboard.clear(); fails.clear(); quests_state.clear(); player_stats.clear()
+    processed_results.clear(); skip_logged.clear(); inflight_by_player.clear(); dlq_messages.clear(); unroutable.clear()
     broadcast("reset", {})
+    return {"ok": True}
+
+
+# Unified messages endpoint
+@app.get("/api/messages")
+async def api_messages(status: str = "pending"):
+    if status not in {"pending", "failed", "dlq"}:
+        return {"ok": False, "error": "invalid status"}
+    if status == "pending":
+        items = []
+        now = time.time()
+        for qid, q in quests_state.items():
+            if q.get("status") == "pending":
+                items.append({
+                    "quest_id": qid,
+                    "quest_type": q.get("quest_type"),
+                    "age_sec": int(now - float(q.get("issued_at", now))),
+                })
+        items.sort(key=lambda x: -x.get("age_sec", 0))
+        return {"ok": True, "items": items}
+    if status == "failed":
+        items = [{"quest_id": qid, "quest_type": q.get("quest_type"), "assigned_to": q.get("assigned_to")} for qid, q in quests_state.items() if q.get("status") == "failed"]
+        return {"ok": True, "items": items}
+    # dlq
+    return {"ok": True, "items": dlq_messages}
+
+
+# Chaos state endpoints
+@app.get("/api/chaos/state")
+async def api_chaos_state():
+    return {"ok": True, "mode": next_action_global}
+
+
+class PlayerUpdateRequest(BaseModel):
+    player: str
+    prefetch: Optional[int] = None
+    speed_multiplier: Optional[float] = None
+    drop_rate: Optional[float] = None
+    skip_rate: Optional[float] = None
+
+
+@app.post("/api/player/update")
+async def api_player_update(req: PlayerUpdateRequest):
+    if req.player not in roster:
+        return {"ok": False, "error": "unknown player"}
+    meta = roster[req.player]
+    if req.prefetch is not None:
+        meta["prefetch"] = int(max(1, min(100, req.prefetch)))
+    if req.speed_multiplier is not None:
+        meta["speed_multiplier"] = float(max(0.05, req.speed_multiplier))
+    if req.drop_rate is not None:
+        meta["drop_rate"] = float(max(0.0, min(1.0, req.drop_rate)))
+    if req.skip_rate is not None:
+        meta["skip_rate"] = float(max(0.0, min(1.0, req.skip_rate)))
+    broadcast("roster", {})
     return {"ok": True}
 
 
@@ -835,6 +1236,33 @@ async def api_broker_sync():
     return {"ok": True, "total_ready": total_ready, "total_unacked": total_unacked, "queues": per_queue}
 
 
+@app.get("/api/broker/routes")
+async def api_broker_routes():
+    import json, base64, urllib.request
+    api = os.getenv("RABBITMQ_API_URL", "http://localhost:15672/api")
+    user = os.getenv("RABBITMQ_USER", "guest"); pwd = os.getenv("RABBITMQ_PASS", "guest")
+    # The management API uses URLs like /api/bindings/vhost/e/exchange/bindings
+    # Use 'bindings' listing then filter by exchange; alternate URL forms differ by RabbitMQ versions
+    url = f"{api}/bindings/%2F"
+    req = urllib.request.Request(url)
+    token = base64.b64encode(f"{user}:{pwd}".encode()).decode()
+    req.add_header('Authorization', f'Basic {token}')
+    try:
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    routes = []
+    for b in data:
+        if b.get('destination_type') == 'queue' and b.get('source') == EXCHANGE_NAME:
+            routes.append({
+                'routing_key': b.get('routing_key'),
+                'queue': b.get('destination'),
+                'args': b.get('arguments', {}),
+            })
+    return {"ok": True, "routes": routes}
+
+
 @app.get("/api/pending/list")
 async def api_pending_list():
     items = []
@@ -860,13 +1288,13 @@ async def api_pending_reissue(req: PendingReissueRequest):
         q = quests_state.get(req.quest_id)
         if not q or q.get("status") != "pending":
             return {"ok": False, "error": "not pending or not found"}
-        publish_one(q.get("quest_type", "gather"))
+        publish_one(q.get("quest_type", "gather"), reissue_of=req.quest_id)
         return {"ok": True, "count": 1}
     # all
     cnt = 0
     for qid, q in list(quests_state.items()):
         if q.get("status") == "pending":
-            publish_one(q.get("quest_type", "gather"))
+            publish_one(q.get("quest_type", "gather"), reissue_of=qid)
             cnt += 1
     return {"ok": True, "count": cnt}
 
@@ -874,6 +1302,20 @@ async def api_pending_reissue(req: PendingReissueRequest):
 def heartbeat_thread(loop: asyncio.AbstractEventLoop):
     while True:
         time.sleep(1.0)
+        # Expiration sweep based on configured TTL per skill
+        try:
+            now = time.time()
+            for qid, q in list(quests_state.items()):
+                if q.get("status") == "pending":
+                    qt = q.get("quest_type")
+                    ttl = skill_ttl_ms.get(qt)
+                    if ttl:
+                        issued = float(q.get("issued_at", now))
+                        if now - issued > (ttl / 1000.0):
+                            STATE.record_expired(qid, qt)
+                            broadcast("expired", {"quest_id": qid, "quest_type": qt})
+        except Exception:
+            pass
         broadcast("tick", {"ts": time.time()})
 
 

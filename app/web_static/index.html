@@ -30,9 +30,11 @@
     .quest .bar { height:100%; width:0%; background:linear-gradient(90deg, #2ecc71, #9b59b6); transition: width .1s linear; }
     .quest.done .bar { background: #2ecc71; }
     .quest.fail .bar { background: #e74c3c; }
+    .quest.unrout .bar { background: #7a2929; }
+    #reset-app.fixed { position: fixed; top: 12px; right: 12px; z-index: 100; padding:10px 12px; border:2px solid #7a2929; background:#4b1616; }
 
     /* Roster */
-    .pill { padding: 6px 10px; border: 1px solid #2a3863; background: #0e162b; border-radius: 999px; margin: 4px; display: inline-flex; align-items:center; gap:8px; cursor: pointer; }
+    .pill { padding: 8px 10px; border: 1px solid #2a3863; background: #0e162b; border-radius: 12px; margin: 4px; display: block; cursor: pointer; }
     .pill.selected { border-color: #6fe0a0; box-shadow: 0 0 0 1px #6fe0a0 inset; }
     .dot { width:10px; height:10px; border-radius:50%; background:#4b4b4b; display:inline-block; }
     .dot.online { background:#2ecc71; }
@@ -40,6 +42,13 @@
     .skill { font-size:11px; padding:2px 6px; border-radius:999px; border:1px solid #2a3863; background:#0b1326; }
     .tiny-btn { padding: 1px 5px; font-size: 11px; border-radius: 6px; border: 1px solid #32406a; background:#1c2950; color: var(--text); cursor:pointer; }
     .roster-wrap { display: grid; grid-template-columns: 1fr; gap: 6px; align-items:start; }
+    .pill .name { max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display:inline-block; }
+    .pill .skills { display:inline-flex; gap:4px; max-width: 160px; overflow: hidden; }
+    .pill .stats { min-width: 160px; text-align: left; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .pill .controls { display:inline-flex; gap:6px; }
+    .pill .line1, .pill .line2 { display:flex; align-items:center; justify-content:space-between; }
+    .pill .line1 { gap:8px; }
+    .pill .line2 { gap:8px; margin-top:4px; }
     .bio { position: relative; border: 1px solid #2a3863; background:#0e162b; border-radius:8px; padding:8px; font-size:12px; color: var(--muted); }
     .bio .name { color: var(--text); font-weight:600; }
     .bio .conf { display:block; margin-top:2px; color: var(--muted); }
@@ -82,7 +91,10 @@
 <body>
   <header>
     <h1>🧭 Queue Quest</h1>
-    <button id="help-btn">How it works</button>
+    <div style="display:flex; gap:8px; align-items:center">
+      <button id="help-btn">How it works</button>
+      <button id="scores-btn">Leaderboard</button>
+    </div>
   </header>
   <main>
     <div class="card" style="margin-bottom:12px; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap">
@@ -106,13 +118,16 @@
           </div>
         </div>
       </div>
-      <div style="align-self:flex-end">
+      <div style="align-self:flex-end; display:flex; gap:8px; align-items:flex-end">
         <button id="start-master" style="width:auto">Start Quest Wave</button>
+        <button id="reset-app" class="mini-btn" style="width:auto; padding:10px 12px; border:2px solid #7a2929; background:#4b1616">Reset</button>
       </div>
-      <button id="reset-app" style="margin-left:auto; width:auto">Reset</button>
-      <div class="legend">
-        <button style="width:auto">Legend</button>
-        <div class="bubble"><strong>Ready</strong>: in queue, not delivered.<br/><strong>Unacked</strong>: delivered to a player; processing until ack.<br/>Crash ⇒ back to Ready for redelivery.</div>
+      <div style="display:flex; gap:6px; align-items:flex-end">
+        <label style="display:block; font-size:12px; color:#8aa0c7">Quick Play</label>
+        <button id="qp-quick" style="width:auto" title="Recruit Alice+Bob and start a wave">Quick Start</button>
+        <button class="qp-preset" data-count="10" data-delay="0.3" style="width:auto" title="10 quests @ 0.3s">Chill</button>
+        <button class="qp-preset" data-count="20" data-delay="0.1" style="width:auto" title="20 quests @ 0.1s">Normal</button>
+        <button class="qp-preset" data-count="40" data-delay="0.05" style="width:auto" title="40 quests @ 0.05s">Chaos</button>
       </div>
       <div style="margin-left:auto; display:flex; gap:6px; align-items:flex-end">
         <label style="display:block; font-size:12px; color:#8aa0c7">Send one</label>
@@ -121,15 +136,103 @@
         <button class="send-one" data-type="escort" style="width:auto">escort</button>
       </div>
     </div>
-    <div class="card" id="statusbar" style="margin-bottom:12px; display:flex; gap:12px; align-items:center; justify-content:space-between">
+      <div class="card" id="statusbar" style="margin-bottom:12px; display:flex; gap:12px; align-items:center; justify-content:space-between">
       <div>Routing: <span id="status-routing" class="tag info">?</span></div>
       <div>Wave: <span id="status-wave" class="tag info">count=20 · delay=0.1s</span></div>
       <div>Pending: <span id="status-pending" class="tag warn">0</span></div>
-      <div>Broker: <span id="status-broker" class="tag info">ready=– · unacked=–</span> <button id="sync-broker" class="mini-btn" title="Sync broker KPIs">↻</button></div>
+        <div>Expired: <span id="status-expired" class="tag err">0</span></div>
+        <div>Broker: <span id="status-broker" class="tag info">ready=– · unacked=–</span> <button id="sync-broker" class="mini-btn" title="Sync broker KPIs">↻</button></div>
     </div>
     <div class="grid">
       <div class="card">
-        <h3>Characters & Recruit</h3>
+        <h3>Controls ⚙️</h3>
+        <h3>Scenarios 🧪</h3>
+        <div class="two">
+          <button id="sc-redelivery" title="If a player disconnects before ack, the in-flight message goes back to Ready and is redelivered.">Redelivery (disconnect before ack)</button>
+          <button id="sc-requeue" title="Explicit NACK with requeue=true returns the message to Ready immediately.">Requeue (nack requeue)</button>
+        </div>
+        <div class="two" style="margin-top:6px">
+          <button id="sc-duplicate" title="Switch to Player-based routing so multiple queues get a copy of the message.">Duplicate (same message to two players)</button>
+          <button id="sc-both-complete" title="Player-based duplicate: two players with the same skill both complete their own copies.">Both complete (multi-copies)</button>
+        </div>
+        <div class="two" style="margin-top:6px">
+          <button id="sc-dlq" title="Poison message: simulate a NACK to DLQ for investigation and later requeue/purge from the DLQ panel.">DLQ (poison)</button>
+          <button id="sc-late-bind" title="Escort before queue exists → then one worker pauses and another arrives to drain backlog.">Late-bind escort (backlog handoff)</button>
+        </div>
+        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Use Skill-based (top) for single delivery fairness; Player-based for duplicates.</div>
+        <hr style="border-color:#1e2a4d; margin:10px 0">
+        <h3>Message Chaos 🎲 (next message)</h3>
+        <div class="two">
+          <button id="chaos-drop">Next: Drop</button>
+          <button id="chaos-requeue">Next: Requeue</button>
+        </div>
+        <div class="two">
+          <button id="chaos-dlq">Next: DLQ</button>
+          <button id="chaos-fail">Next: Fail Early</button>
+        </div>
+        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Use Skill-based (top) for single delivery fairness; Player-based for duplicates.</div>
+        <hr style="border-color:#1e2a4d; margin:10px 0">
+        <h3>Messages 📬</h3>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center">
+          <button id="tab-pending" class="mini-btn" title="Pending">Pending</button>
+          <button id="tab-failed" class="mini-btn" title="Failed">Failed</button>
+          <button id="tab-dlq" class="mini-btn" title="DLQ">DLQ</button>
+          <button id="tab-unrout" class="mini-btn" title="Unroutable" style="cursor:pointer">Unroutable</button>
+          <span style="margin-left:auto"></span>
+          <div style="display:inline-flex; gap:6px; align-items:center">
+            <label style="font-size:12px; color:#8aa0c7">TTL (ms)</label>
+            <input id="ttl-skill" placeholder="skill" style="width:80px" />
+            <input id="ttl-ms" type="number" value="30000" min="1000" step="1000" style="width:100px" />
+            <button id="ttl-set" class="mini-btn" title="Set TTL">Set</button>
+          </div>
+          <button id="msg-reissue-all" class="mini-btn" title="Reissue all">Reissue all</button>
+          <button id="msg-purge" class="mini-btn" title="Purge (DLQ only)">Purge</button>
+          <button id="msg-show-all" class="mini-btn" title="Show all items">Show all</button>
+        </div>
+        <div id="msg-list" class="muted" style="margin-top:6px; font-size:12px"></div>
+        <div style="margin-top:10px">
+          <h3 style="margin:6px 0">Broker Routes</h3>
+          <div id="routes" class="muted" style="font-size:12px"></div>
+          <button id="refresh-routes" class="mini-btn" title="Refresh routes">↻</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Quest Board <button id="toggle-quests" style="width:auto; float:right">Toggle</button></h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0">
+          <div id="type-metrics" class="muted"></div>
+          <div class="legend" style="margin-left:auto"><button style="width:auto">Legend</button><div class="bubble"><strong>Ready</strong>: in queue, not delivered.<br/><strong>Unacked</strong>: delivered to a player; processing until ack.<br/>If player disconnects before ack, it returns to Ready.</div></div>
+        </div>
+        <details open>
+          <summary>gather</summary>
+          <div id="quests-gather" class="quests"></div>
+        </details>
+        <details open>
+          <summary>slay</summary>
+          <div id="quests-slay" class="quests"></div>
+        </details>
+        <details open>
+          <summary>escort</summary>
+          <div id="quests-escort" class="quests"></div>
+        </details>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px">
+          <h3 style="margin:0">Quest Log</h3>
+          <button id="clear-feed" style="width:auto">Clear</button>
+        </div>
+        <div id="feed" class="feed"></div>
+      </div>
+
+      <div class="card" id="player-pane">
+        <h3>Activity</h3>
+        <canvas id="activity" width="300" height="80" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
+        <h3 style="margin-top:12px">Throughput <span class="muted" title="Lines show per-player completed count trend over time (not absolute rate). Colors map to players by legend below.">?</span></h3>
+        <canvas id="throughput" width="300" height="100" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
+        <div id="throughput-legend" class="muted" style="margin-top:6px; font-size:12px"></div>
+        <h3 style="margin-top:12px">Roster</h3>
+        <div id="roster"></div>
+        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Click a player pill to select; use the tiny buttons on each pill for Pause/Resume/Crash.</div>
+        <hr style="border-color:#1e2a4d; margin:10px 8px">
+        <h3>Recruit 👥</h3>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">
           <button id="quick-alice-bob">Quickstart: Alice+Bob</button>
           <button id="add-random">Add Random Player</button>
@@ -172,25 +275,7 @@
           </div>
           <button id="start-player">Add Player</button>
         </div>
-        <hr style="border-color:#1e2a4d">
-        
-        <h3>Scenarios</h3>
-        <div class="two">
-          <button id="sc-redelivery" title="If a player disconnects before ack, the in-flight message goes back to Ready and is redelivered.">Redelivery (disconnect before ack)</button>
-          <button id="sc-requeue" title="Explicit NACK with requeue=true returns the message to Ready immediately.">Requeue (nack requeue)</button>
-        </div>
-        <div class="two" style="margin-top:6px">
-          <button id="sc-duplicate" title="Switch to Player-based routing so multiple queues get a copy of the message.">Duplicate (same message to two players)</button>
-          <button id="sc-both-complete" title="Player-based duplicate: two players with the same skill both complete their own copies.">Both complete (multi-copies)</button>
-        </div>
-        <div class="two" style="margin-top:6px">
-          <button id="sc-dlq" title="Poison message: simulate a NACK to DLQ for investigation and later requeue/purge from the DLQ panel.">DLQ (poison)</button>
-        </div>
-        <div class="muted" style="margin-top:6px; font-size:12px">
-          Tip: Use Skill-based (top) for single-delivery fairness. Use Player-based (top) to teach fanout and duplicates.
-        </div>
-        <hr style="border-color:#1e2a4d; margin:10px 0">
-        <h3>Character Guide (click to add)</h3>
+        <div class="muted" style="margin-top:6px; font-size:12px">Click a hero to recruit instantly:</div>
         <div class="bio" data-player="alice" data-skills="gather,slay" data-fail="0.2" data-speed="1.0" data-workers="1">
           <div class="name">Alice</div>
           <span class="conf">gather · slay · w1 · s1.0</span>
@@ -223,69 +308,6 @@
             Shows the effect of workers>1 and higher processing time for variance.
           </div>
         </div>
-        <hr style="border-color:#1e2a4d; margin:10px 0">
-        <h3>Message Chaos (next message)</h3>
-        <div class="two">
-          <button id="chaos-drop">Next: Drop</button>
-          <button id="chaos-requeue">Next: Requeue</button>
-        </div>
-        <div class="two">
-          <button id="chaos-dlq">Next: DLQ</button>
-          <button id="chaos-fail">Next: Fail Early</button>
-        </div>
-        <div class="muted" style="margin-top:6px; font-size:12px">
-          Tip: Use Skill-based (top) for single-delivery fairness. Use Player-based (top) to teach fanout and duplicates.
-        </div>
-        <hr style="border-color:#1e2a4d; margin:10px 0">
-        <h3>Messages</h3>
-        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center">
-          <button id="tab-pending" class="mini-btn" title="Pending">Pending</button>
-          <button id="tab-failed" class="mini-btn" title="Failed">Failed</button>
-          <button id="tab-dlq" class="mini-btn" title="DLQ">DLQ</button>
-          <span style="margin-left:auto"></span>
-          <button id="msg-reissue-all" class="mini-btn" title="Reissue all">Reissue all</button>
-          <button id="msg-purge" class="mini-btn" title="Purge (DLQ only)">Purge</button>
-          <button id="msg-show-all" class="mini-btn" title="Show all items">Show all</button>
-        </div>
-        <div id="msg-list" class="muted" style="margin-top:6px; font-size:12px"></div>
-      </div>
-
-      <div class="card">
-        <h3>Quest Board <button id="toggle-quests" style="width:auto; float:right">Toggle</button></h3>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0">
-          <div id="type-metrics" class="muted"></div>
-          <div class="legend"><button style="width:auto">Legend</button><div class="bubble"><strong>Ready</strong>: in queue, not delivered.<br/><strong>Unacked</strong>: delivered to a player; processing until ack.<br/>If player disconnects before ack, it returns to Ready.</div></div>
-        </div>
-        <details open>
-          <summary>gather</summary>
-          <div id="quests-gather" class="quests"></div>
-        </details>
-        <details open>
-          <summary>slay</summary>
-          <div id="quests-slay" class="quests"></div>
-        </details>
-        <details open>
-          <summary>escort</summary>
-          <div id="quests-escort" class="quests"></div>
-        </details>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px">
-          <h3 style="margin:0">Quest Log</h3>
-          <button id="clear-feed" style="width:auto">Clear</button>
-        </div>
-        <div id="feed" class="feed"></div>
-      </div>
-
-      <div class="card" id="player-pane">
-        <h3>Leaderboard 🏆</h3>
-        <div id="scores" class="scores"></div>
-        <h3 style="margin-top:12px">Roster</h3>
-        <div id="roster"></div>
-        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Click a player pill to select; use the tiny buttons on each pill for Pause/Resume/Crash.</div>
-        <h3 style="margin-top:12px">Activity</h3>
-        <canvas id="activity" width="300" height="80" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
-        <h3 style="margin-top:12px">Throughput <span class="muted" title="Lines show per-player completed count trend over time (not absolute rate). Colors map to players by legend below.">?</span></h3>
-        <canvas id="throughput" width="300" height="100" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
-        <div id="throughput-legend" class="muted" style="margin-top:6px; font-size:12px"></div>
         <div class="muted" style="margin-top:6px">RabbitMQ UI: http://localhost:15672</div>
       </div>
     </div>
@@ -295,15 +317,24 @@
     <div class="inner">
       <h3>How it works</h3>
       <ul class="help">
-        <li>Quest wave → messages published to topic exchange as <code>game.quest.&lt;type&gt;</code>.</li>
-        <li>Players listen on their queue and decide: ACCEPT (work) or SKIP (requeue).</li>
-        <li>Work simulates processing time; result is a new event: <code>game.quest.&lt;type&gt;.done|fail</code>.</li>
-        <li>Leaderboard subscribes to results and totals points per player.</li>
-        <li>Going offline mid-quest: message is returned to the queue and another player can pick it up (at-least-once).</li>
-        <li>DLQ: if a message is bad, it can be NACKed to a dedicated queue for investigation.</li>
+        <li>Master publishes quests to <code>game.quest.&lt;type&gt;</code> with difficulty/weight/points.</li>
+        <li>Players consume from shared per-skill queues (Skill mode) or per-player queues (Player mode).</li>
+        <li>On ACCEPT, the message is <strong>Unacked</strong> until ack; on SKIP, it is NACK requeue and returns to <strong>Ready</strong>.</li>
+        <li>Results publish to <code>game.quest.&lt;type&gt;.done|fail</code>; scoreboard totals points live.</li>
+        <li>Crash before ack ⇒ message returns to Ready (redelivery). Prefetch controls in-flight concurrency.</li>
+        <li>DLQ: NACK requeue=false sends to a dead-letter queue for triage. Reissue or purge from Messages panel.</li>
       </ul>
       <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
         <button id="close-help" style="width:auto">Close</button>
+      </div>
+    </div>
+  </div>
+  <div id="scores-modal" class="modal">
+    <div class="inner">
+      <h3>Leaderboard 🏆</h3>
+      <div id="scores" class="scores"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="close-scores" style="width:auto">Close</button>
       </div>
     </div>
   </div>
@@ -320,7 +351,7 @@
 
   <script>
     const feed = document.getElementById('feed');
-    const scores = document.getElementById('scores');
+    // scores is rendered inside the scores modal; guard if absent
     const rosterDiv = document.getElementById('roster');
     const questsByType = {
       gather: document.getElementById('quests-gather'),
@@ -329,9 +360,19 @@
     };
     const typeMetricsDiv = document.getElementById('type-metrics');
     const historyByQuest = {}; // id -> [{ts,type,text}]
+    const reissueAlias = {}; // newId -> originalId
+    function resolveAlias(id){
+      let cur = id; const seen = new Set();
+      while (reissueAlias[cur] && !seen.has(cur)) { seen.add(cur); cur = reissueAlias[cur]; }
+      return cur;
+    }
 
     const quests = {}; // questId -> {el, start, dur}
-    function questId(p){ return p.case_id || p.quest_id || p.id; }
+    function questId(p){
+      const id = p.case_id || p.quest_id || p.id;
+      if (p.reissue_of){ reissueAlias[id] = p.reissue_of; }
+      return resolveAlias(id);
+    }
 
     function medal(idx){ return idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':'🎯'; }
 
@@ -352,43 +393,74 @@
     }
 
     function renderScores(snap) {
+      const scores = document.getElementById('scores');
+      if (!scores) return;
       const s = snap.scoreboard || {}; const f = snap.fails || {};
       const entries = Object.entries(s).sort((a,b)=>b[1]-a[1]);
+      const icon = (i)=> i===0?'🥇':(i===1?'🥈':(i===2?'🥉':'🎯'));
       scores.innerHTML = entries.length ? entries.map(([p,pts],i) => {
         const fail = f[p] || 0; const st = (snap.player_stats&&snap.player_stats[p])||{inflight:0};
         const meta = (snap.roster&&snap.roster[p])||{}; const spd = meta.speed_multiplier!=null?meta.speed_multiplier:1.0; const wrk = meta.workers!=null?meta.workers:1;
         const title = `${p} — workers:${wrk} speed:${spd}\npoints:${pts} fails:${fail} inflight(unacked):${st.inflight}`;
-        return `<div class="score-row" title="${title}"><span>${medal(i)} ${p}${st.inflight?` <span class='badge'>${st.inflight} unacked</span>`:''}</span><span>${pts} pts${fail?` · fails:${fail}`:''}</span></div>`;
+        return `<div class="score-row" title="${title}"><span>${icon(i)} ${p}${st.inflight?` <span class='badge'>${st.inflight} unacked</span>`:''}</span><span>${pts} pts${fail?` · fails:${fail}`:''}</span></div>`;
       }).join('') : '<div class="muted">No scores yet</div>';
     }
 
     const rosterState = {}; // name -> {skills, fail_pct, status, speed_multiplier, workers}
     let activePlayer = null;
     function renderRoster(snap) {
-      const r = snap.roster || {}; Object.entries(r).forEach(([name,meta]) => { rosterState[name] = {...(rosterState[name]||{}), ...meta}; });
+      const r = snap.roster || {};
+      // remove players not present in snapshot (support deletions)
+      Object.keys(rosterState).forEach(k => { if (!(k in r)) delete rosterState[k]; });
+      Object.entries(r).forEach(([name,meta]) => { rosterState[name] = {...(rosterState[name]||{}), ...meta}; });
+      // reset Recruit bios so deleted players can be added again
+      document.querySelectorAll('.bio').forEach(b => {
+        const pname = b.getAttribute('data-player');
+        if (pname && !(pname in r)) b.classList.remove('added');
+      });
       const ordered = Object.entries(rosterState).sort((a,b)=>a[0].localeCompare(b[0]));
       let html = ordered.map(([name,meta]) => {
         const status = meta.status||'offline';
         const dotClass = status==='online'?'online':(status==='reconnecting'?'reconnecting':'');
         const ps = (snap.player_stats&&snap.player_stats[name])||{accepted:0,completed:0,failed:0,inflight:0};
-        const spd = meta.speed_multiplier!=null ? meta.speed_multiplier : 1.0;
+        const spd = meta.speed_multiplier!=null ? Number(meta.speed_multiplier) : 1.0;
         const wrk = meta.workers!=null ? meta.workers : 1;
-        const tip = `${name} — ${status}\nskills: ${(meta.skills||[]).join(',')}\nworkers: ${wrk}  speed: ${spd}\naccepted: ${ps.accepted}  completed: ${ps.completed}  failed: ${ps.failed}\ninflight (unacked): ${ps.inflight}`;
+        const spdTxt = spd.toFixed(2);
+        const failTxt = (meta.fail_pct!=null ? meta.fail_pct : 0).toFixed(2);
+        const tip = `${name} — ${status}\nskills: ${(meta.skills||[]).join(',')}\nworkers: ${String(wrk).padStart(2,' ')}  speed: ${spdTxt}\naccepted: ${String(ps.accepted).padStart(3,' ')}  completed: ${String(ps.completed).padStart(3,' ')}  failed: ${String(ps.failed).padStart(3,' ')}\ninflight (unacked): ${String(ps.inflight).padStart(2,' ')}`;
         const skills = (meta.skills||[]).map(s=>`<span class='skill'>${s}</span>`).join(' ');
         const sel = (name===activePlayer)?' selected':'';
-        return `<span class="pill${sel}" data-name="${name}" title="${tip}"><span class="dot ${dotClass}"></span>${name} · ${skills} · w${wrk} · s${spd} · fail ${Math.round((meta.fail_pct||0)*100)}%
-          <span style="margin-left:6px; display:inline-flex; gap:4px">
-            <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Pause">⏸</button>
-            <button class="tiny-btn player-action" data-action="resume" data-name="${name}" title="Resume">▶</button>
-            <button class="tiny-btn player-action" data-action="crash" data-name="${name}" title="Crash">⚡</button>
-          </span>
+        return `<span class="pill${sel}" data-name="${name}" title="${tip}">
+          <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
+          <div class="line2"><span class="stats">w${String(wrk).padStart(2,' ')} · s${spdTxt} · f${failTxt}</span>
+            <span class="controls">
+              <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Pause">⏸</button>
+              <button class="tiny-btn player-action" data-action="resume" data-name="${name}" title="Resume">▶</button>
+              <button class="tiny-btn player-action" data-action="crash" data-name="${name}" title="Crash">⚡</button>
+              <button class="tiny-btn player-delete" data-name="${name}" title="Delete">🗑</button>
+            </span>
+          </div>
         </span>`;
       }).join(' ');
       rosterDiv.innerHTML = html ? `<div class='roster-wrap'>${html}</div>` : '<div class="muted">No players yet</div>';
     }
 
     function ensureQuestCard(p) {
+      const rawId = p.case_id || p.quest_id || p.id;
       const id = questId(p); if (!id) return { el: null, start: Date.now(), dur: 1000 };
+      // Dedupe: if a transient card was created with rawId before alias, remove it
+      if (rawId && rawId !== id && quests[rawId] && quests[id]) {
+        const dup = quests[rawId];
+        if (dup.el && dup.el.parentNode) dup.el.parentNode.removeChild(dup.el);
+        delete quests[rawId];
+      }
+      // If a card exists for rawId but not yet for aliased id, migrate it to aliased key
+      if (rawId && rawId !== id && quests[rawId] && !quests[id]){
+        quests[id] = quests[rawId];
+        delete quests[rawId];
+        if (quests[id].el) quests[id].el.setAttribute('data-quest-id', id);
+        return quests[id];
+      }
       if (quests[id]) return quests[id];
       const el = document.createElement('div'); el.className = 'quest';
       const icon = p.quest_type==='slay'?'⚔️':(p.quest_type==='escort'?'🛡️':'📦');
@@ -484,7 +556,7 @@
       renderScores(msg); renderRoster(msg);
       updateQuickTitles(msg);
       // aggregates per type
-      if (msg.metrics && msg.metrics.per_type){
+        if (msg.metrics && msg.metrics.per_type){
         const parts = [];
         Object.entries(msg.metrics.per_type).forEach(([t,m]) => {
           parts.push(`${t}: P${m.pending||0} A${m.accepted||0} D${m.completed||0} F${m.failed||0}`);
@@ -493,6 +565,9 @@
         if (msg.metrics.total_pending!=null){
           document.getElementById('status-pending').textContent = String(msg.metrics.total_pending);
         }
+          if (msg.metrics.total_expired!=null){
+            document.getElementById('status-expired').textContent = String(msg.metrics.total_expired);
+          }
       }
 
       // activity
@@ -514,10 +589,22 @@
       if (msg.type === 'master_wave_started') {
         appendFeed('info', 'MASTER', `Wave: ${msg.payload.count} quests @ ${msg.payload.delay}s`);
       } else if (msg.type === 'quest_issued') {
-        const p = msg.payload; const qc = ensureQuestCard(p); appendFeed('info', 'QUEST', `${p.quest_type} (${p.difficulty}) worth ${p.points} pts`);
-        addHist(questId(p), msg.ts, 'info', 'issued');
-        // add timeline entry
-        const tl = qc.el && qc.el.querySelector('.tl'); if (tl){ const li = document.createElement('li'); li.textContent = 'issued'; tl.appendChild(li); }
+        const p = msg.payload; const id = questId(p); const existed = !!quests[id];
+        const qc = ensureQuestCard(p);
+        appendFeed('info', 'QUEST', `${p.quest_type} (${p.difficulty}) worth ${p.points} pts${p.reissue_of? ' (reissue)': ''}${p.unroutable?' · UNROUTABLE':''}`);
+        addHist(id, msg.ts, p.unroutable ? 'err' : 'info', p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued'));
+        const tl = qc.el && qc.el.querySelector('.tl');
+        if (tl){ const li = document.createElement('li'); li.textContent = p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued'); tl.appendChild(li); }
+        if (qc.el){
+          // Reset assignment and visuals on reissue
+          qc.el.querySelector('.who').textContent = 'Unassigned';
+          qc.el.classList.remove('done');
+          qc.el.classList.remove('fail');
+          if (p.unroutable) qc.el.classList.add('unrout'); else qc.el.classList.remove('unrout');
+          const bar = qc.el.querySelector('.bar'); if (bar) bar.style.width = '0%';
+          if (p.unroutable) setStatus(qc.el, 'Unroutable', 'err'); else setStatus(qc.el, 'Ready', 'warn');
+          const qobj = quests[id]; if (qobj){ qobj.start = Date.now(); qobj.dur = Math.max(500, Math.round((p.work_sec||1)*1000)); }
+        }
       } else if (msg.type === 'player_online') {
         const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'online'}; renderRoster({roster: rosterState});
         appendFeed('info', 'PLAYER', `${p.player} online`);
@@ -596,6 +683,8 @@
         // clear charts
         const ac = document.getElementById('activity').getContext('2d'); ac.clearRect(0,0,300,80);
         const thrc = document.getElementById('throughput').getContext('2d'); thrc.clearRect(0,0,300,100);
+        // allow re-adding preset characters
+        document.querySelectorAll('.bio').forEach(b => b.classList.remove('added'));
       }
     };
 
@@ -613,6 +702,23 @@
       await fetch('/api/master/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({count, delay}) });
       document.getElementById('status-wave').textContent = `count=${count} · delay=${delay}s`;
     };
+    // Quick Play buttons
+    document.getElementById('qp-quick').onclick = async () => {
+      await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'alice_bob'})});
+      const count = 20, delay = 0.1;
+      await fetch('/api/master/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({count, delay}) });
+      document.getElementById('status-wave').textContent = `count=${count} · delay=${delay}s`;
+      appendFeed('info','PLAY',`Quick Start: Alice+Bob · ${count}@${delay}s`);
+    };
+    document.querySelectorAll('.qp-preset').forEach(btn=>{
+      btn.onclick = () => {
+        const c = parseInt(btn.getAttribute('data-count')||'20',10);
+        const d = parseFloat(btn.getAttribute('data-delay')||'0.1');
+        document.getElementById('count').value = String(c);
+        document.getElementById('delay').value = String(d);
+        document.getElementById('status-wave').textContent = `count=${c} · delay=${d}s`;
+      };
+    });
 
     function selectedSkills(){
       const arr = [];
@@ -694,6 +800,11 @@
       await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'dlq_poison'})});
       appendFeed('info','SCENARIO','DLQ: simulated poison message sent to DLQ');
     };
+    const scLate = document.getElementById('sc-late-bind');
+    if (scLate){ scLate.onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'late_bind_escort'})});
+      appendFeed('info','SCENARIO','Late-bind escort: backlog handoff demo');
+    }; }
 
     function updateCtrlState(){ /* no-op after roster integration */ }
     async function control(action, mode){
@@ -706,8 +817,15 @@
       if (act){
         const name = act.getAttribute('data-name'); const action = act.getAttribute('data-action');
         if (name && action){ fetch('/api/player/control', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player:name, action})}); }
+        // do NOT change selection when clicking control buttons
         e.stopPropagation(); return;
       }
+        const del = e.target.closest('.player-delete');
+        if (del){
+          const name = del.getAttribute('data-name');
+          if (name){ fetch('/api/player/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player:name})}); }
+          e.stopPropagation(); return;
+        }
       const pill = e.target.closest('.pill'); if (!pill) return;
       activePlayer = pill.getAttribute('data-name');
       renderRoster({roster: rosterState, player_stats:{}});
@@ -716,6 +834,9 @@
     const help = document.getElementById('help');
     document.getElementById('help-btn').onclick = () => help.classList.add('show');
     document.getElementById('close-help').onclick = () => help.classList.remove('show');
+    const scoresModal = document.getElementById('scores-modal');
+    document.getElementById('scores-btn').onclick = () => scoresModal.classList.add('show');
+    document.getElementById('close-scores').onclick = () => scoresModal.classList.remove('show');
     document.getElementById('toggle-quests').onclick = () => {
       const ds = document.querySelectorAll('details');
       const anyOpen = Array.from(ds).some(d => d.open);
@@ -775,6 +896,10 @@
     const msgListEl = document.getElementById('msg-list');
     function renderMsg(items, type){
       msgListEl.innerHTML = items.map(it=>{
+        if (type==='unrout'){
+          const rk = it.routing_key||'?'; const payload = it.payload||{}; const id = payload.case_id||'(no id)';
+          return `<div style="display:flex; align-items:center; gap:6px" class="msg-item" data-qid="${id}"><button class="mini-btn unrout-retry" data-id="${id}" title="Reissue (same id)">↻</button><span class="msg-label">rk=${rk} · ${id}</span></div>`;
+        }
         const id = it.quest_id; const qt = it.quest_type; const age = (it.age_sec!=null?` · age ${it.age_sec}s`:'');
         return `<div style="display:flex; align-items:center; gap:6px" class="msg-item" data-qid="${id}"><button class="mini-btn msg-reissue" data-qid="${id}" title="Reissue">↻</button><span class="msg-label">${id} (${qt})${age}</span><button class="mini-btn msg-filter" data-qid="${id}" title="Show only this">👁</button></div>`;
       }).join('');
@@ -789,9 +914,17 @@
           loadTab(msgTab);
         };
       });
+      msgListEl.querySelectorAll('.unrout-retry').forEach(btn=>{
+        btn.onclick = async ()=>{
+          const id = btn.getAttribute('data-id');
+          await fetch('/api/unroutable/reissue', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_id: id})});
+          appendFeed('info','UNROUT','Reissued ' + id);
+          loadTab('unrout');
+        };
+      });
       msgListEl.querySelectorAll('.msg-filter').forEach(btn=>{
         btn.onclick = ()=>{
-          const qid = btn.getAttribute('data-qid');
+          const qid = resolveAlias(btn.getAttribute('data-qid'));
           Array.from(msgListEl.querySelectorAll('.msg-item')).forEach(div=>{ if (div.getAttribute('data-qid')!==qid) div.style.display='none'; });
           const showAll = document.createElement('button'); showAll.className='mini-btn'; showAll.textContent='Show all'; showAll.onclick=()=>loadTab(msgTab); msgListEl.appendChild(showAll);
           // Filter quest board
@@ -802,7 +935,7 @@
         };
       });
     }
-    function setMsgTabActive(tab){ ['pending','failed','dlq'].forEach(t=>{ const el = document.getElementById('tab-'+t); if (el){ if (t===tab) el.classList.add('active'); else el.classList.remove('active'); } }); }
+    function setMsgTabActive(tab){ ['pending','failed','dlq','unrout'].forEach(t=>{ const el = document.getElementById('tab-'+t); if (el){ if (t===tab) el.classList.add('active'); else el.classList.remove('active'); } }); }
     async function loadTab(tab){
       msgTab = tab;
       setMsgTabActive(tab);
@@ -819,16 +952,22 @@
         const r = await fetch('/api/dlq/list'); const d = await r.json();
         if (!d.ok){ msgListEl.textContent='Error'; return; }
         items = d.items||[];
+      } else if (tab==='unrout'){
+        const r = await fetch('/api/unroutable/list'); const d = await r.json();
+        if (!d.ok){ msgListEl.textContent='Error'; return; }
+        items = d.items||[];
       }
       renderMsg(items, tab);
     }
     document.getElementById('tab-pending').onclick = ()=>loadTab('pending');
     document.getElementById('tab-failed').onclick = ()=>loadTab('failed');
     document.getElementById('tab-dlq').onclick = ()=>loadTab('dlq');
+    const tabUnr = document.getElementById('tab-unrout'); if (tabUnr) tabUnr.onclick = ()=>loadTab('unrout');
     document.getElementById('msg-reissue-all').onclick = async ()=>{
       if (msgTab==='pending') await fetch('/api/pending/reissue',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
       if (msgTab==='failed') await fetch('/api/failed/retry',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
       if (msgTab==='dlq') await fetch('/api/dlq/requeue',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+      if (msgTab==='unrout') await fetch('/api/unroutable/reissue',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
       loadTab(msgTab);
     };
     document.getElementById('msg-purge').onclick = async ()=>{
@@ -841,6 +980,47 @@
     };
     // load default tab
     loadTab('pending');
+    // TTL setter
+    const ttlBtn = document.getElementById('ttl-set'); if (ttlBtn){ ttlBtn.onclick = async ()=>{
+      const skill = (document.getElementById('ttl-skill').value||'').trim();
+      const ttl = parseInt(document.getElementById('ttl-ms').value||'0',10);
+      if (!skill || !ttl) return;
+      await fetch('/api/retention/set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({skill, ttl_ms: ttl})});
+      appendFeed('info','TTL',`Set ${skill} TTL to ${ttl}ms`);
+    }; }
+    // Routes panel
+    async function refreshRoutes(){
+      const el = document.getElementById('routes');
+      if (!el) return;
+      const r = await fetch('/api/broker/routes'); const d = await r.json();
+      if (!d.ok){ el.textContent = 'Error'; return; }
+      el.innerHTML = d.routes.map(it=>`<div>${it.routing_key} → ${it.queue}</div>`).join('');
+    }
+    const refreshBtn = document.getElementById('refresh-routes'); if (refreshBtn){ refreshBtn.onclick = refreshRoutes; refreshRoutes(); }
+    // Keyboard shortcuts
+    document.addEventListener('keydown', async (e) => {
+      const tag = (e.target && (e.target.tagName||'')).toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'w') { document.getElementById('start-master').click(); }
+      else if (k === 'q') { document.getElementById('qp-quick').click(); }
+      else if (k === 'r') { const b = document.getElementById('add-random'); if (b) b.click(); }
+      else if (k === '1') { const b = document.querySelector('.send-one[data-type="gather"]'); if (b) b.click(); }
+      else if (k === '2') { const b = document.querySelector('.send-one[data-type="slay"]'); if (b) b.click(); }
+      else if (k === '3') { const b = document.querySelector('.send-one[data-type="escort"]'); if (b) b.click(); }
+      else if (k === 'p') { const b = document.getElementById('tab-pending'); if (b) b.click(); }
+      else if (k === 'f') { const b = document.getElementById('tab-failed'); if (b) b.click(); }
+      else if (k === 'd') { const b = document.getElementById('tab-dlq'); if (b) b.click(); }
+      else if (k === 'x') {
+        const order = ['drop','requeue','dlq','fail_early'];
+        const cur = (window.__chaosMode||null);
+        const next = order[(cur?order.indexOf(cur)+1:0) % order.length] || order[0];
+        window.__chaosMode = next;
+        await fetch('/api/chaos/arm', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode: next})});
+        appendFeed('warn','CHAOS',`Armed next: ${next}`);
+      }
+    });
 
     // Sync broker KPIs
     document.getElementById('sync-broker').onclick = async () => {
