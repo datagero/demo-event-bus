@@ -1,373 +1,298 @@
 #!/bin/bash
 
-# Demo Event Bus - Startup Script
-# Initializes containers, Go backend, and Python web server
-# Usage: ./start_app.sh [mode]
-#   mode: normal (default) | hotreload | dev
+# ==============================================================================
+# 🚀 Demo Event Bus - Complete Go Migration Startup Script
+# ==============================================================================
+# This script starts the fully migrated Go-based event bus system
+# Features:
+# - Go API Server (port 9000) with RabbitMQ-direct architecture  
+# - Go Workers (port 8001) for message processing
+# - Native RabbitMQ integration with Management API
+# - WebSocket support for real-time UI updates
+# - Comprehensive DLQ system and chaos engineering
+# ==============================================================================
 
 set -e  # Exit on any error
 
-# Parse command line arguments
-MODE="${1:-normal}"
-
-case $MODE in
-    normal)
-        echo "🚀 Starting Demo Event Bus System"
-        echo "================================="
-        ;;
-    hotreload)
-        echo "🔥 Starting Demo Event Bus System (Hot Reload Mode)"
-        echo "=================================================="
-        ;;
-    dev)
-        echo "🚀 Starting Demo Event Bus System (Development Mode)"
-        echo "===================================================="
-        ;;
-    *)
-        echo "❌ Invalid mode: $MODE"
-        echo "Usage: $0 [normal|hotreload|dev]"
-        echo ""
-        echo "Modes:"
-        echo "  normal    - Standard startup with live logs"
-        echo "  hotreload - Auto-restart on file changes (requires air)"
-        echo "  dev       - Multi-pane tmux/screen layout"
-        exit 1
-        ;;
-esac
-
 # Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Function to print colored messages
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+# Configuration
+RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
+RABBITMQ_MGMT_PORT=${RABBITMQ_MGMT_PORT:-15672}
+GO_API_PORT=${GO_API_PORT:-9000}
+GO_WORKERS_PORT=${GO_WORKERS_PORT:-8001}
+
+echo -e "${PURPLE}================================================================================================${NC}"
+echo -e "${PURPLE}🚀 Starting Demo Event Bus - Complete Go Migration${NC}"
+echo -e "${PURPLE}================================================================================================${NC}"
+echo -e "${CYAN}📊 Configuration:${NC}"
+echo -e "   🐰 RabbitMQ: localhost:${RABBITMQ_PORT} (Management: ${RABBITMQ_MGMT_PORT})"
+echo -e "   🏗️  Go API Server: localhost:${GO_API_PORT}"
+echo -e "   ⚡ Go Workers: localhost:${GO_WORKERS_PORT}"
+echo -e "${PURPLE}================================================================================================${NC}"
+
+# Function to check if a port is in use
+check_port() {
+    local port=$1
+    local service_name=$2
+    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo -e "${YELLOW}⚠️  Port $port is already in use (${service_name}). Continuing...${NC}"
+        return 0
+    else
+        return 1
+    fi
 }
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Check if running from correct directory
-if [ ! -f "docker-compose.yml" ]; then
-    print_error "docker-compose.yml not found. Please run from project root directory."
-    exit 1
-fi
-
-# Mode-specific checks
-if [ "$MODE" = "hotreload" ]; then
-    # Check if air is available
-    if ! command -v air >/dev/null 2>&1 && [ ! -f "$HOME/go/bin/air" ]; then
-        print_error "air not found. Please install it first:"
-        echo "  go install github.com/air-verse/air@latest"
-        echo "  # or add ~/go/bin to your PATH"
-        exit 1
-    fi
-    # Use air from go/bin if not in PATH
-    AIR_CMD="air"
-    if ! command -v air >/dev/null 2>&1 && [ -f "$HOME/go/bin/air" ]; then
-        AIR_CMD="$HOME/go/bin/air"
-    fi
-fi
-
-# Step 1: Check for existing processes and clean up
-print_status "Checking for existing processes..."
-
-# Kill existing processes
-pkill -f "uvicorn.*8000" 2>/dev/null || true
-pkill -f "go run main.go" 2>/dev/null || true
-if [ "$MODE" = "hotreload" ]; then
-    pkill -f "air" 2>/dev/null || true
-fi
-print_success "Cleaned up existing processes"
-
-# Step 2: Start RabbitMQ container using Rancher
-print_status "Starting RabbitMQ container..."
-
-# Check if Rancher is being used (based on user memory)
-if command -v rancher >/dev/null 2>&1; then
-    print_status "Using Rancher for container management..."
-    rancher compose up -d rabbitmq
-elif command -v docker >/dev/null 2>&1; then
-    print_status "Using Docker Compose..."
-    docker compose up -d rabbitmq
-else
-    print_error "Neither Rancher nor Docker found. Please install container management tools."
-    exit 1
-fi
-
-# Wait for RabbitMQ to be ready
-print_status "Waiting for RabbitMQ to start..."
-for i in {1..30}; do
-    if curl -s http://localhost:15672 >/dev/null 2>&1; then
-        break
-    fi
-    if [ $i -eq 30 ]; then
-        print_error "RabbitMQ failed to start within 30 seconds"
-        exit 1
-    fi
-    sleep 1
-done
-print_success "RabbitMQ is ready (Web UI: http://localhost:15672)"
-
-# Step 3: Activate Python virtual environment
-print_status "Activating Python virtual environment..."
-if [ ! -d ".venv" ]; then
-    print_error "Virtual environment not found. Please run: python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
-    exit 1
-fi
-
-source .venv/bin/activate
-print_success "Python virtual environment activated"
-
-# Step 4: Start Go backend
-if [ "$MODE" = "hotreload" ]; then
-    print_status "Starting Go worker backend with hot reload..."
-    # Air runs from project root and uses .air.toml config
-    nohup $AIR_CMD > go-workers.log 2>&1 &
-    GO_PID=$!
-elif [ "$MODE" = "dev" ]; then
-    print_status "Starting Go worker backend (dev mode - will use tmux)..."
-    # For dev mode, we'll handle this in the tmux section
-    GO_PID=""
-else
-    print_status "Starting Go worker backend..."
-    cd workers
-    if [ ! -f "go.mod" ]; then
-        print_warning "Go modules not initialized. Running go mod tidy..."
-        go mod tidy
-    fi
+# Function to wait for service
+wait_for_service() {
+    local port=$1
+    local service_name=$2
+    local max_attempts=30
+    local attempt=1
     
-    # Start Go server in background
-    nohup go run main.go --port 8001 --webhook "http://localhost:8000/api/go-workers/webhook/events" > ../go-workers.log 2>&1 &
-    GO_PID=$!
-    cd ..
-fi
-
-# Handle dev mode with tmux
-if [ "$MODE" = "dev" ]; then
-    # Check for terminal multiplexer
-    if command -v tmux >/dev/null 2>&1; then
-        print_status "Using tmux for multi-pane terminal..."
-        
-        # Create new tmux session
-        tmux new-session -d -s demo-event-bus
-        
-        # Split into 3 panes
-        tmux split-window -h -t demo-event-bus
-        tmux split-window -v -t demo-event-bus:0.1
-        
-        # Start Go backend in first pane
-        tmux send-keys -t demo-event-bus:0.0 "cd workers && go run main.go --port 8001 --webhook 'http://localhost:8000/api/go-workers/webhook/events'" C-m
-        
-        # Wait for Go server to start
-        print_status "Waiting for Go backend to start..."
-        for i in {1..15}; do
-            if curl -s http://localhost:8001/health >/dev/null 2>&1; then
-                break
-            fi
-            if [ $i -eq 15 ]; then
-                print_error "Go backend failed to start within 15 seconds"
-                tmux kill-session -t demo-event-bus
-                exit 1
-            fi
-            sleep 1
-        done
-        print_success "Go backend is ready"
-        
-        # Start Python web server in second pane
-        tmux send-keys -t demo-event-bus:0.1 "source .venv/bin/activate && uvicorn app.web_server:app --reload --port 8000" C-m
-        
-        # Wait for web server to start
-        print_status "Waiting for web server to start..."
-        for i in {1..15}; do
-            if curl -s http://localhost:8000/api/health >/dev/null 2>&1; then
-                break
-            fi
-            if [ $i -eq 15 ]; then
-                print_error "Web server failed to start within 15 seconds"
-                tmux kill-session -t demo-event-bus
-                exit 1
-            fi
-            sleep 1
-        done
-        print_success "Web server is ready"
-        
-        # Show status in third pane
-        tmux send-keys -t demo-event-bus:0.2 "echo '🎯 DEMO EVENT BUS SYSTEM STATUS'" C-m
-        tmux send-keys -t demo-event-bus:0.2 "echo '============================'" C-m
-        tmux send-keys -t demo-event-bus:0.2 "echo '✅ RabbitMQ:     http://localhost:15672 (guest/guest)'" C-m
-        tmux send-keys -t demo-event-bus:0.2 "echo '✅ Go Backend:   http://localhost:8001'" C-m
-        tmux send-keys -t demo-event-bus:0.2 "echo '✅ Web Server:   http://localhost:8000'" C-m
-        tmux send-keys -t demo-event-bus:0.2 "echo ''" C-m
-        tmux send-keys -t demo-event-bus:0.2 "echo '🎮 READY! Open http://localhost:8000 to start'" C-m
-        tmux send-keys -t demo-event-bus:0.2 "echo '🛑 Use: tmux kill-session -t demo-event-bus'" C-m
-        
-        # Set pane titles
-        tmux select-pane -t demo-event-bus:0.0 -T "Go Backend"
-        tmux select-pane -t demo-event-bus:0.1 -T "Web Server" 
-        tmux select-pane -t demo-event-bus:0.2 -T "Status"
-        
-        # Attach to the session
-        print_success "Starting tmux session with 3 panes..."
-        echo ""
-        echo "🎯 DEV MODE - TMUX SESSION:"
-        echo "├─ Pane 0: Go Backend Logs"
-        echo "├─ Pane 1: Web Server Logs"
-        echo "└─ Pane 2: System Status"
-        echo ""
-        echo "Navigation: Ctrl+B then arrow keys to switch panes"
-        echo "Detach: Ctrl+B then d"
-        echo "Kill session: Ctrl+B then :kill-session"
-        echo ""
-        tmux attach-session -t demo-event-bus
-        exit 0
-    else
-        print_warning "tmux not found. Install tmux for dev mode:"
-        echo "  brew install tmux     # macOS"
-        echo "  apt install tmux      # Ubuntu/Debian"
-        echo ""
-        print_status "Falling back to normal mode..."
-        MODE="normal"
-    fi
-fi
-
-# Wait for Go server to start (normal and hotreload modes)
-if [ "$GO_PID" != "" ]; then
-    print_status "Waiting for Go backend to start..."
-    for i in {1..15}; do
-        if curl -s http://localhost:8001/health >/dev/null 2>&1; then
-            break
+    echo -e "${BLUE}🔄 Waiting for ${service_name} on port ${port}...${NC}"
+    
+    while ! nc -z localhost $port 2>/dev/null; do
+        if [ $attempt -eq $max_attempts ]; then
+            echo -e "${RED}❌ ${service_name} failed to start on port ${port}${NC}"
+            return 1
         fi
-        if [ $i -eq 15 ]; then
-            print_error "Go backend failed to start within 15 seconds"
-            kill $GO_PID 2>/dev/null || true
-            exit 1
-        fi
-        sleep 1
+        echo -e "${YELLOW}   Attempt ${attempt}/${max_attempts}...${NC}"
+        sleep 2
+        ((attempt++))
     done
-    if [ "$MODE" = "hotreload" ]; then
-        print_success "Go backend is ready with hot reload (http://localhost:8001)"
+    
+    echo -e "${GREEN}✅ ${service_name} is ready on port ${port}${NC}"
+    return 0
+}
+
+# Function to test HTTP endpoint
+test_endpoint() {
+    local url=$1
+    local service_name=$2
+    
+    echo -e "${BLUE}🧪 Testing ${service_name}: ${url}${NC}"
+    
+    if curl -s "$url" > /dev/null; then
+        echo -e "${GREEN}✅ ${service_name} endpoint is responding${NC}"
+        return 0
     else
-        print_success "Go backend is ready (http://localhost:8001)"
+        echo -e "${RED}❌ ${service_name} endpoint test failed${NC}"
+        return 1
     fi
-fi
+}
 
-# Step 5: Start Python web server
-print_status "Starting Python web server..."
-nohup uvicorn app.web_server:app --reload --port 8000 > web-server.log 2>&1 &
-WEB_PID=$!
+# ==============================================================================
+# Step 1: Start RabbitMQ
+# ==============================================================================
 
-# Wait for web server to start
-print_status "Waiting for web server to start..."
-for i in {1..15}; do
-    if curl -s http://localhost:8000/api/health >/dev/null 2>&1; then
-        break
-    fi
-    if [ $i -eq 15 ]; then
-        print_error "Web server failed to start within 15 seconds"
-        kill $WEB_PID 2>/dev/null || true
-        kill $GO_PID 2>/dev/null || true
-        exit 1
-    fi
-    sleep 1
-done
-print_success "Web server is ready (http://localhost:8000)"
+echo -e "\n${PURPLE}📋 Step 1: Starting RabbitMQ${NC}"
 
-# Step 6: Save process IDs for cleanup
-echo $WEB_PID > .web_server.pid
-echo $GO_PID > .go_backend.pid
-
-# Step 7: Final status check
-print_status "Performing final system check..."
-
-# Check all services
-RABBITMQ_STATUS=$(curl -s http://localhost:15672 >/dev/null 2>&1 && echo "✅" || echo "❌")
-GO_STATUS=$(curl -s http://localhost:8001/health >/dev/null 2>&1 && echo "✅" || echo "❌")
-WEB_STATUS=$(curl -s http://localhost:8000/api/health >/dev/null 2>&1 && echo "✅" || echo "❌")
-
-echo ""
-echo "🎯 SYSTEM STATUS"
-echo "================"
-echo "RabbitMQ:     $RABBITMQ_STATUS  http://localhost:15672 (guest/guest)"
-echo "Go Backend:   $GO_STATUS  http://localhost:8001"
-echo "Web Server:   $WEB_STATUS  http://localhost:8000"
-echo ""
-if [ "$MODE" = "hotreload" ]; then
-    print_success "🔥 Demo Event Bus System with HOT RELOAD is fully operational!"
-    echo ""
-    echo "🎮 Open http://localhost:8000 to start using the application"
-    echo "🔄 Files will auto-reload when you make changes:"
-    echo "   • .go files → air rebuilds Go backend automatically"
-    echo "   • .py files → uvicorn reloads web server automatically"
+if check_port $RABBITMQ_PORT "RabbitMQ AMQP"; then
+    echo -e "${GREEN}✅ RabbitMQ AMQP already running${NC}"
 else
-    print_success "Demo Event Bus System is fully operational!"
-    echo ""
-    echo "🎮 Open http://localhost:8000 to start using the application"
+    echo -e "${BLUE}🚀 Starting RabbitMQ via Docker Compose...${NC}"
+    docker-compose up -d
+    wait_for_service $RABBITMQ_PORT "RabbitMQ AMQP"
 fi
-echo ""
-echo "📝 LIVE LOGS (Ctrl+C to stop all services)"
-echo "=========================================="
 
-# Create cleanup trap
+if check_port $RABBITMQ_MGMT_PORT "RabbitMQ Management"; then
+    echo -e "${GREEN}✅ RabbitMQ Management already running${NC}"
+else
+    wait_for_service $RABBITMQ_MGMT_PORT "RabbitMQ Management"
+fi
+
+# Test RabbitMQ Management API
+echo -e "${BLUE}🧪 Testing RabbitMQ Management API...${NC}"
+if curl -s -u guest:guest "http://localhost:${RABBITMQ_MGMT_PORT}/api/overview" > /dev/null; then
+    echo -e "${GREEN}✅ RabbitMQ Management API is responding${NC}"
+else
+    echo -e "${RED}❌ RabbitMQ Management API test failed${NC}"
+    exit 1
+fi
+
+# ==============================================================================
+# Step 2: Build and Start Go API Server
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Step 2: Building and Starting Go API Server${NC}"
+
+cd api-server
+
+echo -e "${BLUE}🔨 Building Go API Server...${NC}"
+if go build -o api-server-complete ./main.go; then
+    echo -e "${GREEN}✅ Go API Server built successfully${NC}"
+else
+    echo -e "${RED}❌ Go API Server build failed${NC}"
+    exit 1
+fi
+
+echo -e "${BLUE}🚀 Starting Go API Server on port ${GO_API_PORT}...${NC}"
+# Set environment variables for Go API server
+export RABBITMQ_URL="amqp://guest:guest@localhost:5672/"
+export RABBITMQ_API_URL="http://localhost:15672/api"
+export RABBITMQ_USER="guest"
+export RABBITMQ_PASS="guest"
+export WORKERS_URL="http://localhost:${GO_WORKERS_PORT}"
+export PYTHON_URL="http://localhost:8080"  # Legacy fallback (not used)
+
+# Start Go API server in background
+./api-server-complete &
+GO_API_PID=$!
+echo -e "${GREEN}✅ Go API Server started (PID: ${GO_API_PID})${NC}"
+
+wait_for_service $GO_API_PORT "Go API Server"
+test_endpoint "http://localhost:${GO_API_PORT}/health" "Go API Server Health"
+
+cd ..
+
+# ==============================================================================
+# Step 3: Build and Start Go Workers
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Step 3: Building and Starting Go Workers${NC}"
+
+cd workers
+
+echo -e "${BLUE}🔨 Building Go Workers...${NC}"
+if go build -o workers-complete ./main.go; then
+    echo -e "${GREEN}✅ Go Workers built successfully${NC}"
+else
+    echo -e "${RED}❌ Go Workers build failed${NC}"
+    exit 1
+fi
+
+echo -e "${BLUE}🚀 Starting Go Workers on port ${GO_WORKERS_PORT}...${NC}"
+# Start Go workers with webhook pointing to Go API server
+./workers-complete --port ${GO_WORKERS_PORT} --webhook "http://localhost:${GO_API_PORT}/api/go-workers/webhook/events" &
+GO_WORKERS_PID=$!
+echo -e "${GREEN}✅ Go Workers started (PID: ${GO_WORKERS_PID})${NC}"
+
+wait_for_service $GO_WORKERS_PORT "Go Workers"
+test_endpoint "http://localhost:${GO_WORKERS_PORT}/health" "Go Workers Health"
+
+cd ..
+
+# ==============================================================================
+# Step 4: Test Complete System Integration
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Step 4: Testing Complete System Integration${NC}"
+
+echo -e "${BLUE}🧪 Testing Go API Server endpoints...${NC}"
+
+# Test RabbitMQ metrics (RabbitMQ-direct)
+if curl -s "http://localhost:${GO_API_PORT}/api/rabbitmq/metrics" | grep -q "direct_rabbitmq_go_client"; then
+    echo -e "${GREEN}✅ RabbitMQ-direct metrics working${NC}"
+else
+    echo -e "${RED}❌ RabbitMQ-direct metrics test failed${NC}"
+fi
+
+# Test chaos status
+if curl -s "http://localhost:${GO_API_PORT}/api/chaos/status" | grep -q "rabbitmq_native"; then
+    echo -e "${GREEN}✅ Chaos engineering endpoints working${NC}"
+else
+    echo -e "${RED}❌ Chaos engineering test failed${NC}"
+fi
+
+# Test message publishing
+echo -e "${BLUE}🧪 Testing native message publishing...${NC}"
+PUBLISH_RESULT=$(curl -s -X POST "http://localhost:${GO_API_PORT}/api/publish" \
+  -H "Content-Type: application/json" \
+  -d '{"routing_key":"game.quest.gather","payload":{"case_id":"startup-test","quest_type":"gather","points":5}}')
+
+if echo "$PUBLISH_RESULT" | grep -q "go_api_server"; then
+    echo -e "${GREEN}✅ Native Go message publishing working${NC}"
+else
+    echo -e "${RED}❌ Message publishing test failed${NC}"
+fi
+
+# ==============================================================================
+# Step 5: Display System Information
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Step 5: System Information${NC}"
+
+echo -e "\n${CYAN}🌐 Service URLs:${NC}"
+echo -e "   🏠 Frontend:              http://localhost:${GO_API_PORT}/"
+echo -e "   🔧 Go API Server:         http://localhost:${GO_API_PORT}/api/"
+echo -e "   ⚡ Go Workers:            http://localhost:${GO_WORKERS_PORT}/"
+echo -e "   🐰 RabbitMQ Management:   http://localhost:${RABBITMQ_MGMT_PORT}/ (guest/guest)"
+
+echo -e "\n${CYAN}🔗 Key Endpoints:${NC}"
+echo -e "   📊 RabbitMQ Metrics:      http://localhost:${GO_API_PORT}/api/rabbitmq/metrics"
+echo -e "   👥 Player Creation:       POST http://localhost:${GO_API_PORT}/api/players/quickstart"
+echo -e "   📨 Message Publishing:    POST http://localhost:${GO_API_PORT}/api/publish"
+echo -e "   ⚡ Chaos Engineering:     POST http://localhost:${GO_API_PORT}/api/chaos/arm"
+echo -e "   🎮 Scenarios:             POST http://localhost:${GO_API_PORT}/api/scenario/run"
+echo -e "   💀 DLQ Management:        POST http://localhost:${GO_API_PORT}/api/dlq/setup"
+
+echo -e "\n${CYAN}📈 Educational Features:${NC}"
+echo -e "   🎯 RabbitMQ-Direct Architecture - Zero abstraction layers"
+echo -e "   🔍 Management API Integration - Live broker introspection"
+echo -e "   ⚡ Native Chaos Engineering - Direct RabbitMQ operations"
+echo -e "   💀 Comprehensive DLQ System - Native dead letter handling"
+echo -e "   🌐 WebSocket Broadcasting - Real-time UI updates"
+echo -e "   🚀 Pure Go Implementation - No Python dependencies"
+
+echo -e "\n${CYAN}🎮 Quick Start Commands:${NC}"
+echo -e "   # Create Alice and Bob workers"
+echo -e "   curl -X POST http://localhost:${GO_API_PORT}/api/players/quickstart -H 'Content-Type: application/json' -d '{\"preset\":\"alice_bob\"}'"
+echo -e ""
+echo -e "   # Publish a quest"
+echo -e "   curl -X POST http://localhost:${GO_API_PORT}/api/publish -H 'Content-Type: application/json' -d '{\"routing_key\":\"game.quest.gather\",\"payload\":{\"case_id\":\"quest-1\",\"quest_type\":\"gather\",\"points\":5}}'"
+echo -e ""
+echo -e "   # Run late-bind escort scenario"
+echo -e "   curl -X POST http://localhost:${GO_API_PORT}/api/scenario/run -H 'Content-Type: application/json' -d '{\"scenario\":\"late-bind-escort\"}'"
+echo -e ""
+echo -e "   # Trigger chaos (purge queue)"
+echo -e "   curl -X POST http://localhost:${GO_API_PORT}/api/chaos/arm -H 'Content-Type: application/json' -d '{\"action\":\"rmq_purge_queue\",\"target_queue\":\"game.skill.gather.q\"}'"
+
+# ==============================================================================
+# Cleanup Function
+# ==============================================================================
+
 cleanup() {
-    echo ""
-    print_warning "Stopping all services..."
+    echo -e "\n${YELLOW}🛑 Shutting down services...${NC}"
     
-    if [ "$GO_PID" != "" ]; then
-        kill $WEB_PID $GO_PID 2>/dev/null || true
-    else
-        kill $WEB_PID 2>/dev/null || true
+    if [ ! -z "$GO_WORKERS_PID" ]; then
+        echo -e "${BLUE}Stopping Go Workers (PID: ${GO_WORKERS_PID})...${NC}"
+        kill $GO_WORKERS_PID 2>/dev/null || true
     fi
     
-    # Stop air processes if in hotreload mode
-    if [ "$MODE" = "hotreload" ]; then
-        pkill -f "air" 2>/dev/null || true
+    if [ ! -z "$GO_API_PID" ]; then
+        echo -e "${BLUE}Stopping Go API Server (PID: ${GO_API_PID})...${NC}"
+        kill $GO_API_PID 2>/dev/null || true
     fi
     
-    # Wait a moment for graceful shutdown
-    sleep 2
+    echo -e "${BLUE}Stopping RabbitMQ...${NC}"
+    docker-compose down
     
-    # Force kill if still running
-    if [ "$GO_PID" != "" ]; then
-        kill -9 $WEB_PID $GO_PID 2>/dev/null || true
-    else
-        kill -9 $WEB_PID 2>/dev/null || true
-    fi
-    
-    print_success "All services stopped. Run ./stop_app.sh to clean up cache."
-    exit 0
+    echo -e "${GREEN}✅ All services stopped${NC}"
 }
 
-# Set trap for Ctrl+C
-trap cleanup SIGINT SIGTERM
+# Set up cleanup on script exit
+trap cleanup EXIT
 
-# Show aggregated logs from all services
-print_status "Showing live logs from all services..."
-echo "Use Ctrl+C to stop all services"
-echo ""
+# ==============================================================================
+# Keep Running
+# ==============================================================================
 
-# Use multitail if available, otherwise fallback to tail with prefixes
-if command -v multitail >/dev/null 2>&1; then
-    multitail -ci green -l "tail -f go-workers.log" -ci blue -l "tail -f web-server.log"
-else
-    # Fallback: tail both files with prefixes
-    (tail -f go-workers.log | sed 's/^/[GO] /' &) 
-    (tail -f web-server.log | sed 's/^/[WEB] /' &)
-    
-    # Keep the script running and wait for signals
-    while true; do
-        sleep 1
-    done
-fi
+echo -e "\n${PURPLE}================================================================================================${NC}"
+echo -e "${GREEN}🎉 Demo Event Bus - Complete Go Migration is running!${NC}"
+echo -e "${PURPLE}================================================================================================${NC}"
+echo -e "${CYAN}📊 Architecture: RabbitMQ + Go API Server + Go Workers${NC}"
+echo -e "${CYAN}🎯 Educational Focus: Direct RabbitMQ integration with zero abstraction${NC}"
+echo -e "${CYAN}🌐 Frontend: http://localhost:${GO_API_PORT}/${NC}"
+echo -e "${PURPLE}================================================================================================${NC}"
+echo -e "${YELLOW}Press Ctrl+C to stop all services${NC}"
+
+# Wait for interrupt
+wait

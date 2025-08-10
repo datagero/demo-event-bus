@@ -45,6 +45,31 @@ func (c *WorkersClient) GetStatus() (map[string]interface{}, error) {
 	return status, nil
 }
 
+// CreateWorker creates a new worker (replaces StartWorker for cleaner interface)
+func (c *WorkersClient) CreateWorker(config map[string]interface{}) error {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal create worker request: %w", err)
+	}
+
+	resp, err := c.httpClient.Post(
+		c.baseURL+"/start",
+		"application/json",
+		bytes.NewBuffer(data),
+	)
+	if err != nil {
+		return fmt.Errorf("create worker failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("create worker returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
 // StartWorker starts a new worker
 func (c *WorkersClient) StartWorker(name string, skills []string, config map[string]interface{}) error {
 	payload := map[string]interface{}{

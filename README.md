@@ -1,396 +1,400 @@
-# RabbitMQ Learning App (Queue Quest)
+# 🚀 Demo Event Bus - Go-First RabbitMQ Educational Platform
 
-Queue Quest is an interactive learning application for RabbitMQ and event-driven systems. It includes an optional **Card Quest Challenge** - a gamified mode that teaches data engineering concepts through timed scenarios and scoring mechanics.
+A comprehensive educational platform demonstrating **RabbitMQ message broker patterns** with **direct broker integration** and **zero abstraction layers**. Built with Go for performance and educational transparency.
 
-**Features:**
-- 🚀 **High-performance Go workers** for message processing
-- 🎮 **Interactive UI** with real-time quest cards and worker management
-- 📊 **Visual metrics** including activity graphs and throughput monitoring  
-- 🎯 **Educational scenarios** demonstrating RabbitMQ concepts
-- 🃏 **Gamified challenges** with scoring and timed scenarios
+## 🎯 Educational Philosophy
+
+This platform is designed for **RabbitMQ education** with these core principles:
+
+- **🔍 Direct RabbitMQ Integration**: Data comes directly from RabbitMQ Management API
+- **🚫 Zero Abstraction Layers**: Students see real broker internals, not app-level caches
+- **📊 Educational Transparency**: All responses clearly indicate their RabbitMQ source
+- **⚡ Native Operations**: Chaos engineering uses direct RabbitMQ commands
+- **🎓 Learning Focus**: Minimize the gap between students and RabbitMQ
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Go API Server  │    │   RabbitMQ      │
+│   (React-like)  │◄──►│   Port 9000      │◄──►│   + Mgmt API    │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌──────────────────┐
+                       │   Go Workers     │
+                       │   Port 8001      │
+                       └──────────────────┘
+```
+
+### 🔧 Components
+
+- **Go API Server** (Port 9000): Native RabbitMQ integration with Management API
+- **Go Workers** (Port 8001): Message processors with skill-based routing
+- **RabbitMQ** (Port 5672): Message broker with Management UI (Port 15672)
+- **Frontend**: Real-time WebSocket UI for educational visualization
 
 ## 🚀 Quick Start
 
-**One-command startup:**
+### Prerequisites
+
+- **Go 1.21+**
+- **Docker & Docker Compose** (for RabbitMQ)
+- **curl** (for testing)
+
+### 1. Start the Complete System
+
 ```bash
-./start_app.sh              # Normal mode with live logs
-./start_app.sh hotreload     # Auto-restart on file changes  
-./start_app.sh dev           # Multi-pane tmux layout
+# Clone and enter directory
+git clone <repository>
+cd demo-event-bus
+
+# Start everything (RabbitMQ + Go API + Go Workers)
+./start_app.sh
 ```
 
-**One-command shutdown:**
+### 2. Access the Platform
+
+- **🌐 Frontend**: http://localhost:9000/
+- **🔧 API Documentation**: http://localhost:9000/api/
+- **🐰 RabbitMQ Management**: http://localhost:15672/ (guest/guest)
+
+### 3. Stop the System
+
 ```bash
 ./stop_app.sh
 ```
 
-**That's it!** Open http://localhost:8000 to start learning.
+## 🎮 Quick Educational Examples
 
-> **Startup Modes:**
-> - **Normal:** Live logs in terminal, Ctrl+C to stop
-> - **Hotreload:** Auto-restart when .go/.py files change (requires `air`)
-> - **Dev:** Multi-pane tmux with separate logs for each service
-
-### What the Scripts Do
-
-- **`start_app.sh [mode]`**: Unified startup script with three modes:
-  - `normal` (default): Standard startup with aggregated logs
-  - `hotreload`: Auto-restart on file changes (requires `air` tool)
-  - `dev`: Multi-pane tmux layout with separate service logs
-- **`stop_app.sh`**: Stops all services and cleans up cache/logs for a fresh restart
-
-### Service URLs
-- **Main App**: http://localhost:8000
-- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
-- **Go Backend API**: http://localhost:8001
-
----
-
-## 🛠️ Manual Setup (Alternative)
-
-If you prefer manual setup or need to troubleshoot:
-
-### Prerequisites
+### Create Workers (Alice & Bob)
 ```bash
-uv venv .venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
+curl -X POST http://localhost:9000/api/players/quickstart \
+  -H 'Content-Type: application/json' \
+  -d '{"preset":"alice_bob"}'
 ```
 
-### Start RabbitMQ
+### Publish a Quest Message
 ```bash
-docker compose up -d
+curl -X POST http://localhost:9000/api/publish \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "routing_key": "game.quest.gather",
+    "payload": {
+      "case_id": "quest-1",
+      "quest_type": "gather", 
+      "points": 5
+    }
+  }'
 ```
 
-### Start Go Backend
+### View RabbitMQ-Direct Metrics
 ```bash
+curl http://localhost:9000/api/rabbitmq/metrics | jq
+```
+
+### Run Educational Scenarios
+```bash
+# Late-bind pattern: publish quest before worker exists
+curl -X POST http://localhost:9000/api/scenario/run \
+  -H 'Content-Type: application/json' \
+  -d '{"scenario":"late-bind-escort"}'
+
+# Quest wave publishing
+curl -X POST http://localhost:9000/api/scenario/run \
+  -H 'Content-Type: application/json' \
+  -d '{"scenario":"quest-wave","params":{"wave_size":5}}'
+```
+
+### Chaos Engineering (RabbitMQ-Native)
+```bash
+# Purge a queue directly via Management API
+curl -X POST http://localhost:9000/api/chaos/arm \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "action": "rmq_purge_queue",
+    "target_queue": "game.skill.gather.q"
+  }'
+
+# Block connections
+curl -X POST http://localhost:9000/api/chaos/arm \
+  -H 'Content-Type: application/json' \
+  -d '{"action": "rmq_block_connection"}'
+```
+
+## 📊 Educational Features
+
+### 🎯 RabbitMQ-Direct Data Sources
+
+All application data comes directly from RabbitMQ:
+
+- **📈 Metrics**: Live queue statistics from Management API
+- **👥 Consumers**: Real consumer tracking without app caches  
+- **📨 Messages**: Direct queue inspection and message peeking
+- **⚡ Chaos**: Native RabbitMQ operations (not simulations)
+
+### 🔍 Message Flow Patterns
+
+**Skill-Based Routing**:
+```
+Message: game.quest.gather → game.skill.gather.q → alice (gather skill)
+Message: game.quest.slay   → game.skill.slay.q   → bob (slay skill)
+```
+
+**Late-Binding Pattern**:
+```
+1. Publish game.quest.escort (no consumers)
+2. Message queues in game.skill.escort.q
+3. Create escort worker
+4. Worker immediately processes queued message
+```
+
+### 💀 Dead Letter Queue (DLQ) System
+
+Native RabbitMQ DLQ features:
+- **x-dead-letter-exchange**: Route failed messages
+- **x-message-ttl**: Message expiration
+- **x-death** header inspection: Retry counts and failure reasons
+- **Retry queues**: Backoff patterns with chained TTLs
+
+### ⚡ Chaos Engineering
+
+Educational chaos actions using **real RabbitMQ commands**:
+- `rmq_delete_queue`: Delete queues via Management API
+- `rmq_purge_queue`: Clear messages from queues  
+- `rmq_block_connection`: Close AMQP connections
+- `rmq_unbind_queue`: Remove queue bindings
+
+## 🔧 API Reference
+
+### Core Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | System health check |
+| `/api/rabbitmq/metrics` | GET | **RabbitMQ-direct** queue metrics |
+| `/api/players/quickstart` | POST | Create worker presets |
+| `/api/publish` | POST | **Native** message publishing |
+| `/api/chaos/arm` | POST | **RabbitMQ-native** chaos actions |
+| `/api/scenario/run` | POST | Educational scenarios |
+
+### RabbitMQ Integration Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/rabbitmq/queues` | GET | Live queue data from Management API |
+| `/api/rabbitmq/consumers` | GET | Real consumer tracking |
+| `/api/rabbitmq/exchanges` | GET | Exchange configuration |
+| `/api/rabbitmq/messages/:queue` | GET | Direct message peeking |
+
+### DLQ Management
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/dlq/setup` | POST | Configure native DLQ topology |
+| `/api/dlq/list` | GET | List DLQ messages by category |
+| `/api/dlq/reissue` | POST | Replay messages from DLQ |
+
+## 🎓 Educational Scenarios
+
+### 1. Basic Message Flow
+```bash
+# Create workers → Publish messages → Watch processing
+./start_go_complete.sh
+curl -X POST localhost:9000/api/players/quickstart -d '{"preset":"alice_bob"}'
+curl -X POST localhost:9000/api/publish -d '{"routing_key":"game.quest.gather","payload":{"points":5}}'
+```
+
+### 2. Late-Binding Pattern
+```bash
+# Publish first, create worker later
+curl -X POST localhost:9000/api/scenario/run -d '{"scenario":"late-bind-escort"}'
+```
+
+### 3. Chaos Engineering
+```bash
+# Publish messages, then disrupt
+curl -X POST localhost:9000/api/scenario/run -d '{"scenario":"chaos-test"}'
+```
+
+### 4. Load Testing
+```bash
+# High-volume message publishing
+curl -X POST localhost:9000/api/scenario/run -d '{"scenario":"load-test","params":{"message_count":100}}'
+```
+
+## 🔍 Monitoring & Debugging
+
+### RabbitMQ Management UI
+Access http://localhost:15672/ (guest/guest) to see:
+- **Queues**: Real-time message counts
+- **Exchanges**: Routing configuration  
+- **Connections**: Active AMQP connections
+- **Channels**: Per-connection channels
+
+### Application Logs
+```bash
+# View Go API Server logs
+docker logs <api-server-container>
+
+# View Go Workers logs  
+docker logs <workers-container>
+
+# View RabbitMQ logs
+docker logs demo-event-bus-rabbitmq-1
+```
+
+### Direct RabbitMQ Queries
+```bash
+# Check queue status
+curl -u guest:guest http://localhost:15672/api/queues
+
+# Peek messages
+curl -u guest:guest http://localhost:15672/api/queues/%2F/game.skill.gather.q/get \
+  -X POST -d '{"count":5,"ackmode":"ack_requeue_false"}'
+
+# View consumers
+curl -u guest:guest http://localhost:15672/api/consumers
+```
+
+## 🏗️ Development
+
+### Building Components
+
+```bash
+# Build Go API Server
+cd api-server
+go build -o api-server-complete ./main.go
+
+# Build Go Workers  
 cd workers
-go run main.go --port 8001 --webhook "http://localhost:8000/api/go-workers/webhook/events"
+go build -o workers-complete ./main.go
 ```
 
-### Start Web Server
+### Hot Reloading (Development)
+
 ```bash
-uvicorn app.web_server:app --reload --port 8000
+# API Server with hot reload (requires 'air')
+cd api-server
+air
+
+# Workers with hot reload
+cd workers  
+go run main.go --port 8001 --webhook "http://localhost:9000/api/go-workers/webhook/events"
 ```
 
-RabbitMQ UI: [http://localhost:15672](http://localhost:15672) (guest/guest)
+### Environment Variables
 
-### 🔧 Troubleshooting
-
-**Port conflicts:**
 ```bash
-# Check what's using the ports
-lsof -ti :8000 :8001 :5672 :15672
+# API Server
+export RABBITMQ_URL="amqp://guest:guest@localhost:5672/"
+export RABBITMQ_API_URL="http://localhost:15672/api"
+export WORKERS_URL="http://localhost:8001"
 
-# Force cleanup if needed
-sudo lsof -ti :8000 :8001 | xargs kill -9
+# Workers
+export RABBITMQ_URL="amqp://guest:guest@localhost:5672/"
+export WEBHOOK_URL="http://localhost:9000/api/go-workers/webhook/events"
 ```
 
-**Container issues:**
+## 📚 Learning Resources
+
+### RabbitMQ Concepts Demonstrated
+
+1. **Exchanges & Routing**: Topic exchanges with skill-based routing keys
+2. **Queues**: Durable queues with skill-specific binding patterns
+3. **Consumers**: Multiple consumers per queue with prefetch limits
+4. **Dead Letter Queues**: Native DLQ with retry policies
+5. **Management API**: Direct broker introspection and control
+6. **Connection Management**: AMQP connection lifecycle
+7. **Message Properties**: Headers, TTL, routing keys, persistence
+
+### Message Patterns Shown
+
+- **Work Queues**: Task distribution among workers
+- **Publish/Subscribe**: Topic-based message distribution  
+- **RPC Pattern**: Request/response via queues
+- **Dead Letter Handling**: Failed message recovery
+- **Delayed Messages**: TTL-based message timing
+
+## 🗂️ Project Structure
+
+```
+demo-event-bus/
+├── api-server/           # Go API Server (main backend)
+│   ├── internal/
+│   │   ├── api/handlers/ # HTTP endpoint handlers
+│   │   ├── clients/      # RabbitMQ & Workers clients
+│   │   ├── websocket/    # WebSocket hub
+│   │   └── models/       # Data models
+│   └── main.go          # Server entry point
+├── workers/             # Go Workers (message processors)
+│   ├── consumer/        # Worker implementation
+│   ├── chaos/          # Chaos engineering
+│   └── main.go         # Workers entry point
+├── legacy/             # Archived Python code
+│   └── python/         # Original Python implementation
+├── start_app.sh         # Main startup script
+├── stop_app.sh         # Cleanup script
+└── docker-compose.yml  # RabbitMQ service
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Port conflicts**:
 ```bash
-# Reset containers
-docker compose down --remove-orphans
-./start_app.sh
+# Check what's using ports
+lsof -i :9000 -i :8001 -i :5672 -i :15672
+
+# Stop conflicting services
+./stop_app.sh
 ```
 
-**Detailed documentation:** See [STARTUP_GUIDE.md](STARTUP_GUIDE.md) for comprehensive troubleshooting.
+**RabbitMQ connection issues**:
+```bash
+# Restart RabbitMQ
+docker-compose down && docker-compose up -d
+
+# Check RabbitMQ logs
+docker logs demo-event-bus-rabbitmq-1
+```
+
+**Go build issues**:
+```bash
+# Update dependencies
+cd api-server && go mod tidy
+cd workers && go mod tidy
+```
+
+### Health Checks
+
+```bash
+# Test all services
+curl http://localhost:9000/health      # Go API Server
+curl http://localhost:8001/health      # Go Workers  
+curl http://localhost:15672/api/overview # RabbitMQ
+```
+
+## 🤝 Contributing
+
+This is an educational project. Contributions should maintain the **RabbitMQ-direct** philosophy:
+
+1. **Minimize abstractions** - Data should come from RabbitMQ where possible
+2. **Educational transparency** - Clearly show RabbitMQ operations
+3. **Direct integration** - Use Management API for real broker data
+4. **Clear attribution** - Mark data sources in API responses
+
+## 📄 License
+
+Educational use. See LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+Built for RabbitMQ education with focus on **direct broker integration** and **educational transparency**. Designed to minimize the gap between students and RabbitMQ internals.
 
 ---
 
-## 📚 Additional Demos
+**🎯 Educational Goal**: Students learn RabbitMQ by seeing real broker operations, not application abstractions.
 
-### CLI demos (optional)
-
-- Consumer (listens to `rte.retrieve.orders` on queue `demo.orders.q`):
-  ```bash
-  PYTHONPATH=. python scripts/rmq_consume_demo.py
-  ```
-- Publisher (sends a demo message to `rte.retrieve.orders`):
-  ```bash
-  PYTHONPATH=. python scripts/rmq_publish_demo.py
-  ```
-- Orchestrator wait (binds `demo.wait.q` to `rte.retrieve.*.done`, publishes a simulated `*.done`, and waits for a match):
-  ```bash
-  PYTHONPATH=. python scripts/rmq_wait_done_demo.py
-  ```
-
-Configuration (optional)
-
-- `RTE_EXCHANGE`: exchange name. Default: `rte.topic`
-- `RABBITMQ_URL`: AMQP URL. Default: `amqp://guest:guest@localhost:5672/%2F`
-
-Example override:
-```bash
-export RTE_EXCHANGE=my.exchange
-export RABBITMQ_URL=amqp://user:pass@localhost:5672/%2F
-```
-
-Interactive demos (optional)
-
-- Slow processing (visualize Ready vs Unacked):
-  ```bash
-  PYTHONPATH=. python scripts/rmq_consume_slow.py
-  # In a second terminal, send a burst to build backlog
-  PYTHONPATH=. COUNT=15 SLEEP=0.05 python scripts/rmq_publish_burst.py
-  ```
-  Observe in the UI (Queues -> `demo.orders.slow.q`):
-  - **Ready** grows as messages queue up
-  - **Unacked** is ~1 due to `prefetch=1`
-  - As the consumer acks, Ready drains and Unacked returns to 0
-
-- Failures with Dead Letter Queue (DLQ):
-  ```bash
-  PYTHONPATH=. python scripts/rmq_consume_fail.py
-  # In a second terminal
-  PYTHONPATH=. python scripts/rmq_publish_demo.py
-  ```
-  Observe in the UI:
-  - Queue `demo.orders.fail.q` briefly receives a message
-  - Message is NACKed with `requeue=False`, routed to DLX `rte.dlx`
-  - DLQ `demo.orders.dlq.q` receives the message and logs `[DLQ] got message:`
-  - Use Queues -> `demo.orders.dlq.q` -> Get messages to inspect payloads
-
-Tips
-
-- If RabbitMQ UI says port busy, run `scripts/teardown.sh`.
-- If Python can't import `app.*`, prefix commands with `PYTHONPATH=.`.
-- Copy `.env.example` to `.env` and adjust if you need non-default RabbitMQ creds or API URL.
-- New endpoints: `POST /api/chaos/arm`, `GET /api/chaos/state`, `GET /api/messages?status=pending|failed|dlq`, `POST /api/player/update`.
-- To change volume of burst messages: `COUNT=50 SLEEP=0`.
-- To purge a demo queue from UI: Queues -> select queue -> Purge.
-
-Queue Quest (gamified learning)
-
-A tiny game built on RabbitMQ topics. The game master publishes quests; players accept and complete or fail them; a scoreboard tallies points in real time.
-
-Quickstart (web UI)
-
-1) Ensure RabbitMQ is running (compose up)
-2) Start the web server
-   ```bash
-   PYTHONPATH=. uvicorn app.web_server:app --reload --port 8000
-   ```
-3) Open http://localhost:8000
-4) Use Quick Play → Quick Start to recruit Alice+Bob and start a wave, or recruit from Recruit pane
-
-Keyboard shortcuts
-- w: start wave with current parameters
-- q: Quick Start (Alice+Bob + wave)
-- 1/2/3: send one gather/slay/escort
-- p/f/d: open Pending/Failed/DLQ tabs
-- x: cycle/arm Chaos mode (drop → requeue → dlq → fail_early)
-
-1) Scoreboard (Terminal A)
-```bash
-PYTHONPATH=. python scripts/game_scoreboard.py
-```
-
-2) Players (Terminal B/C)
-- Alice: skilled at gather,slay; 20% fail rate
-```bash
-PYTHONPATH=. PLAYER=alice SKILLS=gather,slay FAIL_PCT=0.2 python scripts/game_player.py
-```
-- Bob: skilled at escort; 10% fail rate
-```bash
-PYTHONPATH=. PLAYER=bob SKILLS=escort FAIL_PCT=0.1 python scripts/game_player.py
-```
-
-3) Game master (Terminal D)
-- Publish a wave of quests (mix of types, difficulties, points)
-```bash
-PYTHONPATH=. COUNT=20 DELAY=0.1 python scripts/game_master.py
-```
-
-What to watch in RabbitMQ UI
-- Exchanges → `rte.topic` → bindings for `game.quest.*`
-- Queues → `game.player.alice.q`, `game.player.bob.q`, `game.scoreboard.q`
-- See Ready/Unacked on player queues while they work (`prefetch=1`), and result events flowing to the scoreboard queue
-
-Tweak the game (CLI mode)
-- Change skills: `SKILLS=slay` or `SKILLS=gather,escort`
-- Change failure rate: `FAIL_PCT=0.5`
-- Adjust quest volume/speed: `COUNT=100 DELAY=0`
-- Edit difficulty timing in `scripts/game_master.py` (work_sec)
-
-Internals
-- Quests: `game.quest.<type>`
-- Results: `game.quest.<type>.done` or `.fail`
-- Per-player queues auto-delete when terminals close; scoreboard aggregates results in-memory
-
-Web UI (FastAPI)
-
-An interactive web UI to visualize events and control the game.
-
-Install deps if not already done:
-```bash
-uv pip install -r requirements.txt
-```
-
-Run the web server:
-```bash
-PYTHONPATH=. uvicorn app.web_server:app --reload --port 8000
-```
-Open: http://localhost:8000
-
-- Start players and master from the left panel
-- Watch live events and scoreboard on the right
-- Keep RabbitMQ running: `docker compose up -d`
-
-How it works (game narrative)
-
-Core loop
-- Game master publishes quests to topic `game.quest.<type>` with difficulty/weight/points
-- Players consume quests from shared per-skill queues (skill mode) or one queue per player (player mode)
-- Players accept or skip; accepted quests are Unacked until ack; results publish to `game.quest.<type>.done|fail`
-- Scoreboard subscribes to results and totals points
-
-Key concepts
-- Ready vs Unacked: Ready (queued); Unacked (delivered/processing until ack). On crash before ack → back to Ready
-- Prefetch: limits parallel messages in-flight per consumer; set per-player to visualize contention
-- Routing modes: Skill-based (single delivery fairness) vs Player-based (fanout duplicates)
-- DLQ: NACK requeue=false sends to DLQ for investigation; requeue/purge from Messages panel
-
-Scenarios (deterministic)
-- Redelivery: simulate disconnect before ack → message returns to Ready → redelivered
-- Requeue: NACK requeue=true → immediately back to Ready
-- Duplicate / Both complete: use player-based routing to show each player gets/finishes their own copy
-- DLQ poison: send a bad message to DLQ
-
-Late-bind escort (backlog handoff)
-
-This scenario demonstrates what happens when messages are published before a queue exists, and how a shared skill queue enables handoff between workers.
-
-Steps
-0) Reset state (clears UI metrics; players may keep running)
-1) Publish escort quests while no escort queue exists → they are unroutable and dropped by the broker
-2) Bob arrives and declares/binds `game.skill.escort.q` → starts consuming
-3) Publish more escort quests → these are now queued and processed
-4) Pause Bob → publish more → messages pile up as Ready in the escort queue
-5) Dave arrives (also escort) → consumes from the same queue, draining the backlog and new messages
-
-Why the early messages were lost
-- In skill-based routing we bind a single shared queue per skill (e.g., `game.skill.escort.q`). If the queue does not exist yet and no binding for `game.quest.escort` is present, RabbitMQ drops the published messages by default (no alternate-exchange/mandatory flag).
-- Once the first escort consumer declares/binds the queue, new messages are routed there and can be consumed by any worker for that skill. Pausing one worker simply builds a Ready backlog which another worker can drain later.
-
-Run it
-- From the UI: Scenarios → “Late-bind escort (backlog handoff)”
-- Via API:
-  ```bash
-  curl -s -X POST localhost:8000/api/scenario/run \
-    -H 'Content-Type: application/json' \
-    -d '{"name":"late_bind_escort"}'
-  ```
-
-Optional: make “unroutable” visible
-- If you want to see the early messages instead of dropping them, configure an alternate exchange (AE) on `rte.topic` and bind `unroutable.q` to that AE. Then you can inspect or replay from there.
-  - In RabbitMQ UI: Exchanges → `rte.topic` → set `alternate-exchange` to `rte.ae`
-  - Create `rte.ae` (type: fanout) and queue `unroutable.q` bound to it
-  - Now anything published without a matching binding shows up in `unroutable.q`
-
-Player downtime and redelivery (at-least-once)
-- Story: A player (worker) crashes mid-quest. What happens to the message?
-- What RabbitMQ does: With manual acks and prefetch=1, an in-flight message is Unacked while the player works. If the connection drops before ack, the broker requeues it. Another player (or the same one later) can pick it up. With a single player, the message remains Ready until it comes back.
-- Try it:
-  1) Start two players (e.g., alice and bob) in the web UI (or via terminal with `game_player.py`).
-  2) Start a master wave. Watch Events in the web UI and Queues in RabbitMQ.
-  3) As soon as you see “ACCEPT: alice -> …”, terminate Alice (Ctrl+C) or close her terminal.
-  4) Observe: `Unacked` drops, `Ready` increases on `game.player.alice.q`, then Bob accepts and continues. If Alice was alone, the message stays Ready until she returns.
-- Concepts: at-least-once delivery; manual ack; consumer prefetch limits parallel in-flight work.
-
-Private channels, least-privilege and targeted commands
-- Need: Players should report status centrally without seeing others’ data; the central system should target one player or a team without broadcasting secrets.
-- Building blocks:
-  - Vhosts and per-user credentials: use a dedicated vhost, create a user per player with fine-grained permissions (configure in RabbitMQ UI: Admin → Users/Permissions). Use TLS (`amqps://`).
-  - Topic partitioning: publish public quests on `game.quest.*`. Players only have read perms on these. Players only have write perms on `game.quest.*.(done|fail)` and `status.<playerId>`.
-  - Direct, private commands: create a direct exchange `game.cmd`. Each player binds a private queue `cmd.<playerId>` with routing key `<playerId>`. The central system publishes to `game.cmd` with `routing_key=<playerId>` to reach only that player. For teams, use topic keys like `team.<teamId>.<playerId>` or `cmd.team.<teamId>`.
-  - Status reporting: players publish sanitized metrics/events to `status.<playerId>` on `game.status` (topic). Central binds `status.*`; players have no read perms on `status.*`.
-  - Sensitive fields: encrypt at the application layer for fields that must remain confidential from other principals; or use per-recipient keys.
-- Try it (UI-only, no code changes required):
-  1) Create exchange `game.cmd` (type: direct).
-  2) Create queue `cmd.alice`, bind to `game.cmd` with routing key `alice`.
-  3) Use the UI to Publish to exchange `game.cmd` with `routing_key=alice` and any JSON body. Only `cmd.alice` receives it. (To fully handle commands, extend `game_player.py` to also consume `cmd.<playerId>`.)
-
-Dead-letter queues (DLQs) in practice
-- Why DLQs exist:
-  - Poison messages: data your code can’t process → NACK (requeue=false) and capture for investigation.
-  - TTL expiration: messages that waited too long → expire to DLQ for triage.
-  - Max retries: after N processing attempts, stop retrying and DLQ the message to avoid hot-looping.
-  - Unroutable/audit: alternate exchange to collect misrouted payloads.
-- Demo 1: Poison message → DLQ (already included)
-  - Run: `PYTHONPATH=. python scripts/rmq_consume_fail.py` then publish (e.g., `scripts/rmq_publish_demo.py`).
-  - Observe: processing queue NACKs with `requeue=False`; message lands in DLQ (`demo.orders.dlq.q`), visible in UI and logs.
-- Demo 2: TTL → DLQ (no code changes)
-  - In RabbitMQ UI: Policies → Add policy `ttl-demo` (apply to queues, pattern `^ttl.demo.q$`, definitions: `message-ttl=5000`, `dead-letter-exchange=rte.dlx`, `dead-letter-routing-key=ttl.dlq`).
-  - Create queue `ttl.demo.q`, bind to `rte.topic` with a key you publish to (e.g., `rte.retrieve.orders`). Also create/bind DLQ `ttl.dlq.q` to `rte.dlx` with key `ttl.dlq`.
-  - Publish some messages and don’t consume them. After ~5s they expire and appear in `ttl.dlq.q`.
-- Demo 3: Retry with backoff, then DLQ (UI-only)
-  - Create `work.q` (DLX=`retry.ex`, DLK=`rk`), `retry.q` (TTL=5000, DLX back to `rte.topic`/`work.q` binding), and a consumer that intentionally fails first N attempts using a counter (or use `rmq_consume_fail.py`).
-  - Observe `x-death` headers count retries; once threshold reached, route to a terminal DLQ for manual handling.
-
-Takeaways
-- Downtime isn’t data loss: unacked messages are requeued and delivered later (at-least-once). Idempotency is crucial.
-- Privacy and targeting are modeled via exchanges, bindings, and broker permissions: central can address a single player or cohort without leaking to others.
-- DLQs are for safe failure handling and triage: poison data, timeouts, and exhausted retries go somewhere observable instead of looping or vanishing.
-
-Rancher Desktop / Docker socket
-
-If you use Rancher Desktop, set the Docker CLI to its socket so compose works:
-```bash
-export DOCKER_HOST=unix:///Users/$USER/.rd/docker.sock
-```
-
-## Card Quest Challenge (Optional Plugin)
-
-The **Card Quest Challenge** is a plug-and-play game mode that adds time-pressured scenarios to teach advanced data engineering concepts. It's completely optional and can be enabled or disabled without affecting the core functionality.
-
-### How it Works
-
-- **Game Timer**: Every 30 seconds, draw a random card with immediate effects
-- **Card Types**: 
-  - 🟢 **Green** (Opportunities): New Hire, Cross-Training, Upgrade Queue, Scale Up, Alternate Route
-  - 🟡 **Yellow** (Load & Growth): Message Surge, Skill Boom, Multi-Skill Wave, Steady Growth  
-  - 🔴 **Red** (Problems): Character Quits, Queue Blocked, Retention Shrink, Network Partition, Exchange Misbind
-  - ⚫ **Black** (Chaos Events): Storm of Skills, Mass Resignation, Broker Glitch, Retention Purge, Random Replay
-- **Scoring**: Start with 1000 points, lose points for unroutable messages (-5), DLQ messages (-3), expired messages (-10)
-- **Win Condition**: Survive the full duration (default 5 minutes) with maximum points
-
-### Enable/Disable Card Game
-
-**To Enable** (default):
-```bash
-# Card game is enabled by default when app/card_game.py exists
-# The Card Quest Challenge panel will appear in the web UI
-```
-
-**To Disable**:
-```bash
-# Rename the card game module to disable it completely
-mv app/card_game.py app/card_game_enabled.py
-mv app/card_game_disabled.py app/card_game.py
-# Restart the web server - the Card Quest Challenge panel will be hidden
-```
-
-**To Re-enable**:
-```bash
-# Restore the card game module
-mv app/card_game.py app/card_game_disabled.py  
-mv app/card_game_enabled.py app/card_game.py
-# Restart the web server
-```
-
-### Educational Goals
-
-- **Green Cards**: Teach scaling, redundancy, and proactive configuration
-- **Yellow Cards**: Teach load management and planning for growth  
-- **Red Cards**: Teach fault tolerance and rapid incident handling
-- **Black Cards**: Teach resilience under extreme chaos scenarios
-
-The card system transforms static learning into an engaging, time-pressured game where players must react to real-world data engineering scenarios while maintaining 100% message delivery.
-
-## Clean start sequence
-```bash
-scripts/teardown.sh
-export DOCKER_HOST=unix:///Users/$USER/.rd/docker.sock
-docker compose up -d
-scripts/wait_rabbit.sh localhost 5672 30
-PYTHONPATH=. uvicorn app.web_server:app --reload --port 8000
-```
+**🚀 Quick Start**: `./start_app.sh` → Visit http://localhost:9000/`

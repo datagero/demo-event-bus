@@ -1,166 +1,182 @@
 #!/bin/bash
 
-# Demo Event Bus - Shutdown Script
-# Stops all services and cleans up cache
+# ==============================================================================
+# 🛑 Demo Event Bus - Stop Script
+# ==============================================================================
+# Stops all services and cleans up processes
+# ==============================================================================
 
 set -e  # Exit on any error
 
-echo "🛑 Stopping Demo Event Bus System"
-echo "================================="
-
 # Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
-# Function to print colored messages
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+echo -e "${PURPLE}================================================================================================${NC}"
+echo -e "${PURPLE}🛑 Stopping Demo Event Bus Services${NC}"
+echo -e "${PURPLE}================================================================================================${NC}"
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Step 1: Stop Python web server
-print_status "Stopping Python web server..."
-if [ -f ".web_server.pid" ]; then
-    WEB_PID=$(cat .web_server.pid)
-    if kill $WEB_PID 2>/dev/null; then
-        print_success "Web server stopped (PID: $WEB_PID)"
+# Function to stop processes by name
+stop_processes() {
+    local process_name=$1
+    local display_name=$2
+    
+    echo -e "${BLUE}🔄 Stopping ${display_name}...${NC}"
+    
+    # Find and kill processes
+    local pids=$(pgrep -f "$process_name" 2>/dev/null || true)
+    
+    if [ -n "$pids" ]; then
+        echo "$pids" | xargs kill -TERM 2>/dev/null || true
+        sleep 2
+        
+        # Force kill if still running
+        local remaining_pids=$(pgrep -f "$process_name" 2>/dev/null || true)
+        if [ -n "$remaining_pids" ]; then
+            echo "$remaining_pids" | xargs kill -KILL 2>/dev/null || true
+        fi
+        
+        echo -e "${GREEN}✅ ${display_name} stopped${NC}"
     else
-        print_warning "Web server process not found (PID: $WEB_PID)"
+        echo -e "${YELLOW}⚠️  ${display_name} not running${NC}"
     fi
-    rm -f .web_server.pid
+}
+
+# ==============================================================================
+# Stop Go Services
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Stopping Go Services${NC}"
+
+stop_processes "api-server-complete" "Go API Server"
+stop_processes "workers-complete" "Go Workers"
+stop_processes "api-server-test" "Go API Server (test)"
+stop_processes "start_app.sh" "Go Startup Script"
+
+# ==============================================================================
+# Stop Legacy Python Services (if any)
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Stopping Legacy Services${NC}"
+
+stop_processes "web_server.py" "Python Web Server"
+stop_processes "uvicorn" "Python Uvicorn"
+stop_processes "start_app.sh" "Legacy Startup Scripts"
+
+# ==============================================================================
+# Stop RabbitMQ
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Stopping RabbitMQ${NC}"
+
+if command -v docker-compose &> /dev/null; then
+    echo -e "${BLUE}🔄 Stopping RabbitMQ via Docker Compose...${NC}"
+    docker-compose down 2>/dev/null || true
+    echo -e "${GREEN}✅ RabbitMQ stopped${NC}"
 else
-    # Fallback: kill by process name
-    pkill -f "uvicorn.*8000" 2>/dev/null && print_success "Web server stopped (by name)" || print_warning "No web server process found"
+    echo -e "${YELLOW}⚠️  Docker Compose not found, skipping RabbitMQ stop${NC}"
 fi
 
-# Step 2: Stop Go backend
-print_status "Stopping Go backend..."
-if [ -f ".go_backend.pid" ]; then
-    GO_PID=$(cat .go_backend.pid)
-    if kill $GO_PID 2>/dev/null; then
-        print_success "Go backend stopped (PID: $GO_PID)"
-    else
-        print_warning "Go backend process not found (PID: $GO_PID)"
-    fi
-    rm -f .go_backend.pid
-else
-    # Fallback: kill by process name (including air processes)
-    pkill -f "go run main.go" 2>/dev/null && print_success "Go backend stopped (by name)" || print_warning "No Go backend process found"
+# ==============================================================================
+# Clean Up Temporary Files
+# ==============================================================================
+
+echo -e "\n${PURPLE}📋 Cleaning Up Temporary Files${NC}"
+
+# Remove built binaries
+if [ -f "api-server/api-server-complete" ]; then
+    rm "api-server/api-server-complete"
+    echo -e "${GREEN}✅ Removed api-server-complete binary${NC}"
 fi
 
-# Stop air hot reload processes
-pkill -f "air" 2>/dev/null && print_success "Air hot reload stopped" || true
-
-# Stop tmux sessions for development modes
-if command -v tmux >/dev/null 2>&1; then
-    tmux kill-session -t demo-event-bus 2>/dev/null && print_success "Tmux session stopped" || true
+if [ -f "api-server/api-server-test" ]; then
+    rm "api-server/api-server-test"
+    echo -e "${GREEN}✅ Removed api-server-test binary${NC}"
 fi
 
-# Step 3: Stop RabbitMQ container
-print_status "Stopping RabbitMQ container..."
-if command -v rancher >/dev/null 2>&1; then
-    print_status "Using Rancher for container management..."
-    rancher compose down rabbitmq 2>/dev/null && print_success "RabbitMQ container stopped" || print_warning "RabbitMQ container may not be running"
-elif command -v docker >/dev/null 2>&1; then
-    print_status "Using Docker Compose..."
-    docker compose down rabbitmq 2>/dev/null && print_success "RabbitMQ container stopped" || print_warning "RabbitMQ container may not be running"
-else
-    print_warning "Neither Rancher nor Docker found. Manual container cleanup may be needed."
+if [ -f "workers/workers-complete" ]; then
+    rm "workers/workers-complete"
+    echo -e "${GREEN}✅ Removed workers-complete binary${NC}"
 fi
 
-# Step 4: Clean up cache and temporary files
-print_status "Cleaning up cache and temporary files..."
-
-# Remove game state cache
-if [ -f ".game_state_cache.pkl" ]; then
-    rm -f .game_state_cache.pkl
-    print_success "Removed game state cache (.game_state_cache.pkl)"
-fi
-
-# Remove log files
-if [ -f "go-workers.log" ]; then
-    rm -f go-workers.log
-    print_success "Removed Go backend logs"
-fi
-
-if [ -f "web-server.log" ]; then
-    rm -f web-server.log
-    print_success "Removed web server logs"
-fi
-
-# Remove any other temporary files
-rm -f .web_server.pid .go_backend.pid 2>/dev/null || true
-
-# Optional: Clean up Python cache
+# Clean up Python cache (if any)
 if [ -d "__pycache__" ]; then
     rm -rf __pycache__
-    print_success "Removed Python cache"
+    echo -e "${GREEN}✅ Removed Python cache${NC}"
 fi
 
 if [ -d "app/__pycache__" ]; then
-    rm -rf app/__pycache__
-    print_success "Removed app Python cache"
+    rm -rf "app/__pycache__"
+    echo -e "${GREEN}✅ Removed app Python cache${NC}"
 fi
 
-# Step 5: Force cleanup any remaining processes
-print_status "Performing final cleanup..."
+# Clean up any .pyc files
+find . -name "*.pyc" -delete 2>/dev/null || true
 
-# Kill any remaining processes on the ports
-lsof -ti :8000 2>/dev/null | xargs kill -9 2>/dev/null || true
-lsof -ti :8001 2>/dev/null | xargs kill -9 2>/dev/null || true
+# ==============================================================================
+# Verify Clean State
+# ==============================================================================
 
-# Step 6: Verify shutdown
-print_status "Verifying shutdown..."
+echo -e "\n${PURPLE}📋 Verifying Clean State${NC}"
 
-WEB_CHECK=$(curl -s http://localhost:8000 >/dev/null 2>&1 && echo "❌ Still running" || echo "✅ Stopped")
-GO_CHECK=$(curl -s http://localhost:8001 >/dev/null 2>&1 && echo "❌ Still running" || echo "✅ Stopped")
-RABBIT_CHECK=$(curl -s http://localhost:15672 >/dev/null 2>&1 && echo "❌ Still running" || echo "✅ Stopped")
+# Check for running processes
+check_process() {
+    local process_name=$1
+    local display_name=$2
+    
+    if pgrep -f "$process_name" > /dev/null 2>&1; then
+        echo -e "${RED}❌ ${display_name} still running${NC}"
+        return 1
+    else
+        echo -e "${GREEN}✅ ${display_name} stopped${NC}"
+        return 0
+    fi
+}
 
-echo ""
-echo "🎯 SHUTDOWN STATUS"
-echo "=================="
-echo "Web Server:   $WEB_CHECK"
-echo "Go Backend:   $GO_CHECK"
-echo "RabbitMQ:     $RABBIT_CHECK"
-echo ""
+all_clean=true
 
-# Check if everything is stopped
-if [[ "$WEB_CHECK" == *"Stopped"* ]] && [[ "$GO_CHECK" == *"Stopped"* ]] && [[ "$RABBIT_CHECK" == *"Stopped"* ]]; then
-    print_success "All services stopped successfully!"
-    echo ""
-    echo "🧹 CLEANUP COMPLETED:"
-    echo "• Game state cache cleared"
-    echo "• Log files removed"
-    echo "• Temporary files cleaned"
-    echo "• All processes terminated"
-    echo ""
-    echo "🚀 Run ./start_app.sh to restart the system"
+check_process "api-server" "Go API Server" || all_clean=false
+check_process "workers.*main.go" "Go Workers" || all_clean=false
+check_process "web_server.py" "Python Web Server" || all_clean=false
+check_process "uvicorn" "Python Uvicorn" || all_clean=false
+
+# Check Docker containers
+if docker ps --format "table {{.Names}}" 2>/dev/null | grep -q "rabbitmq"; then
+    echo -e "${RED}❌ RabbitMQ container still running${NC}"
+    all_clean=false
 else
-    print_warning "Some services may still be running. Check manually if needed."
-    if [[ "$WEB_CHECK" == *"Still running"* ]]; then
-        echo "  • Web server may need manual stop: sudo lsof -ti :8000 | xargs kill -9"
-    fi
-    if [[ "$GO_CHECK" == *"Still running"* ]]; then
-        echo "  • Go backend may need manual stop: sudo lsof -ti :8001 | xargs kill -9"
-    fi
-    if [[ "$RABBIT_CHECK" == *"Still running"* ]]; then
-        echo "  • RabbitMQ may need manual stop: docker/rancher compose down"
-    fi
+    echo -e "${GREEN}✅ RabbitMQ container stopped${NC}"
 fi
 
-echo ""
-echo "✅ Shutdown script completed"
+# ==============================================================================
+# Summary
+# ==============================================================================
+
+echo -e "\n${PURPLE}================================================================================================${NC}"
+
+if [ "$all_clean" = true ]; then
+    echo -e "${GREEN}🎉 All Demo Event Bus services stopped successfully!${NC}"
+    echo -e "${PURPLE}================================================================================================${NC}"
+    echo -e "${CYAN}📊 Clean State Achieved:${NC}"
+    echo -e "   ✅ Go API Server stopped"
+    echo -e "   ✅ Go Workers stopped"
+    echo -e "   ✅ RabbitMQ stopped"
+    echo -e "   ✅ Legacy services stopped"
+    echo -e "   ✅ Temporary files cleaned"
+    echo -e "${PURPLE}================================================================================================${NC}"
+    echo -e "${GREEN}Ready to start fresh with: ${YELLOW}./start_app.sh${NC}"
+else
+    echo -e "${YELLOW}⚠️  Some services may still be running. Check manually if needed.${NC}"
+    echo -e "${PURPLE}================================================================================================${NC}"
+    echo -e "${CYAN}Manual cleanup commands:${NC}"
+    echo -e "   ${YELLOW}pkill -f api-server${NC}"
+    echo -e "   ${YELLOW}pkill -f workers${NC}"
+    echo -e "   ${YELLOW}docker-compose down${NC}"
+    echo -e "${PURPLE}================================================================================================${NC}"
+fi
+
+echo -e "${BLUE}🔄 To start the system again: ${YELLOW}./start_app.sh${NC}"

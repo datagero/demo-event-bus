@@ -175,8 +175,11 @@ func (w *Worker) workerLoop(queueName string, workerID int) {
 		return w.processMessage(delivery)
 	}
 
+	// Create a meaningful consumer tag with player name and worker index
+	consumerTag := fmt.Sprintf("%s-worker-%d", w.config.PlayerName, workerID)
+
 	// Start consuming (this blocks)
-	err := w.client.Consume(queueName, handler)
+	err := w.client.ConsumeWithTag(queueName, consumerTag, handler)
 	if err != nil {
 		log.Printf("❌ [Go Worker] Consumer error for %s: %v", w.config.PlayerName, err)
 	}

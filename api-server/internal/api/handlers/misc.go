@@ -7,33 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RunScenario runs an educational scenario
-func (h *Handlers) RunScenario(c *gin.Context) {
-	var req struct {
-		Scenario string `json:"scenario" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.APIResponse{
-			Success: false,
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	if err := h.PythonClient.RunScenario(req.Scenario); err != nil {
-		c.JSON(http.StatusInternalServerError, models.APIResponse{
-			Success: false,
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, models.APIResponse{
-		Success: true,
-		Message: "Scenario executed successfully",
-	})
-}
+// RunScenario is now implemented in scenarios.go
 
 // Card game handlers
 func (h *Handlers) IsCardGameEnabled(c *gin.Context) {
@@ -79,7 +53,21 @@ func (h *Handlers) GetBrokerQueues(c *gin.Context) {
 
 // Metrics handlers
 func (h *Handlers) GetMetrics(c *gin.Context) {
-	h.delegateToTypeNotImplemented(c, "metrics")
+	// Use native Go RabbitMQ client to derive metrics
+	metrics, err := h.RabbitMQClient.DeriveMetricsFromRabbitMQ()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.APIResponse{
+			Success: false,
+			Error:   "Failed to derive metrics from RabbitMQ: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.APIResponse{
+		Success: true,
+		Data:    metrics,
+		Message: "Metrics derived natively from Go RabbitMQ client",
+	})
 }
 
 func (h *Handlers) GetPlayerStats(c *gin.Context) {

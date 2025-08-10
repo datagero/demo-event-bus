@@ -24,16 +24,16 @@ type Client struct {
 
 // Message represents a quest message
 type Message struct {
-	CaseID      string  `json:"case_id"`
-	EventStage  string  `json:"event_stage"`
-	Status      string  `json:"status"`
-	Source      string  `json:"source"`
-	QuestType   string  `json:"quest_type"`
-	Difficulty  string  `json:"difficulty"`
-	WorkSec     float64 `json:"work_sec"`
-	Points      int     `json:"points"`
-	Weight      int     `json:"weight"`
-	Player      string  `json:"player,omitempty"`
+	CaseID     string  `json:"case_id"`
+	EventStage string  `json:"event_stage"`
+	Status     string  `json:"status"`
+	Source     string  `json:"source"`
+	QuestType  string  `json:"quest_type"`
+	Difficulty string  `json:"difficulty"`
+	WorkSec    float64 `json:"work_sec"`
+	Points     int     `json:"points"`
+	Weight     int     `json:"weight"`
+	Player     string  `json:"player,omitempty"`
 }
 
 // NewClient creates a new RabbitMQ client
@@ -78,7 +78,7 @@ func (c *Client) Close() error {
 		return nil
 	}
 	c.closed = true
-	
+
 	if c.channel != nil {
 		c.channel.Close()
 	}
@@ -145,14 +145,19 @@ func (c *Client) Publish(ctx context.Context, routingKey string, msg Message) er
 
 // Consume starts consuming messages from a queue
 func (c *Client) Consume(queueName string, handler func(amqp.Delivery) bool) error {
+	return c.ConsumeWithTag(queueName, "", handler)
+}
+
+// ConsumeWithTag starts consuming messages from a queue with a specific consumer tag
+func (c *Client) ConsumeWithTag(queueName string, consumerTag string, handler func(amqp.Delivery) bool) error {
 	deliveries, err := c.channel.Consume(
-		queueName, // queue
-		"",        // consumer tag
-		false,     // auto-ack (we'll ack manually)
-		false,     // exclusive
-		false,     // no-local
-		false,     // no-wait
-		nil,       // args
+		queueName,   // queue
+		consumerTag, // consumer tag
+		false,       // auto-ack (we'll ack manually)
+		false,       // exclusive
+		false,       // no-local
+		false,       // no-wait
+		nil,         // args
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register consumer: %w", err)

@@ -9,10 +9,11 @@ import (
 
 // Handlers contains all the API endpoint handlers
 type Handlers struct {
-	PythonClient  *clients.PythonClient
-	WorkersClient *clients.WorkersClient
-	WSHub         *websocket.Hub
-	Config        *config.Config
+	PythonClient   *clients.PythonClient
+	WorkersClient  *clients.WorkersClient
+	WSHub          *websocket.Hub
+	Config         *config.Config
+	RabbitMQClient *clients.RabbitMQClient
 }
 
 // broadcastMessage is a helper to broadcast WebSocket messages
