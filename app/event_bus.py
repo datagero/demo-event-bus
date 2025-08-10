@@ -61,7 +61,10 @@ class RabbitEventBus:
                 routing_key=routing_key,
                 body=body,
                 mandatory=True,
-                properties=pika.BasicProperties(content_type="application/json")
+                properties=pika.BasicProperties(
+                    content_type="application/json",
+                    delivery_mode=2  # Make message persistent
+                )
             )
             # For BlockingConnection, returned messages are delivered via process_data_events
             if on_unroutable:
@@ -78,8 +81,8 @@ class RabbitEventBus:
                     pass
 
     def declare_queue(self, queue_name, routing_key):
-        # non-durable, auto-delete queue for easy demos
-        self.ch.queue_declare(queue=queue_name, durable=False, auto_delete=True)
+        # durable queue for message persistence
+        self.ch.queue_declare(queue=queue_name, durable=True, auto_delete=False)
         self.ch.queue_bind(queue=queue_name, exchange=EXCHANGE_NAME, routing_key=routing_key)
 
     def consume_forever(self, queue_name, handler):

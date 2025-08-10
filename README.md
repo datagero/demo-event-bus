@@ -1,5 +1,7 @@
 RabbitMQ learning app (Queue Quest)
 
+Queue Quest is an interactive learning application for RabbitMQ and event-driven systems. It includes an optional **Card Quest Challenge** - a gamified mode that teaches data engineering concepts through timed scenarios and scoring mechanics.
+
 Setup
 
 ```bash
@@ -256,7 +258,55 @@ If you use Rancher Desktop, set the Docker CLI to its socket so compose works:
 export DOCKER_HOST=unix:///Users/$USER/.rd/docker.sock
 ```
 
-Clean start sequence
+## Card Quest Challenge (Optional Plugin)
+
+The **Card Quest Challenge** is a plug-and-play game mode that adds time-pressured scenarios to teach advanced data engineering concepts. It's completely optional and can be enabled or disabled without affecting the core functionality.
+
+### How it Works
+
+- **Game Timer**: Every 30 seconds, draw a random card with immediate effects
+- **Card Types**: 
+  - 🟢 **Green** (Opportunities): New Hire, Cross-Training, Upgrade Queue, Scale Up, Alternate Route
+  - 🟡 **Yellow** (Load & Growth): Message Surge, Skill Boom, Multi-Skill Wave, Steady Growth  
+  - 🔴 **Red** (Problems): Character Quits, Queue Blocked, Retention Shrink, Network Partition, Exchange Misbind
+  - ⚫ **Black** (Chaos Events): Storm of Skills, Mass Resignation, Broker Glitch, Retention Purge, Random Replay
+- **Scoring**: Start with 1000 points, lose points for unroutable messages (-5), DLQ messages (-3), expired messages (-10)
+- **Win Condition**: Survive the full duration (default 5 minutes) with maximum points
+
+### Enable/Disable Card Game
+
+**To Enable** (default):
+```bash
+# Card game is enabled by default when app/card_game.py exists
+# The Card Quest Challenge panel will appear in the web UI
+```
+
+**To Disable**:
+```bash
+# Rename the card game module to disable it completely
+mv app/card_game.py app/card_game_enabled.py
+mv app/card_game_disabled.py app/card_game.py
+# Restart the web server - the Card Quest Challenge panel will be hidden
+```
+
+**To Re-enable**:
+```bash
+# Restore the card game module
+mv app/card_game.py app/card_game_disabled.py  
+mv app/card_game_enabled.py app/card_game.py
+# Restart the web server
+```
+
+### Educational Goals
+
+- **Green Cards**: Teach scaling, redundancy, and proactive configuration
+- **Yellow Cards**: Teach load management and planning for growth  
+- **Red Cards**: Teach fault tolerance and rapid incident handling
+- **Black Cards**: Teach resilience under extreme chaos scenarios
+
+The card system transforms static learning into an engaging, time-pressured game where players must react to real-world data engineering scenarios while maintaining 100% message delivery.
+
+## Clean start sequence
 ```bash
 scripts/teardown.sh
 export DOCKER_HOST=unix:///Users/$USER/.rd/docker.sock

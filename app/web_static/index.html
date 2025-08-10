@@ -86,6 +86,28 @@
     .modal .inner { width: min(800px, 92vw); background: var(--panel); border:1px solid #1e2a4d; border-radius:12px; padding:16px; }
     .modal.show { display:flex; }
     .help li { margin-bottom:6px; }
+
+    /* Card Game Styles */
+    .card-green { background: #27ae60; color: white; }
+    .card-yellow { background: #f39c12; color: white; }
+    .card-red { background: #e74c3c; color: white; }
+    .card-black { background: #2c3e50; color: white; }
+    
+    .effect-pill { 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-size: 12px; 
+      background: #34495e; 
+      color: #ecf0f1; 
+      display: flex; 
+      align-items: center; 
+      gap: 4px;
+    }
+    
+    .effect-green { background: #27ae60; }
+    .effect-yellow { background: #f39c12; }
+    .effect-red { background: #e74c3c; }
+    .effect-black { background: #2c3e50; }
   </style>
 </head>
 <body>
@@ -143,34 +165,111 @@
         <div>Expired: <span id="status-expired" class="tag err">0</span></div>
         <div>Broker: <span id="status-broker" class="tag info">ready=– · unacked=–</span> <button id="sync-broker" class="mini-btn" title="Sync broker KPIs">↻</button></div>
     </div>
+
+    <!-- Card Game Section -->
+    <div class="card" id="cardgame-panel" style="margin-bottom:12px; border: 2px solid #9b59b6;">
+      <h3>🃏 Card Quest Challenge</h3>
+      <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div id="cardgame-controls" style="display:flex; gap:8px; align-items:center;">
+          <button id="start-cardgame" style="background:#2ecc71; border-color:#27ae60;">Start Challenge</button>
+          <button id="stop-cardgame" style="background:#e74c3c; border-color:#c0392b;" disabled>Stop</button>
+          <button id="draw-card" style="background:#f39c12; border-color:#e67e22;" disabled>Manual Draw</button>
+        </div>
+        <div id="cardgame-status" style="display:flex; gap:12px; align-items:center;">
+          <div>Score: <span id="game-score" class="tag info">1000</span></div>
+          <div>Next Card: <span id="card-timer" class="tag warn">--</span></div>
+          <div>Effects: <span id="active-effects" class="tag">0</span></div>
+        </div>
+      </div>
+      
+      <div id="current-card" style="display:none; padding:12px; border:1px solid #34495e; border-radius:8px; margin-bottom:12px;">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div id="card-color-badge" class="tag">GREEN</div>
+          <div style="flex:1;">
+            <h4 id="card-name" style="margin:0 0 4px 0;">Card Name</h4>
+            <p id="card-desc" style="margin:0; font-size:14px; color:#8aa0c7;">Card description...</p>
+          </div>
+          <div id="card-duration" style="color:#f39c12; font-weight:bold;">15s</div>
+        </div>
+      </div>
+      
+      <div id="active-effects-list" style="display:none;">
+        <h4 style="margin:8px 0 4px 0; font-size:14px; color:#8aa0c7;">Active Effects:</h4>
+        <div id="effects-container" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+      </div>
+    </div>
     <div class="grid">
       <div class="card">
         <h3>Controls ⚙️</h3>
         <h3>Scenarios 🧪</h3>
         <div class="two">
-          <button id="sc-redelivery" title="If a player disconnects before ack, the in-flight message goes back to Ready and is redelivered.">Redelivery (disconnect before ack)</button>
-          <button id="sc-requeue" title="Explicit NACK with requeue=true returns the message to Ready immediately.">Requeue (nack requeue)</button>
+          <button id="sc-late-bind" title="Messages published before queue exists → worker creates queue → backlog management">Late-bind escort (backlog handoff)</button>
+          <button id="sc-routing" title="Compare skill-based vs player-based routing behavior">Routing comparison</button>
         </div>
-        <div class="two" style="margin-top:6px">
-          <button id="sc-duplicate" title="Switch to Player-based routing so multiple queues get a copy of the message.">Duplicate (same message to two players)</button>
-          <button id="sc-both-complete" title="Player-based duplicate: two players with the same skill both complete their own copies.">Both complete (multi-copies)</button>
-        </div>
-        <div class="two" style="margin-top:6px">
-          <button id="sc-dlq" title="Poison message: simulate a NACK to DLQ for investigation and later requeue/purge from the DLQ panel.">DLQ (poison)</button>
-          <button id="sc-late-bind" title="Escort before queue exists → then one worker pauses and another arrives to drain backlog.">Late-bind escort (backlog handoff)</button>
-        </div>
-        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Use Skill-based (top) for single delivery fairness; Player-based for duplicates.</div>
+
+        <div class="muted" style="margin-top:6px; font-size:12px">Educational scenarios that demonstrate unique RabbitMQ behaviors.</div>
         <hr style="border-color:#1e2a4d; margin:10px 0">
-        <h3>Message Chaos 🎲 (next message)</h3>
-        <div class="two">
-          <button id="chaos-drop">Next: Drop</button>
-          <button id="chaos-requeue">Next: Requeue</button>
+        <h3>Enhanced Message Chaos 🌪️</h3>
+        <div style="margin-bottom:12px">
+          <div style="margin-bottom:8px">
+            <label style="display:block; font-size:12px; color:#8aa0c7; margin-bottom:4px">Action</label>
+            <select id="chaos-action" style="width:100%; padding:6px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+              <option value="drop">Drop (real disconnect + auto-reconnect)</option>
+              <option value="requeue">Requeue (NACK with requeue)</option>
+              <option value="dlq">DLQ (NACK to dead letter)</option>
+              <option value="fail_early">Fail Early (immediate fail)</option>
+              <option value="disconnect">Disconnect (player offline)</option>
+              <option value="pause">Pause (5 second pause)</option>
+            </select>
+          </div>
+          
+          <div class="two" style="margin-bottom:8px">
+            <div>
+              <label style="display:block; font-size:12px; color:#8aa0c7; margin-bottom:4px">Target Player</label>
+              <select id="chaos-player" style="width:100%; padding:6px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                <option value="">Any Player</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:#8aa0c7; margin-bottom:4px">Quest Type</label>
+              <select id="chaos-quest-type" style="width:100%; padding:6px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                <option value="">Any Quest</option>
+                <option value="gather">Gather</option>
+                <option value="slay">Slay</option>
+                <option value="escort">Escort</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="margin-bottom:8px">
+            <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:#8aa0c7">
+              <input type="checkbox" id="chaos-auto-trigger">
+              Auto-publish messages after delay
+            </label>
+            <div id="chaos-auto-settings" style="display:none; margin-top:6px; padding-left:20px">
+              <div class="two">
+                <div>
+                  <label style="font-size:11px; color:#8aa0c7">Delay (sec)</label>
+                  <input type="number" id="chaos-delay" value="2" min="0.1" step="0.1" style="width:100%; padding:4px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                </div>
+                <div>
+                  <label style="font-size:11px; color:#8aa0c7">Count</label>
+                  <input type="number" id="chaos-count" value="1" min="1" step="1" style="width:100%; padding:4px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="two" style="gap:8px">
+            <button id="chaos-arm" style="background:#e74c3c; border-color:#c0392b">Arm Chaos</button>
+            <button id="chaos-disarm" style="background:#7f8c8d; border-color:#6c7b7d">Disarm</button>
+          </div>
+          
+          <div id="chaos-status" style="margin-top:8px; padding:6px; background:#2c3e50; border-radius:4px; font-size:12px; display:none">
+            <div>Status: <span id="chaos-status-text">Disarmed</span></div>
+          </div>
         </div>
-        <div class="two">
-          <button id="chaos-dlq">Next: DLQ</button>
-          <button id="chaos-fail">Next: Fail Early</button>
-        </div>
-        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Use Skill-based (top) for single delivery fairness; Player-based for duplicates.</div>
+        <div class="muted" style="font-size:12px">Powerful chaos system: target specific players/quests, auto-trigger scenarios.</div>
         <hr style="border-color:#1e2a4d; margin:10px 0">
         <h3>Messages 📬</h3>
         <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center">
@@ -434,9 +533,9 @@
           <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
           <div class="line2"><span class="stats">w${String(wrk).padStart(2,' ')} · s${spdTxt} · f${failTxt}</span>
             <span class="controls">
-              <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Pause">⏸</button>
-              <button class="tiny-btn player-action" data-action="resume" data-name="${name}" title="Resume">▶</button>
-              <button class="tiny-btn player-action" data-action="crash" data-name="${name}" title="Crash">⚡</button>
+              <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Disconnect (real disconnect - stays offline)">⏸</button>
+              <button class="tiny-btn player-action" data-action="resume" data-name="${name}" title="Reconnect (restart worker)">▶</button>
+              <button class="tiny-btn player-action" data-action="crash" data-name="${name}" title="Crash + Auto-reconnect (3s delay)">⚡</button>
               <button class="tiny-btn player-delete" data-name="${name}" title="Delete">🗑</button>
             </span>
           </div>
@@ -555,6 +654,7 @@
       const msg = JSON.parse(ev.data);
       renderScores(msg); renderRoster(msg);
       updateQuickTitles(msg);
+      updateChaosPlayerOptions(msg.roster);
       // aggregates per type
         if (msg.metrics && msg.metrics.per_type){
         const parts = [];
@@ -570,20 +670,36 @@
           }
       }
 
-      // activity
-      const onlineCount = Object.values(msg.roster||{}).filter(r => r.status==='online').length;
+      // activity: count truly online players (not disconnected, reconnecting, etc.)
+      const onlineCount = Object.values(msg.roster||{}).filter(r => r.status === 'online').length;
       if (msg.type==='tick'){
         act.ts.push(msg.payload.ts); act.online.push(onlineCount);
         while (act.ts.length > 60) { act.ts.shift(); act.online.shift(); }
         drawActivity();
-        // throughput: completed per tick by player
+        // throughput: rate of completion (delta per tick) by player
         const ps = msg.player_stats || {};
-        Object.keys(ps).forEach(p=>{ thr.perPlayer[p] = thr.perPlayer[p] || []; });
+        Object.keys(ps).forEach(p=>{ 
+          if (!thr.perPlayer[p]) thr.perPlayer[p] = [];
+          if (!thr.lastCompleted) thr.lastCompleted = {};
+        });
         Object.entries(ps).forEach(([p,st])=>{
-          thr.perPlayer[p].push(st.completed || 0);
+          const completed = st.completed || 0;
+          const lastCompleted = thr.lastCompleted[p] || 0;
+          const delta = Math.max(0, completed - lastCompleted); // Rate of completion this tick
+          thr.perPlayer[p].push(delta);
+          thr.lastCompleted[p] = completed;
           if (thr.perPlayer[p].length > 60) thr.perPlayer[p].shift();
         });
         drawThroughput();
+        // Update card game UI from tick
+        if (msg.payload.game_active !== undefined) {
+          updateCardGameUI({
+            active: msg.payload.game_active,
+            score: msg.payload.game_score || 1000,
+            timer: msg.payload.card_timer || 0,
+            active_effects: []
+          });
+        }
       }
 
       if (msg.type === 'master_wave_started') {
@@ -613,6 +729,12 @@
       } else if (msg.type === 'player_reconnecting') {
         const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'reconnecting'}; renderRoster({roster: rosterState});
         appendFeed('warn', 'PLAYER', `${p.player} reconnecting`);
+        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+      } else if (msg.type === 'player_disconnected') {
+        const p = msg.payload; 
+        rosterState[p.player] = {...(rosterState[p.player]||{}), status:'disconnected'}; 
+        renderRoster({roster: rosterState});
+        appendFeed('err', 'PLAYER', `${p.player} CRASHED mid-processing (message will be redelivered)`);
         act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
       } else if (msg.type === 'player_accept') {
         const p = msg.payload; const q = ensureQuestCard(p); if (q.el){
@@ -685,6 +807,34 @@
         const thrc = document.getElementById('throughput').getContext('2d'); thrc.clearRect(0,0,300,100);
         // allow re-adding preset characters
         document.querySelectorAll('.bio').forEach(b => b.classList.remove('added'));
+      } else if (msg.type === 'card_drawn') {
+        showCard(msg.payload.card);
+        appendFeed('warn', 'CARD', `${msg.payload.card.color.toUpperCase()}: ${msg.payload.card.name}`);
+      } else if (msg.type === 'card_applied') {
+        appendFeed('info', 'EFFECT', `Applied: ${msg.payload.card.name}`);
+      } else if (msg.type === 'card_expired') {
+        appendFeed('info', 'EFFECT', `Expired: ${msg.payload.type}`);
+      } else if (msg.type === 'card_game_started') {
+        appendFeed('info', 'CARD GAME', `Challenge started! Duration: ${msg.payload.duration}s`);
+      } else if (msg.type === 'card_game_stopped') {
+        appendFeed('info', 'CARD GAME', `Challenge ended. Final score: ${msg.payload.final_score}`);
+      } else if (msg.type === 'round_ended') {
+        appendFeed('info', 'CARD GAME', `Round completed! Score: ${msg.payload.score} | Duration: ${Math.round(msg.payload.duration)}s`);
+      } else if (msg.type === 'chaos_triggered') {
+        const p = msg.payload;
+        appendFeed('warn', 'CHAOS', `Triggered: ${p.action} on ${p.player} (${p.quest_type} ${p.quest_id})`);
+        // Disarm after trigger
+        chaosConfig.enabled = false;
+        updateChaosUI();
+      } else if (msg.type === 'chaos_auto_trigger') {
+        const p = msg.payload;
+        appendFeed('info', 'CHAOS', `Auto-trigger: publishing ${p.count} ${p.quest_type} for ${p.action}`);
+      } else if (msg.type === 'scenario_step') {
+        const p = msg.payload;
+        appendFeed('info', 'SCENARIO', `Step ${p.step}: ${p.desc}`);
+      } else if (msg.type === 'scenario_complete') {
+        const p = msg.payload;
+        appendFeed('ok', 'SCENARIO', `Completed: ${p.name}`);
       }
     };
 
@@ -780,31 +930,16 @@
       await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'custom', players:[{player:name, skills:sk, fail_pct:fail, speed_multiplier:speed, workers:workers}]})});
       appendFeed('info','PLAYERS',`Started ${name} (${sk})`);
     };
-    document.getElementById('sc-redelivery').onclick = async () => {
-      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'redelivery'})});
-      appendFeed('info','SCENARIO','Redelivery: crash mid-processing to show re-delivery');
-    };
-    document.getElementById('sc-requeue').onclick = async () => {
-      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'requeue'})});
-      appendFeed('info','SCENARIO','Requeue: NACK requeue to return the message immediately');
-    };
-    document.getElementById('sc-duplicate').onclick = async () => {
-      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'duplicate'})});
-      appendFeed('info','SCENARIO','Duplicate: fanout+filter so multiple players can accept their own copies');
-    };
-    document.getElementById('sc-both-complete').onclick = async () => {
-      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'both_complete'})});
-      appendFeed('info','SCENARIO','Both complete: two players complete their own copies (player-based routing)');
-    };
-    document.getElementById('sc-dlq').onclick = async () => {
-      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'dlq_poison'})});
-      appendFeed('info','SCENARIO','DLQ: simulated poison message sent to DLQ');
+    document.getElementById('sc-routing').onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'routing_comparison'})});
+      appendFeed('info','SCENARIO','Routing comparison: skill vs player-based routing behavior');
     };
     const scLate = document.getElementById('sc-late-bind');
     if (scLate){ scLate.onclick = async () => {
       await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'late_bind_escort'})});
       appendFeed('info','SCENARIO','Late-bind escort: backlog handoff demo');
     }; }
+
 
     function updateCtrlState(){ /* no-op after roster integration */ }
     async function control(action, mode){
@@ -1013,12 +1148,13 @@
       else if (k === 'f') { const b = document.getElementById('tab-failed'); if (b) b.click(); }
       else if (k === 'd') { const b = document.getElementById('tab-dlq'); if (b) b.click(); }
       else if (k === 'x') {
-        const order = ['drop','requeue','dlq','fail_early'];
-        const cur = (window.__chaosMode||null);
-        const next = order[(cur?order.indexOf(cur)+1:0) % order.length] || order[0];
-        window.__chaosMode = next;
-        await fetch('/api/chaos/arm', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode: next})});
-        appendFeed('warn','CHAOS',`Armed next: ${next}`);
+        const actions = ['drop','requeue','dlq','fail_early','disconnect','pause'];
+        const currentAction = document.getElementById('chaos-action').value;
+        const currentIndex = actions.indexOf(currentAction);
+        const nextAction = actions[(currentIndex + 1) % actions.length];
+        
+        document.getElementById('chaos-action').value = nextAction;
+        document.getElementById('chaos-arm').click();
       }
     });
 
@@ -1047,28 +1183,217 @@
       await fetch('/api/reset', { method:'POST' });
       appendFeed('warn','RESET','App state cleared');
     };
-    // Message Chaos actions
-    const chaosButtons = {
-      drop: document.getElementById('chaos-drop'),
-      requeue: document.getElementById('chaos-requeue'),
-      dlq: document.getElementById('chaos-dlq'),
-      fail_early: document.getElementById('chaos-fail'),
+    // Enhanced Chaos System
+    let chaosConfig = { enabled: false };
+    
+    // Update player dropdown with current roster
+    function updateChaosPlayerOptions(roster) {
+      const select = document.getElementById('chaos-player');
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">Any Player</option>';
+      Object.keys(roster || {}).forEach(player => {
+        const option = document.createElement('option');
+        option.value = player;
+        option.textContent = player;
+        select.appendChild(option);
+      });
+      select.value = currentValue; // Restore selection
+    }
+    
+    // Toggle auto-trigger settings visibility
+    document.getElementById('chaos-auto-trigger').onchange = () => {
+      const checked = document.getElementById('chaos-auto-trigger').checked;
+      document.getElementById('chaos-auto-settings').style.display = checked ? 'block' : 'none';
     };
-    let chaosActiveGlobal = null;
-    function updateChaosUI(){
-      Object.values(chaosButtons).forEach(b=>b.classList.remove('active'));
-      if (chaosActiveGlobal && chaosButtons[chaosActiveGlobal]) chaosButtons[chaosActiveGlobal].classList.add('active');
+    
+    // Arm chaos button
+    document.getElementById('chaos-arm').onclick = async () => {
+      const action = document.getElementById('chaos-action').value;
+      const target_player = document.getElementById('chaos-player').value || null;
+      const target_quest_type = document.getElementById('chaos-quest-type').value || null;
+      const auto_trigger = document.getElementById('chaos-auto-trigger').checked;
+      const trigger_delay = parseFloat(document.getElementById('chaos-delay').value);
+      const trigger_count = parseInt(document.getElementById('chaos-count').value);
+      
+      const req = {
+        action,
+        target_player,
+        target_quest_type,
+        auto_trigger,
+        trigger_delay,
+        trigger_count
+      };
+      
+      try {
+        const res = await fetch('/api/chaos/arm', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify(req)
+        });
+        const data = await res.json();
+        
+        if (data.ok) {
+          chaosConfig = data.config;
+          updateChaosUI();
+          const target = target_player ? ` (${target_player})` : '';
+          const quest = target_quest_type ? ` for ${target_quest_type}` : '';
+          const auto = auto_trigger ? ` + auto-publish ${trigger_count} after ${trigger_delay}s` : '';
+          appendFeed('warn', 'CHAOS', `Armed: ${action}${target}${quest}${auto}`);
+        } else {
+          appendFeed('err', 'CHAOS', `Failed to arm: ${data.error}`);
+        }
+      } catch (err) {
+        appendFeed('err', 'CHAOS', 'Failed to arm chaos');
+      }
+    };
+    
+    // Disarm chaos button
+    document.getElementById('chaos-disarm').onclick = async () => {
+      try {
+        const res = await fetch('/api/chaos/disarm', { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.ok) {
+          chaosConfig = data.config;
+          updateChaosUI();
+          appendFeed('info', 'CHAOS', 'Disarmed');
+        }
+      } catch (err) {
+        appendFeed('err', 'CHAOS', 'Failed to disarm');
+      }
+    };
+    
+    // Update chaos UI based on current config
+    function updateChaosUI() {
+      const statusDiv = document.getElementById('chaos-status');
+      const statusText = document.getElementById('chaos-status-text');
+      
+      if (chaosConfig.enabled) {
+        statusDiv.style.display = 'block';
+        statusText.textContent = `Armed: ${chaosConfig.action}`;
+        document.getElementById('chaos-arm').style.background = '#f39c12';
+        document.getElementById('chaos-disarm').style.background = '#e74c3c';
+      } else {
+        statusDiv.style.display = 'none';
+        document.getElementById('chaos-arm').style.background = '#e74c3c';
+        document.getElementById('chaos-disarm').style.background = '#7f8c8d';
+      }
     }
-    async function chaosArm(mode){
-      chaosActiveGlobal = mode;
+    
+    // Load initial chaos status
+    fetch('/api/chaos/status').then(r => r.json()).then(config => {
+      chaosConfig = config;
       updateChaosUI();
-      await fetch('/api/chaos/arm', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode})});
-      appendFeed('warn','CHAOS',`Armed next: ${mode}`);
+    }).catch(() => {});
+    
+    let chaosActiveGlobal = null; // Legacy variable for compatibility
+
+    // Card Game System
+    let cardGameActive = false;
+    
+    function updateCardGameUI(status) {
+      document.getElementById('game-score').textContent = status.score || 1000;
+      document.getElementById('card-timer').textContent = status.timer > 0 ? `${status.timer}s` : '--';
+      document.getElementById('active-effects').textContent = (status.active_effects || []).length;
+      
+      // Update button states
+      document.getElementById('start-cardgame').disabled = status.active;
+      document.getElementById('stop-cardgame').disabled = !status.active;
+      document.getElementById('draw-card').disabled = !status.active;
+      
+      cardGameActive = status.active;
     }
-    chaosButtons.drop.onclick = () => chaosArm('drop');
-    chaosButtons.requeue.onclick = () => chaosArm('requeue');
-    chaosButtons.dlq.onclick = () => chaosArm('dlq');
-    chaosButtons.fail_early.onclick = () => chaosArm('fail_early');
+    
+    function showCard(card) {
+      const cardEl = document.getElementById('current-card');
+      const colorBadge = document.getElementById('card-color-badge');
+      const nameEl = document.getElementById('card-name');
+      const descEl = document.getElementById('card-desc');
+      const durationEl = document.getElementById('card-duration');
+      
+      colorBadge.textContent = card.color.toUpperCase();
+      colorBadge.className = `tag card-${card.color}`;
+      nameEl.textContent = card.name;
+      descEl.textContent = card.desc;
+      durationEl.textContent = card.duration > 0 ? `${card.duration}s` : 'Instant';
+      
+      cardEl.style.display = 'block';
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        cardEl.style.display = 'none';
+      }, 5000);
+    }
+    
+    function updateActiveEffects(effects) {
+      const container = document.getElementById('effects-container');
+      const listEl = document.getElementById('active-effects-list');
+      
+      if (effects.length === 0) {
+        listEl.style.display = 'none';
+        return;
+      }
+      
+      listEl.style.display = 'block';
+      container.innerHTML = effects.map(effect => {
+        const card = effect.card || {};
+        const timeLeft = effect.expires_at > 0 ? Math.max(0, Math.ceil(effect.expires_at - Date.now()/1000)) : 0;
+        return `<div class="effect-pill effect-${card.color || 'black'}">
+          ${card.name || effect.type} ${timeLeft > 0 ? `(${timeLeft}s)` : ''}
+        </div>`;
+      }).join('');
+    }
+    
+    // Card Game Event Handlers
+    document.getElementById('start-cardgame').onclick = async () => {
+      try {
+        const res = await fetch('/api/cardgame/start', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          appendFeed('info', 'CARD GAME', 'Challenge started! First card in 30s.');
+        }
+      } catch (err) {
+        appendFeed('err', 'CARD GAME', 'Failed to start');
+      }
+    };
+    
+    document.getElementById('stop-cardgame').onclick = async () => {
+      try {
+        const res = await fetch('/api/cardgame/stop', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          appendFeed('info', 'CARD GAME', `Challenge ended. Final score: ${data.final_score}`);
+        }
+      } catch (err) {
+        appendFeed('err', 'CARD GAME', 'Failed to stop');
+      }
+    };
+    
+    document.getElementById('draw-card').onclick = async () => {
+      try {
+        const res = await fetch('/api/cardgame/draw', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showCard(data.card);
+          appendFeed('info', 'CARD GAME', `Manual draw: ${data.card.name}`);
+        }
+      } catch (err) {
+        appendFeed('err', 'CARD GAME', 'Failed to draw card');
+      }
+    };
+    
+    // Initialize card game status (check if enabled first)
+    fetch('/api/cardgame/enabled').then(r => r.json()).then(data => {
+      if (data.enabled) {
+        fetch('/api/cardgame/status').then(r => r.json()).then(updateCardGameUI).catch(() => {});
+      } else {
+        // Hide card game panel if not enabled
+        document.getElementById('cardgame-panel').style.display = 'none';
+      }
+    }).catch(() => {
+      // Hide card game panel if endpoint doesn't exist
+      document.getElementById('cardgame-panel').style.display = 'none';
+    });
   </script>
 </body>
 </html>

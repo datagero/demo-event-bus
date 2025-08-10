@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import pickle
 import threading
 import time
 from dataclasses import dataclass, field
@@ -69,8 +70,24 @@ dlq_messages: list[dict] = []
 unroutable: list[dict] = []
 skill_ttl_ms: Dict[str, int] = {}
 shutting_down: set[str] = set()
-# Global one-shot chaos action for the next message picked by any player
-next_action_global: Optional[str] = None
+# Enhanced chaos system
+chaos_config = {
+    "enabled": False,
+    "action": None,  # drop, requeue, dlq, fail_early, disconnect, pause
+    "target_player": None,  # specific player or None for global
+    "target_quest_type": None,  # gather, slay, escort or None for any
+    "auto_trigger": False,  # automatically publish messages when armed
+    "trigger_delay": 2.0,  # seconds before auto-trigger
+    "trigger_count": 1,  # number of messages to auto-publish
+}
+
+# Card Game System (optional plug-in)
+try:
+    from app.card_game import CardGame
+    CARD_GAME_ENABLED = True
+except ImportError:
+    CARD_GAME_ENABLED = False
+    CardGame = None
 # Centralized game state helper
 STATE = GameState(
     quests_state=quests_state,
@@ -82,8 +99,115 @@ STATE = GameState(
     dlq_messages=dlq_messages,
 )
 
+# State persistence
+STATE_CACHE_FILE = ".game_state_cache.pkl"
+
+def save_state():
+    """Save current game state to cache file"""
+    try:
+        state_data = {
+            "roster": dict(roster),
+            "players": {name: {k: v for k, v in meta.items() if k != "bus"} for name, meta in players.items()},
+            "player_stats": dict(player_stats),
+            "scoreboard": dict(scoreboard),
+            "fails": dict(fails),
+            "quests_state": dict(quests_state),
+            "inflight_by_player": {k: list(v) if isinstance(v, set) else v for k, v in inflight_by_player.items()},
+            "dlq_messages": list(dlq_messages),
+            "unroutable": list(unroutable),
+            "skill_ttl_ms": dict(skill_ttl_ms),
+            "routing_mode": routing_mode,
+        }
+        with open(STATE_CACHE_FILE, "wb") as f:
+            pickle.dump(state_data, f)
+        print(f"State saved: {len(roster)} players")
+    except Exception as e:
+        print(f"Failed to save state: {e}")
+
+def load_state():
+    """Load game state from cache file"""
+    global routing_mode
+    try:
+        if not os.path.exists(STATE_CACHE_FILE):
+            return False
+            
+        with open(STATE_CACHE_FILE, "rb") as f:
+            state_data = pickle.load(f)
+        
+        # Restore state (but don't restore bus connections)
+        roster.clear()
+        roster.update(state_data.get("roster", {}))
+        
+        players.clear()
+        for name, meta in state_data.get("players", {}).items():
+            # Restore player data but mark as offline (threads need to reconnect)
+            players[name] = {**meta, "bus": None}
+            if name in roster:
+                roster[name]["status"] = "offline"
+        
+        player_stats.clear()
+        player_stats.update(state_data.get("player_stats", {}))
+        
+        scoreboard.clear()
+        scoreboard.update(state_data.get("scoreboard", {}))
+        
+        fails.clear()
+        fails.update(state_data.get("fails", {}))
+        
+        quests_state.clear()
+        quests_state.update(state_data.get("quests_state", {}))
+        
+        inflight_by_player.clear()
+        for k, v in state_data.get("inflight_by_player", {}).items():
+            inflight_by_player[k] = set(v) if isinstance(v, list) else v
+            
+        dlq_messages.clear()
+        dlq_messages.extend(state_data.get("dlq_messages", []))
+        
+        unroutable.clear()
+        unroutable.extend(state_data.get("unroutable", []))
+        
+        skill_ttl_ms.clear()
+        skill_ttl_ms.update(state_data.get("skill_ttl_ms", {}))
+        
+        routing_mode = state_data.get("routing_mode", "skill")
+        
+        print(f"State loaded: {len(roster)} players, {len(quests_state)} quests")
+        return True
+    except Exception as e:
+        print(f"Failed to load state: {e}")
+        return False
+
+def clear_state_cache():
+    """Clear the state cache file"""
+    try:
+        if os.path.exists(STATE_CACHE_FILE):
+            os.remove(STATE_CACHE_FILE)
+    except Exception as e:
+        print(f"Failed to clear state cache: {e}")
+
+# Load state on startup
+if load_state():
+    print("✅ Restored cached state from previous session")
+else:
+    print("🔄 Starting with fresh state")
+
 ENABLE_SCOREBOARD_CONSUMER = os.getenv("ENABLE_SCOREBOARD_CONSUMER", "1") not in {"0", "false", "False"}
 RETRY_SEC = float(os.getenv("RABBITMQ_RETRY_SEC", "2.0"))
+
+# Initialize card game if available
+card_game = None
+if CARD_GAME_ENABLED:
+    card_game = CardGame(
+        broadcast_fn=lambda t, p: None,  # Will be set after broadcast is defined
+        game_state=None,  # Will be set after STATE is defined
+        players_dict=roster,
+        skill_ttl_dict=skill_ttl_ms,
+        start_player_fn=None  # Will be set after start_player_thread is defined
+    )
+
+
+# Card game functions will be handled by the CardGame class if enabled
 
 
 def broadcast(type_: str, payload: dict):
@@ -103,6 +227,12 @@ def broadcast(type_: str, payload: dict):
         broadcaster.broadcast_threadsafe(snap)
 
 
+# Initialize card game dependencies after broadcast is defined
+if card_game:
+    card_game.broadcast = broadcast
+    card_game.game_state = STATE
+
+
 def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
     global scoreboard, fails
 
@@ -116,7 +246,7 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
 
     q = "web.scoreboard.q"
     # Only bind to results; avoid binding to issued so pre-queue publishes can be truly unroutable
-    bus.ch.queue_declare(queue=q, durable=False, auto_delete=True)
+    bus.ch.queue_declare(queue=q, durable=True, auto_delete=False)
     bus.ch.queue_bind(queue=q, exchange=EXCHANGE_NAME, routing_key="game.quest.*.done")
     bus.ch.queue_bind(queue=q, exchange=EXCHANGE_NAME, routing_key="game.quest.*.fail")
 
@@ -174,8 +304,48 @@ def scoreboard_consumer_thread(loop: asyncio.AbstractEventLoop):
             pass
 
 
+def real_disconnect_player(player: str, auto_reconnect_delay: float = 0):
+    """
+    Perform real disconnect for a player (same logic as chaos drop).
+    If auto_reconnect_delay > 0, automatically reconnect after that delay.
+    """
+    if player not in players:
+        return
+    
+    # Mark as disconnected
+    roster[player] = {**roster.get(player, {}), "status": "disconnected"}
+    broadcast("player_disconnected", {"player": player, "quest_id": "manual"})
+    
+    # Close connection immediately (real disconnect)
+    bus = players[player].get("bus")
+    try:
+        if bus:
+            bus.conn.close()
+    except Exception:
+        pass
+    
+    # Auto-reconnect if requested
+    if auto_reconnect_delay > 0:
+        skills = list(roster.get(player, {}).get("skills", []))
+        fail_pct = roster.get(player, {}).get("fail_pct", 0.0)
+        speed_multiplier = roster.get(player, {}).get("speed_multiplier", 1.0)
+        workers = roster.get(player, {}).get("workers", 1)
+        
+        def auto_reconnect():
+            time.sleep(auto_reconnect_delay)
+            if player in players and not players[player].get("controls", {}).get("shutdown"):
+                start_player_thread(player, skills, fail_pct, speed_multiplier, workers)
+        
+        threading.Thread(target=auto_reconnect, daemon=True).start()
+
+
 def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_multiplier: float = 1.0, workers: int = 1):
-    def run():
+    # Initialize card game start_player reference
+    if card_game and not card_game.start_player:
+        card_game.start_player = start_player_thread
+    
+    def run(worker_id: int = 0):
+        thread_name = f"{player}-w{worker_id}"
         # allow re-adding a previously deleted player name
         try:
             shutting_down.discard(player)
@@ -184,12 +354,39 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
         queue_name = f"game.player.{player}.q"
         # ensure registry and controls
         controls = players.setdefault(player, {}).setdefault("controls", {"paused": False, "next_action": None, "shutdown": False})
+        def should_shutdown():
+            """Check if this worker should shut down"""
+            try:
+                return (player in shutting_down or 
+                        players.get(player, {}).get("controls", {}).get("shutdown", False))
+            except Exception:
+                return True
+        
+        # Track this worker thread (after controls are set up)
+        # Temporarily disabled for debugging
+        # try:
+        #     players[player].setdefault("threads", set()).add(thread_name)
+        # except Exception:
+        #     pass
+        
         while True:
             try:
-                if player in shutting_down or players.get(player, {}).get("controls", {}).get("shutdown"):
-                    roster[player] = {**roster.get(player, {}), "status": "offline"}
-                    broadcast("roster", {})
+                if should_shutdown():
+                    # Clean shutdown
+                    try:
+                        roster[player] = {**roster.get(player, {}), "status": "offline"}
+                        broadcast("roster", {})
+                    except Exception:
+                        pass
                     return
+                
+                # If paused, stay disconnected and sleep
+                if controls.get("paused"):
+                    roster[player] = {**roster.get(player, {}), "status": "disconnected"}
+                    broadcast("roster", {})
+                    time.sleep(1.0)  # Sleep and check again
+                    continue
+                    
             except Exception:
                 return
             # connect with retry
@@ -207,18 +404,20 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                 bus.ch.basic_qos(prefetch_count=pref)
                 if routing_mode == "player":
                     # each player gets a copy; will skip non-skilled
-                    bus.ch.queue_declare(queue=queue_name, durable=False, auto_delete=True)
+                    bus.ch.queue_declare(queue=queue_name, durable=True, auto_delete=False)
                     bus.ch.queue_bind(queue=queue_name, exchange=EXCHANGE_NAME, routing_key="game.quest.*")
                 else:
                     # shared per-skill queues; consume only skills
                     for sk in skills:
                         qn = f"game.skill.{sk}.q"
-                        bus.ch.queue_declare(queue=qn, durable=False, auto_delete=True)
+                        bus.ch.queue_declare(queue=qn, durable=True, auto_delete=False)
                         bus.ch.queue_bind(queue=qn, exchange=EXCHANGE_NAME, routing_key=f"game.quest.{sk}")
                 # publish presence
                 roster[player] = {**roster.get(player, {}), "status": "online"}
                 players[player]["bus"] = bus
                 broadcast("player_online", {"player": player})
+                # Save state when player comes online
+                save_state()
             except Exception:
                 # If we're shutting down this worker, mark offline and exit quietly
                 if player in shutting_down or controls.get("shutdown"):
@@ -250,7 +449,7 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                 # pause handling: immediately requeue to avoid tight loops
                 if controls.get("paused"):
                     ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-                    broadcast("player_reconnecting", {"player": player})
+                    # Don't broadcast reconnecting when paused - just return
                     time.sleep(0.2)
                     return
 
@@ -290,37 +489,50 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                 # remember current inflight so unexpected crash can be logged
                 players.setdefault(player, {}).setdefault("runtime", {})["last_inflight"] = quest_id
 
-                # one-shot next action simulation (player-specific or global)
-                global next_action_global
-                act = controls.get("next_action") or next_action_global
-                if act:
-                    # clear player-local and global arm after consuming once
+                # Enhanced chaos action system
+                chaos_action = None
+                
+                # Check per-player action first
+                if controls.get("next_action"):
+                    chaos_action = controls["next_action"]
                     controls["next_action"] = None
-                    if next_action_global:
-                        next_action_global = None
-                    if act == "drop":
-                        # don't ack, simulate crash so it is redelivered later
-                        roster[player] = {**roster.get(player, {}), "status": "reconnecting"}
-                        broadcast("player_reconnecting", {"player": player})
-                        # tell UI which quest was dropped
+                # Check global chaos config
+                elif chaos_config["enabled"]:
+                    # Check if this message matches chaos target criteria
+                    target_player = chaos_config.get("target_player")
+                    target_quest_type = chaos_config.get("target_quest_type")
+                    
+                    player_matches = target_player is None or target_player == player
+                    quest_matches = target_quest_type is None or target_quest_type == quest_type
+                    
+                    if player_matches and quest_matches:
+                        chaos_action = chaos_config["action"]
+                        # Disable chaos after use (one-shot)
+                        chaos_config["enabled"] = False
+                        broadcast("chaos_triggered", {
+                            "action": chaos_action,
+                            "player": player,
+                            "quest_type": quest_type,
+                            "quest_id": quest_id
+                        })
+
+                if chaos_action:
+                    if chaos_action == "drop":
+                        # Real disconnect using shared function
                         broadcast("msg_drop", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
                         STATE.record_drop(player, quest_id, quest_type)
-                        try:
-                            bus.conn.close()
-                        except Exception:
-                            pass
-                        # set back to pending for KPI and UI
+                        real_disconnect_player(player, auto_reconnect_delay=3.0)
                         return
-                    if act == "requeue":
+                    elif chaos_action == "requeue":
                         broadcast("msg_requeue", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
                         STATE.record_requeue(player, quest_id, quest_type)
                         try:
                             inflight_by_player.get(player, set()).discard(quest_id)
                         except Exception:
                             pass
-                        # set back to pending for KPI and UI
+                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
                         return
-                    if act == "dlq":
+                    elif chaos_action == "dlq":
                         broadcast("msg_dlq", {"player": player, "quest_id": quest_id, "quest_type": quest_type})
                         STATE.record_dlq(player, quest_id, quest_type)
                         try:
@@ -339,7 +551,7 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                             pass
                         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
                         return
-                    if act == "fail_early":
+                    elif chaos_action == "fail_early":
                         done_stage = "QUEST_FAILED"; status = "FAILED"; rk_suffix = "fail"
                         result = build_message(
                             case_id=quest_id,
@@ -361,6 +573,23 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                         fails[player] = fails.get(player, 0) + 1
                         broadcast("result_fail", result)
                         ch.basic_ack(delivery_tag=method.delivery_tag)
+                        return
+                    elif chaos_action == "disconnect":
+                        # Disconnect player entirely
+                        roster[player] = {**roster.get(player, {}), "status": "offline"}
+                        broadcast("player_disconnect", {"player": player, "quest_id": quest_id})
+                        try:
+                            bus.conn.close()
+                        except Exception:
+                            pass
+                        return
+                    elif chaos_action == "pause":
+                        # Pause player for a short time
+                        controls["paused"] = True
+                        broadcast("player_pause", {"player": player, "quest_id": quest_id})
+                        # Auto-resume after 5 seconds
+                        threading.Timer(5.0, lambda: controls.update({"paused": False})).start()
+                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
                         return
 
                 # Work (scaled by speed multiplier; smaller is faster)
@@ -434,20 +663,54 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                     for sk in skills:
                         qn = f"game.skill.{sk}.q"
                         bus.ch.basic_consume(queue=qn, on_message_callback=on_msg, auto_ack=False)
-                bus.ch.start_consuming()
+                        
+                # Consuming loop with shutdown checks
+                while not should_shutdown():
+                    try:
+                        bus.conn.process_data_events(time_limit=1.0)  # 1 second timeout
+                    except Exception:
+                        break
+                        
+                # Clean shutdown of consumer
+                try:
+                    bus.ch.stop_consuming()
+                except Exception:
+                    pass
+                    
             except Exception:
-                # Respect shutdown: don't resurrect the player as reconnecting
-                if player in shutting_down or controls.get("shutdown"):
+                # Check if this is a deliberate shutdown
+                if should_shutdown():
                     try:
                         roster[player] = {**roster.get(player, {}), "status": "offline"}
+                        if player in players:
+                            players[player].get("threads", set()).discard(thread_name)
+                            if not players[player].get("threads"):
+                                players.pop(player, None)
                         broadcast("roster", {})
                     except Exception:
                         pass
                     try:
-                        bus.close()
+                        if bus:
+                            try:
+                                bus.ch.stop_consuming()
+                            except Exception:
+                                pass
+                            bus.close()
                     except Exception:
                         pass
                     return
+                # Check if player is paused - if so, don't auto-reconnect
+                if players.get(player, {}).get("controls", {}).get("paused", False):
+                    roster[player] = {**roster.get(player, {}), "status": "disconnected"}
+                    if player in players:
+                        try:
+                            players[player]["bus"] = None
+                        except Exception:
+                            pass
+                    # Don't broadcast reconnecting if paused - stay disconnected
+                    broadcast("roster", {})
+                    return
+                
                 roster[player] = {**roster.get(player, {}), "status": "reconnecting"}
                 if player in players:
                     try:
@@ -472,11 +735,11 @@ def start_player_thread(player: str, skills: List[str], fail_pct: float, speed_m
                 time.sleep(RETRY_SEC)
                 continue
 
-    t = threading.Thread(target=run, daemon=True)
     # Launch multiple worker threads (each holds its own connection/channel)
-    t.start()
-    for _ in range(max(0, workers - 1)):
-        threading.Thread(target=run, daemon=True).start()
+    for worker_id in range(workers):
+        t = threading.Thread(target=lambda wid=worker_id: run(wid), daemon=True, 
+                           name=f"{player}-worker-{worker_id}")
+        t.start()
 
 
 def run_master_once(count: int, delay: float, fixed_type: Optional[str] = None):
@@ -759,21 +1022,32 @@ async def api_player_control(req: PlayerControlRequest):
         return {"ok": False, "error": "unknown player"}
     controls = players[req.player].setdefault("controls", {"paused": False, "next_action": None})
     if req.action == "pause":
+        # Real disconnect - disconnect and stay offline until resume
         controls["paused"] = True
-        roster[req.player] = {**roster.get(req.player, {}), "status": "reconnecting"}
+        real_disconnect_player(req.player, auto_reconnect_delay=0)  # No auto-reconnect
         broadcast("roster", {})
     elif req.action == "resume":
+        # Real reconnect - restart worker thread immediately
         controls["paused"] = False
-        roster[req.player] = {**roster.get(req.player, {}), "status": "online"}
+        roster[req.player] = {**roster.get(req.player, {}), "status": "reconnecting"}
+        broadcast("player_reconnecting", {"player": req.player})
+        
+        # Restart the worker thread with brief delay for UI feedback
+        skills = list(roster.get(req.player, {}).get("skills", []))
+        fail_pct = roster.get(req.player, {}).get("fail_pct", 0.0)
+        speed_multiplier = roster.get(req.player, {}).get("speed_multiplier", 1.0)
+        workers = roster.get(req.player, {}).get("workers", 1)
+        
+        def reconnect_worker():
+            time.sleep(1)  # Brief delay for UI feedback
+            if req.player in players and not players[req.player].get("controls", {}).get("shutdown"):
+                start_player_thread(req.player, skills, fail_pct, speed_multiplier, workers)
+        
+        threading.Thread(target=reconnect_worker, daemon=True).start()
         broadcast("roster", {})
     elif req.action == "crash":
-        bus = players[req.player].get("bus")
-        try:
-            if bus:
-                bus.conn.close()
-        except Exception:
-            pass
-        roster[req.player] = {**roster.get(req.player, {}), "status": "reconnecting"}
+        # One-time crash with auto-reconnect (same as chaos drop)
+        real_disconnect_player(req.player, auto_reconnect_delay=3.0)
         broadcast("roster", {})
     elif req.action == "next_action":
         if req.mode in {"drop", "requeue", "dlq", "fail_early"}:
@@ -794,18 +1068,41 @@ async def api_player_delete(req: PlayerDeleteRequest):
     name = req.player
     if name not in players and name not in roster:
         return {"ok": False, "error": "unknown player"}
+    
     try:
+        # Step 1: Signal all worker threads to shutdown
         shutting_down.add(name)
         meta = players.get(name, {})
-        meta.setdefault("controls", {})["shutdown"] = True
-        bus = meta.get("bus")
-        if bus:
-            try:
-                bus.conn.close()
-            except Exception:
-                pass
-        # Attempt to delete per-player queue in player mode
+        if meta:
+            meta.setdefault("controls", {})["shutdown"] = True
+            
+            # Get list of active threads for this player
+            active_threads = meta.get("threads", set()).copy()
+            meta.setdefault("stopping_threads", set()).update(active_threads)
+            
+            # Close any active bus connections
+            bus = meta.get("bus")
+            if bus:
+                try:
+                    # Stop consuming first, then close
+                    try:
+                        bus.ch.stop_consuming()
+                    except Exception:
+                        pass
+                    bus.conn.close()
+                except Exception:
+                    pass
+                meta["bus"] = None
+        
+        # Step 2: Wait briefly for threads to shutdown gracefully
+        await asyncio.sleep(0.1)
+        
+        # Step 3: Get player skills for queue cleanup
+        skills_of_player = list(roster.get(name, {}).get("skills", []))
+        
+        # Step 4: Delete queues
         if routing_mode == "player":
+            # Delete per-player queue
             try:
                 rb = RabbitEventBus()
                 qn = f"game.player.{name}.q"
@@ -813,49 +1110,41 @@ async def api_player_delete(req: PlayerDeleteRequest):
                 rb.close()
             except Exception:
                 pass
-        # In skill mode, if no remaining players require a given skill, delete its shared queue
-        try:
-            skills_of_player = list(roster.get(name, {}).get("skills", []))
-            # remove from roster first to do an accurate remaining check
-        except Exception:
-            skills_of_player = []
-    except Exception:
-        pass
-    # Remove roster & stats
-    removed_meta = roster.pop(name, None)
-    player_stats.pop(name, None)
-    inflight_by_player.pop(name, None)
-    # Keep players entry briefly so the worker loop can see shutdown flag; schedule immediate cleanup
-    try:
-        players.pop(name, None)
-    except Exception:
-        pass
-    broadcast("roster", {})
-    # Now check shared queues for deletion in skill mode
-    try:
-        skills_list = removed_meta.get("skills", []) if removed_meta else []
-        if skills_list:
-            # compute remaining skills across roster
-            remaining_skills = set()
-            for _, m in roster.items():
-                for sk in m.get("skills", []):
-                    remaining_skills.add(sk)
-            rb = None
-            for sk in skills_list:
-                if sk not in remaining_skills:
+        else:
+            # In skill mode, check if we can delete shared skill queues
+            remaining_players = {p: meta for p, meta in roster.items() if p != name}
+            for skill in skills_of_player:
+                # Check if any other player needs this skill
+                skill_still_needed = any(
+                    skill in meta.get("skills", []) 
+                    for meta in remaining_players.values()
+                )
+                if not skill_still_needed:
                     try:
-                        if rb is None:
-                            rb = RabbitEventBus()
-                        rb.ch.queue_delete(queue=f"game.skill.{sk}.q")
+                        rb = RabbitEventBus()
+                        qn = f"game.skill.{skill}.q"
+                        rb.ch.queue_delete(queue=qn)
+                        rb.close()
                     except Exception:
                         pass
-            if rb:
-                try:
-                    rb.close()
-                except Exception:
-                    pass
-    except Exception:
-        pass
+        
+        # Step 5: Clean up state
+        roster.pop(name, None)
+        player_stats.pop(name, None)
+        inflight_by_player.pop(name, None)
+        
+        # Step 6: Remove player entry (threads should have exited by now)
+        players.pop(name, None)
+        shutting_down.discard(name)
+        
+        broadcast("roster", {})
+        
+        # Save state after deletion
+        save_state()
+        
+    except Exception as e:
+        return {"ok": False, "error": f"deletion failed: {str(e)}"}
+    
     return {"ok": True}
 
 
@@ -1047,21 +1336,39 @@ async def api_dlq_purge():
 
 @app.post("/api/reset")
 async def api_reset():
-    # Clear transient game state (players keep running)
-    # Also stop all players and clear routes/unroutable list
+    # Clear transient game state and stop all players
     try:
         old_players = list(players.keys())
+        
+        # Step 1: Signal all players to shutdown
+        for name in old_players:
+            shutting_down.add(name)
+            
         for name, meta in list(players.items()):
             try:
                 meta.setdefault("controls", {})["shutdown"] = True
+                
+                # Mark all threads for stopping
+                active_threads = meta.get("threads", set()).copy()
+                meta.setdefault("stopping_threads", set()).update(active_threads)
+                
+                # Close bus connections properly
                 bus = meta.get("bus")
                 if bus:
+                    try:
+                        bus.ch.stop_consuming()
+                    except Exception:
+                        pass
                     try:
                         bus.conn.close()
                     except Exception:
                         pass
+                    meta["bus"] = None
             except Exception:
                 pass
+        
+        # Step 2: Wait for threads to shutdown
+        await asyncio.sleep(0.2)
         # Delete per-player queues in player mode
         try:
             if routing_mode == "player":
@@ -1091,13 +1398,50 @@ async def api_reset():
                 pass
         except Exception:
             pass
-        roster.clear(); players.clear(); broadcast("roster", {})
+        # Step 3: Clear all state
+        roster.clear() 
+        players.clear()
+        shutting_down.clear()
+        broadcast("roster", {})
     except Exception:
         pass
     scoreboard.clear(); fails.clear(); quests_state.clear(); player_stats.clear()
     processed_results.clear(); skip_logged.clear(); inflight_by_player.clear(); dlq_messages.clear(); unroutable.clear()
     broadcast("reset", {})
+    
+    # Clear state cache on reset
+    clear_state_cache()
+    
     return {"ok": True}
+
+
+# State persistence endpoints
+@app.post("/api/state/save")
+async def api_state_save():
+    """Manually save current state"""
+    save_state()
+    return {"ok": True, "message": "State saved"}
+
+@app.post("/api/state/load")
+async def api_state_load():
+    """Manually load cached state"""
+    if load_state():
+        broadcast("roster", {})
+        return {"ok": True, "message": "State loaded"}
+    else:
+        return {"ok": False, "message": "No cached state found"}
+
+@app.get("/api/state/info")
+async def api_state_info():
+    """Get state cache information"""
+    cache_exists = os.path.exists(STATE_CACHE_FILE)
+    cache_size = os.path.getsize(STATE_CACHE_FILE) if cache_exists else 0
+    return {
+        "cache_exists": cache_exists,
+        "cache_size_bytes": cache_size,
+        "players_count": len(roster),
+        "quests_count": len(quests_state)
+    }
 
 
 # Unified messages endpoint
@@ -1124,10 +1468,10 @@ async def api_messages(status: str = "pending"):
     return {"ok": True, "items": dlq_messages}
 
 
-# Chaos state endpoints
+# Chaos state endpoints (legacy - use /api/chaos/status instead)
 @app.get("/api/chaos/state")
 async def api_chaos_state():
-    return {"ok": True, "mode": next_action_global}
+    return {"ok": True, "mode": chaos_config.get("action") if chaos_config.get("enabled") else None}
 
 
 class PlayerUpdateRequest(BaseModel):
@@ -1196,16 +1540,67 @@ async def api_master_one(req: MasterOneRequest):
 
 
 class ChaosArmRequest(BaseModel):
-    mode: str  # drop|requeue|dlq|fail_early
+    action: str  # drop|requeue|dlq|fail_early|disconnect|pause
+    target_player: Optional[str] = None  # specific player or None for any
+    target_quest_type: Optional[str] = None  # gather|slay|escort or None for any
+    auto_trigger: bool = False  # automatically publish messages
+    trigger_delay: float = 2.0  # seconds before auto-trigger
+    trigger_count: int = 1  # number of messages to publish
 
 
 @app.post("/api/chaos/arm")
 async def api_chaos_arm(req: ChaosArmRequest):
-    global next_action_global
-    if req.mode not in {"drop", "requeue", "dlq", "fail_early"}:
-        return {"ok": False, "error": "invalid mode"}
-    next_action_global = req.mode
-    return {"ok": True, "mode": next_action_global}
+    """Arm enhanced chaos action system."""
+    allowed_actions = ["drop", "requeue", "dlq", "fail_early", "disconnect", "pause"]
+    if req.action not in allowed_actions:
+        return {"ok": False, "error": f"Invalid action. Use one of: {allowed_actions}"}
+    
+    allowed_quest_types = ["gather", "slay", "escort", None]
+    if req.target_quest_type not in allowed_quest_types:
+        return {"ok": False, "error": f"Invalid quest type. Use one of: gather, slay, escort, or null"}
+    
+    # Update chaos config
+    chaos_config.update({
+        "enabled": True,
+        "action": req.action,
+        "target_player": req.target_player,
+        "target_quest_type": req.target_quest_type,
+        "auto_trigger": req.auto_trigger,
+        "trigger_delay": req.trigger_delay,
+        "trigger_count": req.trigger_count,
+    })
+    
+    # Auto-trigger if requested
+    if req.auto_trigger:
+        def auto_trigger():
+            time.sleep(req.trigger_delay)
+            if chaos_config["enabled"]:  # Still armed
+                quest_type = req.target_quest_type or "gather"
+                broadcast("chaos_auto_trigger", {
+                    "action": req.action,
+                    "quest_type": quest_type,
+                    "count": req.trigger_count
+                })
+                for i in range(req.trigger_count):
+                    publish_one(quest_type)
+                    time.sleep(0.1)  # Small delay between messages
+                    
+        threading.Thread(target=auto_trigger, daemon=True).start()
+    
+    return {"ok": True, "config": chaos_config}
+
+
+@app.get("/api/chaos/status")
+async def api_chaos_status():
+    """Get current chaos configuration."""
+    return chaos_config
+
+
+@app.post("/api/chaos/disarm")
+async def api_chaos_disarm():
+    """Disarm chaos system."""
+    chaos_config["enabled"] = False
+    return {"ok": True, "config": chaos_config}
 
 
 # Broker-backed KPI endpoint
@@ -1314,11 +1709,102 @@ def heartbeat_thread(loop: asyncio.AbstractEventLoop):
                         if now - issued > (ttl / 1000.0):
                             STATE.record_expired(qid, qt)
                             broadcast("expired", {"quest_id": qid, "quest_type": qt})
+                            # Lose points for expired messages in card game
+                            if card_game and card_game.active:
+                                card_game.adjust_score(-10, "expired_message")
+                                
+            # Update card game if active
+            if card_game:
+                card_game.tick()
+                # Lose points for unroutable and DLQ messages
+                unroutable_count = len([u for u in unroutable if now - u.get('ts', 0) > 10])
+                dlq_count = len(dlq_messages)
+                if unroutable_count > 0:
+                    card_game.adjust_score(-unroutable_count * 5, "unroutable_messages")
+                if dlq_count > 0:
+                    card_game.adjust_score(-dlq_count * 3, "dlq_messages")
+                    
         except Exception:
             pass
-        broadcast("tick", {"ts": time.time()})
+            
+        # Enhanced tick with card game info
+        tick_payload = {"ts": time.time()}
+        if card_game:
+            status = card_game.get_status()
+            tick_payload.update({
+                "card_timer": status.get("timer", 0),
+                "game_score": status.get("score", 0),
+                "game_active": status.get("active", False),
+                "effects_count": len(status.get("active_effects", []))
+            })
+        
+        broadcast("tick", tick_payload)
 
 
 @app.get("/api/health")
 async def api_health():
     return {"ok": True}
+
+
+# Card Game API Endpoints (pluggable)
+@app.post("/api/cardgame/start")
+async def start_card_game(duration: int = 300):
+    """Start a new card game round."""
+    if not CARD_GAME_ENABLED or not card_game:
+        return {"error": "Card game not available"}
+    
+    success = card_game.start_round(duration)
+    if success:
+        return {"ok": True, "duration": duration}
+    else:
+        return {"error": "Card game already active"}
+
+
+@app.post("/api/cardgame/stop")
+async def stop_card_game():
+    """Stop the current card game."""
+    if not CARD_GAME_ENABLED or not card_game:
+        return {"error": "Card game not available"}
+    
+    result = card_game.stop_round()
+    if "error" in result:
+        return result
+    else:
+        return {"ok": True, "final_score": result["final_score"]}
+
+
+@app.get("/api/cardgame/status")
+async def card_game_status():
+    """Get current card game status."""
+    if not CARD_GAME_ENABLED or not card_game:
+        return {"error": "Card game not available"}
+    
+    return card_game.get_status()
+
+
+@app.post("/api/cardgame/draw")
+async def manual_draw_card():
+    """Manually draw a card (for testing)."""
+    if not CARD_GAME_ENABLED or not card_game:
+        return {"error": "Card game not available"}
+        
+    result = card_game.manual_draw()
+    if "error" in result:
+        return result
+    else:
+        return {"ok": True, "card": result["card"]}
+
+
+@app.get("/api/cardgame/deck")
+async def get_card_deck():
+    """Get all available cards by color."""
+    if not CARD_GAME_ENABLED or not card_game:
+        return {"error": "Card game not available"}
+    
+    return card_game.get_deck()
+
+
+@app.get("/api/cardgame/enabled")
+async def card_game_enabled():
+    """Check if card game is available."""
+    return {"enabled": CARD_GAME_ENABLED}
