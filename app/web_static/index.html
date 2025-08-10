@@ -1,0 +1,894 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Queue Quest</title>
+  <style>
+    :root { --bg:#0b1020; --panel:#121a33; --muted:#8aa0c7; --text:#e7eeff; --ok:#2ecc71; --warn:#f1c40f; --err:#e74c3c; --info:#3498db; --accent:#9b59b6; }
+    * { box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
+    header { padding: 16px 20px; background: #0e162b; border-bottom: 1px solid #1e2a4d; display:flex; justify-content:space-between; align-items:center; }
+    h1 { margin: 0; font-size: 20px; letter-spacing: .5px; }
+    header button { padding:8px 12px; border-radius:8px; border:1px solid #32406a; background:#1c2950; color:var(--text); cursor:pointer; }
+    main { padding: 20px; }
+    .grid { display: grid; grid-template-columns: 300px 1fr 340px; gap: 16px; }
+    .card { background: var(--panel); border: 1px solid #1e2a4d; border-radius: 10px; padding: 12px; }
+    .card h3 { margin: 6px 0 10px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+    label { font-size: 12px; color: var(--muted); display: block; margin: 6px 0 2px; }
+    input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #32406a; background: #0e162b; color: var(--text); }
+    button { margin-top: 8px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #32406a; background: #1c2950; color: var(--text); cursor: pointer; }
+    button:hover { background: #233368; }
+    .two { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+
+    /* Quest board */
+    .quests { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:10px; }
+    .quest { border:1px solid #2a3863; background:#0e162b; border-radius:10px; padding:10px; position:relative; overflow:hidden; }
+    .quest .title { font-weight:700; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+    .quest .meta { font-size:12px; color:var(--muted); }
+    .quest .progress { margin-top:8px; height:8px; background:#0b1326; border:1px solid #1e2a4d; border-radius:999px; overflow:hidden; }
+    .quest .bar { height:100%; width:0%; background:linear-gradient(90deg, #2ecc71, #9b59b6); transition: width .1s linear; }
+    .quest.done .bar { background: #2ecc71; }
+    .quest.fail .bar { background: #e74c3c; }
+
+    /* Roster */
+    .pill { padding: 6px 10px; border: 1px solid #2a3863; background: #0e162b; border-radius: 999px; margin: 4px; display: inline-flex; align-items:center; gap:8px; cursor: pointer; }
+    .pill.selected { border-color: #6fe0a0; box-shadow: 0 0 0 1px #6fe0a0 inset; }
+    .dot { width:10px; height:10px; border-radius:50%; background:#4b4b4b; display:inline-block; }
+    .dot.online { background:#2ecc71; }
+    .dot.reconnecting { background:#f1c40f; }
+    .skill { font-size:11px; padding:2px 6px; border-radius:999px; border:1px solid #2a3863; background:#0b1326; }
+    .tiny-btn { padding: 1px 5px; font-size: 11px; border-radius: 6px; border: 1px solid #32406a; background:#1c2950; color: var(--text); cursor:pointer; }
+    .roster-wrap { display: grid; grid-template-columns: 1fr; gap: 6px; align-items:start; }
+    .bio { position: relative; border: 1px solid #2a3863; background:#0e162b; border-radius:8px; padding:8px; font-size:12px; color: var(--muted); }
+    .bio .name { color: var(--text); font-weight:600; }
+    .bio .conf { display:block; margin-top:2px; color: var(--muted); }
+    .bio .desc { display:block; margin-top:4px; color: var(--muted); }
+    .bio .bubble { display:none; position:absolute; left:100%; top:50%; transform: translate(12px,-50%); width:260px; background:#0e162b; border:1px solid #8ec6ff; border-radius:8px; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,.5); z-index:30; }
+    .bio:hover .bubble { display:block; }
+
+    /* Leaderboard */
+    .scores { display: flex; flex-direction:column; gap:6px; }
+    .score-row { display:flex; justify-content:space-between; gap:10px; padding:6px 10px; border:1px solid #2a3863; border-radius:8px; background:#0e162b; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:999px; border:1px solid #7a601e; background:#4b3c12; color:#ffd26f; margin-left:6px; }
+    .mini-btn { padding: 0 3px; line-height: 1; font-size: 10px; border-radius: 4px; border: 1px solid #32406a; background:#1c2950; color: var(--text); cursor: pointer; margin-right: 6px; display:inline-flex; align-items:center; justify-content:center; }
+    .medal { font-size:14px; }
+
+    /* Quest log */
+    .feed { height: 200px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: #0e162b; border: 1px solid #1e2a4d; border-radius: 8px; padding: 8px; }
+    .row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+    .tag { padding: 2px 6px; border-radius: 999px; font-size: 11px; }
+    .tag.info { background: #143a56; color: #8ec6ff; border: 1px solid #215b83; }
+    .tag.ok { background: #0f3b2a; color: #6fe0a0; border: 1px solid #1e6a4f; }
+    .tag.warn { background: #4b3c12; color: #ffd26f; border: 1px solid #7a601e; }
+    .tag.err { background: #4b1616; color: #ff9b9b; border: 1px solid #7a2929; }
+    .muted { color: var(--muted); }
+    /* Legend bubble */
+    .legend { position: relative; display: inline-block; }
+    .legend .bubble { display: none; position: absolute; left: 100%; top: 50%; transform: translate(12px, -50%); background: #0e162b; border: 1px solid #8ec6ff; color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 12px; width: 320px; z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+    .legend:hover .bubble { display: block; }
+    .active { outline: 2px solid #6fe0a0; box-shadow: 0 0 0 1px #6fe0a0 inset; }
+
+    /* Bio add pulse */
+    .bio.added { outline: 2px solid #6fe0a0; box-shadow: 0 0 0 2px rgba(111,224,160,.3); transition: box-shadow .3s ease; }
+
+    /* Help modal */
+    .modal { position:fixed; inset:0; display:none; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
+    .modal .inner { width: min(800px, 92vw); background: var(--panel); border:1px solid #1e2a4d; border-radius:12px; padding:16px; }
+    .modal.show { display:flex; }
+    .help li { margin-bottom:6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🧭 Queue Quest</h1>
+    <button id="help-btn">How it works</button>
+  </header>
+  <main>
+    <div class="card" style="margin-bottom:12px; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap">
+      <div>
+        <label>Routing</label>
+        <div class="two" style="min-width:320px">
+          <button id="route-skill" title="Single delivery: one shared queue per skill; only one player receives each message.">Skill-based (shared)</button>
+          <button id="route-player" title="Multi delivery: each player queue receives its own copy; unskilled requeue.">Player-based (fanout)</button>
+        </div>
+      </div>
+      <div>
+        <label>Wave</label>
+        <div class="two" style="min-width:320px">
+          <div>
+            <label style="display:block; font-size:12px; color:#8aa0c7">Count</label>
+            <input id="count" type="number" value="20" min="1" step="1">
+          </div>
+          <div>
+            <label style="display:block; font-size:12px; color:#8aa0c7">Delay (sec)</label>
+            <input id="delay" type="number" value="0.1" min="0" step="0.05">
+          </div>
+        </div>
+      </div>
+      <div style="align-self:flex-end">
+        <button id="start-master" style="width:auto">Start Quest Wave</button>
+      </div>
+      <button id="reset-app" style="margin-left:auto; width:auto">Reset</button>
+      <div class="legend">
+        <button style="width:auto">Legend</button>
+        <div class="bubble"><strong>Ready</strong>: in queue, not delivered.<br/><strong>Unacked</strong>: delivered to a player; processing until ack.<br/>Crash ⇒ back to Ready for redelivery.</div>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:6px; align-items:flex-end">
+        <label style="display:block; font-size:12px; color:#8aa0c7">Send one</label>
+        <button class="send-one" data-type="gather" style="width:auto">gather</button>
+        <button class="send-one" data-type="slay" style="width:auto">slay</button>
+        <button class="send-one" data-type="escort" style="width:auto">escort</button>
+      </div>
+    </div>
+    <div class="card" id="statusbar" style="margin-bottom:12px; display:flex; gap:12px; align-items:center; justify-content:space-between">
+      <div>Routing: <span id="status-routing" class="tag info">?</span></div>
+      <div>Wave: <span id="status-wave" class="tag info">count=20 · delay=0.1s</span></div>
+      <div>Pending: <span id="status-pending" class="tag warn">0</span></div>
+      <div>Broker: <span id="status-broker" class="tag info">ready=– · unacked=–</span> <button id="sync-broker" class="mini-btn" title="Sync broker KPIs">↻</button></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Characters & Recruit</h3>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">
+          <button id="quick-alice-bob">Quickstart: Alice+Bob</button>
+          <button id="add-random">Add Random Player</button>
+          <button id="toggle-custom">Custom Player…</button>
+        </div>
+        <div id="custom-form" style="display:none; margin-top:8px">
+          <label>Name</label>
+          <input id="player" type="text" value="carol">
+          <label>Skills</label>
+          <div class="two">
+            <label style="display:flex; gap:6px; align-items:center"><input type="checkbox" id="sk_gather" checked> gather</label>
+            <label style="display:flex; gap:6px; align-items:center"><input type="checkbox" id="sk_slay" checked> slay</label>
+            <label style="display:flex; gap:6px; align-items:center"><input type="checkbox" id="sk_escort" checked> escort</label>
+          </div>
+          <label>Fail chance</label>
+          <input id="fail" type="number" value="0.2" min="0" max="1" step="0.05">
+          <div class="two">
+            <div>
+              <label>Speed (lower=faster)</label>
+              <input id="speed" type="number" value="1.0" min="0.05" step="0.05">
+            </div>
+            <div>
+              <label>Workers</label>
+              <input id="workers" type="number" value="1" min="1" step="1">
+            </div>
+          </div>
+          <div class="two">
+            <div>
+              <label>Prefetch</label>
+              <input id="prefetch" type="number" value="1" min="1" step="1">
+            </div>
+            <div>
+              <label>Chaos drop rate</label>
+              <input id="drop_rate" type="number" value="0" min="0" max="1" step="0.05">
+            </div>
+          </div>
+          <div>
+            <label>Chaos skip rate</label>
+            <input id="skip_rate" type="number" value="0" min="0" max="1" step="0.05">
+          </div>
+          <button id="start-player">Add Player</button>
+        </div>
+        <hr style="border-color:#1e2a4d">
+        
+        <h3>Scenarios</h3>
+        <div class="two">
+          <button id="sc-redelivery" title="If a player disconnects before ack, the in-flight message goes back to Ready and is redelivered.">Redelivery (disconnect before ack)</button>
+          <button id="sc-requeue" title="Explicit NACK with requeue=true returns the message to Ready immediately.">Requeue (nack requeue)</button>
+        </div>
+        <div class="two" style="margin-top:6px">
+          <button id="sc-duplicate" title="Switch to Player-based routing so multiple queues get a copy of the message.">Duplicate (same message to two players)</button>
+          <button id="sc-both-complete" title="Player-based duplicate: two players with the same skill both complete their own copies.">Both complete (multi-copies)</button>
+        </div>
+        <div class="two" style="margin-top:6px">
+          <button id="sc-dlq" title="Poison message: simulate a NACK to DLQ for investigation and later requeue/purge from the DLQ panel.">DLQ (poison)</button>
+        </div>
+        <div class="muted" style="margin-top:6px; font-size:12px">
+          Tip: Use Skill-based (top) for single-delivery fairness. Use Player-based (top) to teach fanout and duplicates.
+        </div>
+        <hr style="border-color:#1e2a4d; margin:10px 0">
+        <h3>Character Guide (click to add)</h3>
+        <div class="bio" data-player="alice" data-skills="gather,slay" data-fail="0.2" data-speed="1.0" data-workers="1">
+          <div class="name">Alice</div>
+          <span class="conf">gather · slay · w1 · s1.0</span>
+          <span class="desc">A balanced worker for fairness and redelivery demos.</span>
+          <div class="bubble">
+            A balanced worker specialized in gather and slay. One worker (prefetch defaults to 1). Great for demonstrating single-delivery fairness and redelivery.
+          </div>
+        </div>
+        <div class="bio" style="margin-top:6px" data-player="bob" data-skills="slay,escort" data-fail="0.1" data-speed="0.7" data-workers="2">
+          <div class="name">Bob</div>
+          <span class="conf">slay · escort · w2 · s0.7</span>
+          <span class="desc">A faster, concurrent worker to visualize contention and unacked.</span>
+          <div class="bubble">
+            A faster, concurrent worker specialized in slay and escort. Two workers for higher parallelism (watch unacked) and contention scenarios.
+          </div>
+        </div>
+        <div class="bio" style="margin-top:6px" data-player="carol" data-skills="slay" data-fail="0.15" data-speed="0.8" data-workers="1">
+          <div class="name">Carol</div>
+          <span class="conf">slay · w1 · s0.8 · fail 0.15</span>
+          <span class="desc">A focused slayer with slightly faster speed and small failure rate.</span>
+          <div class="bubble">
+            Good to demonstrate competition on slay quests and failure handling.
+          </div>
+        </div>
+        <div class="bio" style="margin-top:6px" data-player="dave" data-skills="gather,escort" data-fail="0.1" data-speed="1.3" data-workers="2">
+          <div class="name">Dave</div>
+          <span class="conf">gather · escort · w2 · s1.3</span>
+          <span class="desc">A steady multi-worker for breadth; useful to drain backlogs.</span>
+          <div class="bubble">
+            Shows the effect of workers>1 and higher processing time for variance.
+          </div>
+        </div>
+        <hr style="border-color:#1e2a4d; margin:10px 0">
+        <h3>Message Chaos (next message)</h3>
+        <div class="two">
+          <button id="chaos-drop">Next: Drop</button>
+          <button id="chaos-requeue">Next: Requeue</button>
+        </div>
+        <div class="two">
+          <button id="chaos-dlq">Next: DLQ</button>
+          <button id="chaos-fail">Next: Fail Early</button>
+        </div>
+        <div class="muted" style="margin-top:6px; font-size:12px">
+          Tip: Use Skill-based (top) for single-delivery fairness. Use Player-based (top) to teach fanout and duplicates.
+        </div>
+        <hr style="border-color:#1e2a4d; margin:10px 0">
+        <h3>Messages</h3>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center">
+          <button id="tab-pending" class="mini-btn" title="Pending">Pending</button>
+          <button id="tab-failed" class="mini-btn" title="Failed">Failed</button>
+          <button id="tab-dlq" class="mini-btn" title="DLQ">DLQ</button>
+          <span style="margin-left:auto"></span>
+          <button id="msg-reissue-all" class="mini-btn" title="Reissue all">Reissue all</button>
+          <button id="msg-purge" class="mini-btn" title="Purge (DLQ only)">Purge</button>
+          <button id="msg-show-all" class="mini-btn" title="Show all items">Show all</button>
+        </div>
+        <div id="msg-list" class="muted" style="margin-top:6px; font-size:12px"></div>
+      </div>
+
+      <div class="card">
+        <h3>Quest Board <button id="toggle-quests" style="width:auto; float:right">Toggle</button></h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0">
+          <div id="type-metrics" class="muted"></div>
+          <div class="legend"><button style="width:auto">Legend</button><div class="bubble"><strong>Ready</strong>: in queue, not delivered.<br/><strong>Unacked</strong>: delivered to a player; processing until ack.<br/>If player disconnects before ack, it returns to Ready.</div></div>
+        </div>
+        <details open>
+          <summary>gather</summary>
+          <div id="quests-gather" class="quests"></div>
+        </details>
+        <details open>
+          <summary>slay</summary>
+          <div id="quests-slay" class="quests"></div>
+        </details>
+        <details open>
+          <summary>escort</summary>
+          <div id="quests-escort" class="quests"></div>
+        </details>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px">
+          <h3 style="margin:0">Quest Log</h3>
+          <button id="clear-feed" style="width:auto">Clear</button>
+        </div>
+        <div id="feed" class="feed"></div>
+      </div>
+
+      <div class="card" id="player-pane">
+        <h3>Leaderboard 🏆</h3>
+        <div id="scores" class="scores"></div>
+        <h3 style="margin-top:12px">Roster</h3>
+        <div id="roster"></div>
+        <div class="muted" style="margin-top:6px; font-size:12px">Tip: Click a player pill to select; use the tiny buttons on each pill for Pause/Resume/Crash.</div>
+        <h3 style="margin-top:12px">Activity</h3>
+        <canvas id="activity" width="300" height="80" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
+        <h3 style="margin-top:12px">Throughput <span class="muted" title="Lines show per-player completed count trend over time (not absolute rate). Colors map to players by legend below.">?</span></h3>
+        <canvas id="throughput" width="300" height="100" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
+        <div id="throughput-legend" class="muted" style="margin-top:6px; font-size:12px"></div>
+        <div class="muted" style="margin-top:6px">RabbitMQ UI: http://localhost:15672</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="help" class="modal">
+    <div class="inner">
+      <h3>How it works</h3>
+      <ul class="help">
+        <li>Quest wave → messages published to topic exchange as <code>game.quest.&lt;type&gt;</code>.</li>
+        <li>Players listen on their queue and decide: ACCEPT (work) or SKIP (requeue).</li>
+        <li>Work simulates processing time; result is a new event: <code>game.quest.&lt;type&gt;.done|fail</code>.</li>
+        <li>Leaderboard subscribes to results and totals points per player.</li>
+        <li>Going offline mid-quest: message is returned to the queue and another player can pick it up (at-least-once).</li>
+        <li>DLQ: if a message is bad, it can be NACKed to a dedicated queue for investigation.</li>
+      </ul>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="close-help" style="width:auto">Close</button>
+      </div>
+    </div>
+  </div>
+  <div id="quest-modal" class="modal">
+    <div class="inner">
+      <h3>Quest details</h3>
+      <div id="qm-header" class="muted" style="margin-bottom:6px"></div>
+      <div id="qm-body" class="feed" style="height:240px"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="qm-close" style="width:auto">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const feed = document.getElementById('feed');
+    const scores = document.getElementById('scores');
+    const rosterDiv = document.getElementById('roster');
+    const questsByType = {
+      gather: document.getElementById('quests-gather'),
+      slay: document.getElementById('quests-slay'),
+      escort: document.getElementById('quests-escort'),
+    };
+    const typeMetricsDiv = document.getElementById('type-metrics');
+    const historyByQuest = {}; // id -> [{ts,type,text}]
+
+    const quests = {}; // questId -> {el, start, dur}
+    function questId(p){ return p.case_id || p.quest_id || p.id; }
+
+    function medal(idx){ return idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':'🎯'; }
+
+    function line(tagClass, title, body) {
+      const row = document.createElement('div'); row.className = 'row';
+      const tag = document.createElement('span'); tag.className = `tag ${tagClass}`; tag.textContent = title;
+      const span = document.createElement('span'); span.textContent = body;
+      row.appendChild(tag); row.appendChild(span); return row;
+    }
+    const seenSkips = new Set();
+    function appendFeed(tagClass, title, body, dedupeKey) {
+      if (dedupeKey && seenSkips.has(dedupeKey)) return;
+      if (dedupeKey) seenSkips.add(dedupeKey);
+      feed.appendChild(line(tagClass, title, body));
+      // cap at ~300 lines
+      while (feed.childElementCount > 300) feed.removeChild(feed.firstChild);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function renderScores(snap) {
+      const s = snap.scoreboard || {}; const f = snap.fails || {};
+      const entries = Object.entries(s).sort((a,b)=>b[1]-a[1]);
+      scores.innerHTML = entries.length ? entries.map(([p,pts],i) => {
+        const fail = f[p] || 0; const st = (snap.player_stats&&snap.player_stats[p])||{inflight:0};
+        const meta = (snap.roster&&snap.roster[p])||{}; const spd = meta.speed_multiplier!=null?meta.speed_multiplier:1.0; const wrk = meta.workers!=null?meta.workers:1;
+        const title = `${p} — workers:${wrk} speed:${spd}\npoints:${pts} fails:${fail} inflight(unacked):${st.inflight}`;
+        return `<div class="score-row" title="${title}"><span>${medal(i)} ${p}${st.inflight?` <span class='badge'>${st.inflight} unacked</span>`:''}</span><span>${pts} pts${fail?` · fails:${fail}`:''}</span></div>`;
+      }).join('') : '<div class="muted">No scores yet</div>';
+    }
+
+    const rosterState = {}; // name -> {skills, fail_pct, status, speed_multiplier, workers}
+    let activePlayer = null;
+    function renderRoster(snap) {
+      const r = snap.roster || {}; Object.entries(r).forEach(([name,meta]) => { rosterState[name] = {...(rosterState[name]||{}), ...meta}; });
+      const ordered = Object.entries(rosterState).sort((a,b)=>a[0].localeCompare(b[0]));
+      let html = ordered.map(([name,meta]) => {
+        const status = meta.status||'offline';
+        const dotClass = status==='online'?'online':(status==='reconnecting'?'reconnecting':'');
+        const ps = (snap.player_stats&&snap.player_stats[name])||{accepted:0,completed:0,failed:0,inflight:0};
+        const spd = meta.speed_multiplier!=null ? meta.speed_multiplier : 1.0;
+        const wrk = meta.workers!=null ? meta.workers : 1;
+        const tip = `${name} — ${status}\nskills: ${(meta.skills||[]).join(',')}\nworkers: ${wrk}  speed: ${spd}\naccepted: ${ps.accepted}  completed: ${ps.completed}  failed: ${ps.failed}\ninflight (unacked): ${ps.inflight}`;
+        const skills = (meta.skills||[]).map(s=>`<span class='skill'>${s}</span>`).join(' ');
+        const sel = (name===activePlayer)?' selected':'';
+        return `<span class="pill${sel}" data-name="${name}" title="${tip}"><span class="dot ${dotClass}"></span>${name} · ${skills} · w${wrk} · s${spd} · fail ${Math.round((meta.fail_pct||0)*100)}%
+          <span style="margin-left:6px; display:inline-flex; gap:4px">
+            <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Pause">⏸</button>
+            <button class="tiny-btn player-action" data-action="resume" data-name="${name}" title="Resume">▶</button>
+            <button class="tiny-btn player-action" data-action="crash" data-name="${name}" title="Crash">⚡</button>
+          </span>
+        </span>`;
+      }).join(' ');
+      rosterDiv.innerHTML = html ? `<div class='roster-wrap'>${html}</div>` : '<div class="muted">No players yet</div>';
+    }
+
+    function ensureQuestCard(p) {
+      const id = questId(p); if (!id) return { el: null, start: Date.now(), dur: 1000 };
+      if (quests[id]) return quests[id];
+      const el = document.createElement('div'); el.className = 'quest';
+      const icon = p.quest_type==='slay'?'⚔️':(p.quest_type==='escort'?'🛡️':'📦');
+      el.innerHTML = `<div class="title">${icon} ${p.quest_type} <span class="muted" style="margin-left:auto">${p.points} pts · w${p.weight||1}</span></div>
+      <div class="meta"><span class="status tag warn">Ready</span> · assigned to <span class="who">Unassigned</span></div>
+      <div class="progress"><div class="bar"></div></div>
+      <div class="muted" style="margin-top:6px"><small>timeline:</small><ul class="tl" style="margin:6px 0 0 14px; padding:0; list-style:none"></ul></div>`;
+      el.setAttribute('data-quest-id', id);
+      (questsByType[p.quest_type] || questsByType['gather']).prepend(el);
+      el.addEventListener('click', ()=>openQuestModal(id, p.quest_type));
+      const obj = { el, start: Date.now(), dur: Math.max(500, Math.round((p.work_sec||1)*1000)) };
+      quests[id] = obj; return obj;
+    }
+
+    function tick() {
+      const now = Date.now();
+      Object.values(quests).forEach(q => {
+        const pct = Math.max(0, Math.min(100, Math.round(((now - q.start) / q.dur) * 100)));
+        const bar = q.el.querySelector('.bar'); if (bar) bar.style.width = pct + '%';
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // activity sparkline
+    const act = { ts: [], online: [] };
+    const thr = { ts: [], perPlayer: {}, colors: {} };
+    function drawActivity(){
+      const canvas = document.getElementById('activity');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      if (act.ts.length < 2) return;
+      const maxOnline = Math.max(1, ...act.online);
+      const w = canvas.width, h = canvas.height, n = act.ts.length;
+      ctx.strokeStyle = '#6fe0a0'; ctx.beginPath();
+      act.online.forEach((v,i) => {
+        const x = (i/(n-1))*w;
+        const y = h - (v/maxOnline)*h;
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    }
+
+    function drawThroughput(){
+      const canvas = document.getElementById('throughput');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      const colors = ['#6fe0a0','#8ec6ff','#ffd26f','#ff9b9b','#9b59b6','#f39c12','#1abc9c'];
+      const players = Object.keys(thr.perPlayer);
+      const maxY = Math.max(1, ...players.flatMap(p=>thr.perPlayer[p]||[0]));
+      players.forEach((p,idx)=>{
+        thr.colors[p] = thr.colors[p] || colors[idx % colors.length];
+        ctx.strokeStyle = thr.colors[p]; ctx.beginPath();
+        const series = thr.perPlayer[p]||[]; const n = series.length;
+        ctx.beginPath();
+        series.forEach((v,i)=>{
+          const x = (i/(Math.max(1,n-1)))*canvas.width;
+          const y = canvas.height - (v/maxY)*canvas.height;
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+      });
+      // legend
+      const legend = document.getElementById('throughput-legend');
+      legend.innerHTML = players.map(p=>`<span style="display:inline-flex; align-items:center; gap:6px; margin-right:10px"><span style="width:10px; height:10px; background:${thr.colors[p]}; display:inline-block; border-radius:2px"></span>${p}</span>`).join('');
+    }
+
+    function setStatus(el, label, cls){ const st=el.querySelector('.status'); if(st){ st.textContent=label; st.className = `status tag ${cls}`; } }
+    function addTL(el, type, text){ const tl = el && el.querySelector('.tl'); if (!tl) return; const li = document.createElement('li'); const tag = document.createElement('span'); tag.className = `tag ${type}`; tag.textContent = type.toUpperCase(); const span = document.createElement('span'); span.textContent = ' ' + text; li.appendChild(tag); li.appendChild(span); tl.appendChild(li); }
+    function addHist(id, ts, type, text){ historyByQuest[id] = historyByQuest[id]||[]; historyByQuest[id].push({ts,type,text}); }
+    function fmtTs(ts){ const d=new Date(ts*1000); return d.toLocaleTimeString(); }
+    function openQuestModal(id, type){ const modal=document.getElementById('quest-modal'); const head=document.getElementById('qm-header'); const body=document.getElementById('qm-body'); head.textContent = `${id} (${type})`; const hist=historyByQuest[id]||[]; body.innerHTML = hist.map(h=>`[${fmtTs(h.ts)}] ${h.type.toUpperCase()} ${h.text}`).join('\n'); modal.classList.add('show'); }
+    document.getElementById('qm-close').onclick=()=>document.getElementById('quest-modal').classList.remove('show');
+    const lastEventByQuest = {}; // questId -> drop|requeue|dlq
+
+    const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(`${wsProto}://${location.host}/ws`);
+    // update quick-add hover titles from stats
+    function updateQuickTitles(msg){
+      const stats = msg.player_stats || {}; const sb = msg.scoreboard || {}; const r = msg.roster || {};
+      const alice = document.getElementById('add-alice'); const bob = document.getElementById('add-bob');
+      const fmt = (name) => {
+        const s = stats[name] || {accepted:0, completed:0, failed:0};
+        const pts = sb[name] || 0; const status = (r[name]&&r[name].status)||'offline';
+        const meta = r[name]||{}; const spd = meta.speed_multiplier!=null?meta.speed_multiplier:1.0; const wrk = meta.workers!=null?meta.workers:1;
+        return `${name} — ${status}\nworkers: ${wrk}  speed: ${spd}\naccepted: ${s.accepted}  completed: ${s.completed}  failed: ${s.failed}\npoints: ${pts}`;
+      };
+      if (alice) alice.title = fmt('alice'); if (bob) bob.title = fmt('bob');
+    }
+
+    ws.onmessage = (ev) => {
+      const msg = JSON.parse(ev.data);
+      renderScores(msg); renderRoster(msg);
+      updateQuickTitles(msg);
+      // aggregates per type
+      if (msg.metrics && msg.metrics.per_type){
+        const parts = [];
+        Object.entries(msg.metrics.per_type).forEach(([t,m]) => {
+          parts.push(`${t}: P${m.pending||0} A${m.accepted||0} D${m.completed||0} F${m.failed||0}`);
+        });
+        typeMetricsDiv.textContent = parts.join('  ·  ');
+        if (msg.metrics.total_pending!=null){
+          document.getElementById('status-pending').textContent = String(msg.metrics.total_pending);
+        }
+      }
+
+      // activity
+      const onlineCount = Object.values(msg.roster||{}).filter(r => r.status==='online').length;
+      if (msg.type==='tick'){
+        act.ts.push(msg.payload.ts); act.online.push(onlineCount);
+        while (act.ts.length > 60) { act.ts.shift(); act.online.shift(); }
+        drawActivity();
+        // throughput: completed per tick by player
+        const ps = msg.player_stats || {};
+        Object.keys(ps).forEach(p=>{ thr.perPlayer[p] = thr.perPlayer[p] || []; });
+        Object.entries(ps).forEach(([p,st])=>{
+          thr.perPlayer[p].push(st.completed || 0);
+          if (thr.perPlayer[p].length > 60) thr.perPlayer[p].shift();
+        });
+        drawThroughput();
+      }
+
+      if (msg.type === 'master_wave_started') {
+        appendFeed('info', 'MASTER', `Wave: ${msg.payload.count} quests @ ${msg.payload.delay}s`);
+      } else if (msg.type === 'quest_issued') {
+        const p = msg.payload; const qc = ensureQuestCard(p); appendFeed('info', 'QUEST', `${p.quest_type} (${p.difficulty}) worth ${p.points} pts`);
+        addHist(questId(p), msg.ts, 'info', 'issued');
+        // add timeline entry
+        const tl = qc.el && qc.el.querySelector('.tl'); if (tl){ const li = document.createElement('li'); li.textContent = 'issued'; tl.appendChild(li); }
+      } else if (msg.type === 'player_online') {
+        const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'online'}; renderRoster({roster: rosterState});
+        appendFeed('info', 'PLAYER', `${p.player} online`);
+        // push immediate activity update
+        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+      } else if (msg.type === 'player_reconnecting') {
+        const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'reconnecting'}; renderRoster({roster: rosterState});
+        appendFeed('warn', 'PLAYER', `${p.player} reconnecting`);
+        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+      } else if (msg.type === 'player_accept') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){
+          const whoEl = q.el.querySelector('.who');
+          const prev = whoEl.textContent;
+          if (prev && prev !== 'Unassigned' && prev !== p.player){
+            const reason = lastEventByQuest[questId(p)] === 'drop' ? 'disconnected' : (lastEventByQuest[questId(p)] === 'requeue' ? 'requeued' : 'returned');
+            addTL(q.el, 'warn', `${prev} ${reason} → Ready`);
+          }
+          whoEl.textContent = p.player;
+          setStatus(q.el, 'Unacked', 'ok');
+        }
+        appendFeed('ok', 'ACCEPT', `${p.player} -> ${questId(p)} (${p.quest_type}) ${p.difficulty}`);
+        if (q && q.el){ addTL(q.el, 'ok', `accepted by ${p.player}`); }
+        addHist(questId(p), msg.ts, 'ok', `accepted by ${p.player}`);
+      } else if (msg.type === 'player_skip') {
+        const p = msg.payload; appendFeed('warn', 'SKIP', `${p.player} ignored ${p.quest_id} (${p.quest_type})`, `${p.player}:${p.quest_id}`);
+        const q = ensureQuestCard({ case_id: p.quest_id, quest_type: p.quest_type, points: 0, difficulty: 'medium' });
+        if (q.el){ addTL(q.el, 'warn', `${p.player} skipped`); addTL(q.el, 'info', `re-issued`); }
+        addHist(p.quest_id, msg.ts, 'warn', `${p.player} skipped`); addHist(p.quest_id, msg.ts, 'info', 're-issued');
+      } else if (msg.type === 'msg_drop') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){ addTL(q.el, 'warn', `${p.player} disconnected before ack`); addTL(q.el, 'info', `re-issued`); lastEventByQuest[questId(p)] = 'drop'; }
+        addHist(questId(p), msg.ts, 'warn', `${p.player} disconnected before ack`); addHist(questId(p), msg.ts, 'info', 're-issued');
+        if (chaosActiveGlobal==='drop'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'msg_requeue') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){ addTL(q.el, 'warn', `${p.player} NACK requeue`); addTL(q.el, 'info', `re-issued`); lastEventByQuest[questId(p)] = 'requeue'; }
+        addHist(questId(p), msg.ts, 'warn', `${p.player} NACK requeue`); addHist(questId(p), msg.ts, 'info', 're-issued');
+        if (chaosActiveGlobal==='requeue'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'msg_dlq') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){ addTL(q.el, 'err', `${p.player} NACK to DLQ`); lastEventByQuest[questId(p)] = 'dlq'; }
+        addHist(questId(p), msg.ts, 'err', `${p.player} NACK to DLQ`);
+        if (chaosActiveGlobal==='dlq'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'result_done') {
+        const p = msg.payload; const q = quests[questId(p)]; if (q && q.el){
+          q.el.classList.add('done'); q.el.querySelector('.bar').style.width = '100%';
+          q.el.querySelector('.who').textContent = p.player || (q.el.querySelector('.who').textContent);
+          setStatus(q.el, 'Completed', 'ok');
+        }
+        appendFeed('ok', 'DONE', `${p.player} completed ${p.quest_type} (+${p.points} pts)`);
+        if (q && q.el){ addTL(q.el, 'ok', `completed by ${p.player}`); }
+        addHist(questId(p), msg.ts, 'ok', `completed by ${p.player}`);
+        if (chaosActiveGlobal==='fail_early'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'result_fail') {
+        const p = msg.payload; const q = quests[questId(p)]; if (q && q.el){
+          q.el.classList.add('fail'); q.el.querySelector('.bar').style.width = '100%';
+          q.el.querySelector('.who').textContent = p.player || (q.el.querySelector('.who').textContent);
+          setStatus(q.el, 'Failed', 'err');
+        }
+        appendFeed('err', 'FAIL', `${p.player} failed ${p.quest_type}`);
+        if (q && q.el){ addTL(q.el, 'err', `failed by ${p.player}`); }
+        addHist(questId(p), msg.ts, 'err', `failed by ${p.player}`);
+        if (chaosActiveGlobal==='fail_early'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'roster') {
+        // roster snapshot
+        renderRoster(msg);
+        act.ts.push(Date.now()/1000); act.online.push(Object.values(rosterState).filter(r=>r.status==='online').length); while (act.ts.length>60){act.ts.shift(); act.online.shift();} drawActivity();
+      } else if (msg.type === 'routing_mode') {
+        const mode = (msg.payload&&msg.payload.mode) || msg.routing_mode || 'skill';
+        setRoutingActive(mode);
+      } else if (msg.type === 'reset') {
+        // Clear UI state
+        document.getElementById('type-metrics').textContent = '';
+        document.getElementById('status-pending').textContent = '0';
+        document.getElementById('scores').innerHTML = '';
+        document.getElementById('roster').innerHTML = '';
+        Object.values(quests).forEach(q=>{ if(q.el && q.el.parentNode){ q.el.parentNode.removeChild(q.el); } });
+        for (const k in quests) delete quests[k];
+        // clear charts
+        const ac = document.getElementById('activity').getContext('2d'); ac.clearRect(0,0,300,80);
+        const thrc = document.getElementById('throughput').getContext('2d'); thrc.clearRect(0,0,300,100);
+      }
+    };
+
+    function setRoutingActive(mode){
+      const a = document.getElementById('route-skill');
+      const b = document.getElementById('route-player');
+      a.classList.remove('active'); b.classList.remove('active');
+      if (mode==='skill') a.classList.add('active'); else b.classList.add('active');
+      document.getElementById('status-routing').textContent = mode;
+      document.getElementById('status-routing').className = 'tag info';
+    }
+    document.getElementById('start-master').onclick = async () => {
+      const count = parseInt(document.getElementById('count').value, 10);
+      const delay = parseFloat(document.getElementById('delay').value);
+      await fetch('/api/master/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({count, delay}) });
+      document.getElementById('status-wave').textContent = `count=${count} · delay=${delay}s`;
+    };
+
+    function selectedSkills(){
+      const arr = [];
+      if (document.getElementById('sk_gather').checked) arr.push('gather');
+      if (document.getElementById('sk_slay').checked) arr.push('slay');
+      if (document.getElementById('sk_escort').checked) arr.push('escort');
+      return arr.join(',');
+    }
+
+    document.getElementById('toggle-custom').onclick = () => {
+      const cf = document.getElementById('custom-form');
+      cf.style.display = cf.style.display==='none' ? '' : 'none';
+    };
+
+    document.getElementById('start-player').onclick = async () => {
+      const player = document.getElementById('player').value.trim();
+      const skills = selectedSkills();
+      const fail_pct = parseFloat(document.getElementById('fail').value);
+      const speed_multiplier = parseFloat(document.getElementById('speed').value);
+      const workers = parseInt(document.getElementById('workers').value, 10);
+      const prefetch = parseInt(document.getElementById('prefetch').value, 10);
+      const drop_rate = parseFloat(document.getElementById('drop_rate').value);
+      const skip_rate = parseFloat(document.getElementById('skip_rate').value);
+      await fetch('/api/player/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player, skills, fail_pct, speed_multiplier, workers, prefetch, drop_rate, skip_rate}) });
+      appendFeed('info','PLAYERS',`Started ${player} (${skills})`);
+    };
+    // Quickstart
+    document.getElementById('quick-alice-bob').onclick = async () => {
+      await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'alice_bob'})});
+      appendFeed('info','PLAYERS','Started Alice and Bob');
+    };
+    // Click-to-add bios
+    document.querySelectorAll('.bio').forEach(bio=>{
+      bio.onclick = async (e) => {
+        // Ignore clicks on bubbles
+        if (e.target.closest('.bubble')) return;
+        const player = bio.getAttribute('data-player');
+        const skills = bio.getAttribute('data-skills')||'';
+        const fail = parseFloat(bio.getAttribute('data-fail')||'0.2');
+        const speed = parseFloat(bio.getAttribute('data-speed')||'1.0');
+        const workers = parseInt(bio.getAttribute('data-workers')||'1', 10);
+        if (bio.classList.contains('added')){ return; }
+        bio.classList.add('added');
+        const resp = await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'custom', players:[{player, skills, fail_pct:fail, speed_multiplier:speed, workers}]})});
+        const data = await resp.json().catch(()=>({ok:false}));
+        if (!data.ok){ appendFeed('warn','PLAYERS',`Could not add ${player}${data.error?': '+data.error:''}`); return; }
+        appendFeed('info','PLAYERS',`Started ${player}`);
+      };
+    });
+    document.getElementById('add-random').onclick = async () => {
+      const names = ['lara','neo','trinity','morpheus','ripley','sarah','t-800','arthur','diana'];
+      const skills = ['gather','slay','escort'];
+      const pick = (arr)=>arr[Math.floor(Math.random()*arr.length)];
+      const name = pick(names) + Math.floor(Math.random()*100);
+      const sk = Array.from(new Set([pick(skills), pick(skills)])).join(',');
+      const fail = Math.random()*0.4;
+      const speed = 0.5 + Math.random()*1.5;
+      const workers = 1 + Math.floor(Math.random()*3);
+      await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'custom', players:[{player:name, skills:sk, fail_pct:fail, speed_multiplier:speed, workers:workers}]})});
+      appendFeed('info','PLAYERS',`Started ${name} (${sk})`);
+    };
+    document.getElementById('sc-redelivery').onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'redelivery'})});
+      appendFeed('info','SCENARIO','Redelivery: crash mid-processing to show re-delivery');
+    };
+    document.getElementById('sc-requeue').onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'requeue'})});
+      appendFeed('info','SCENARIO','Requeue: NACK requeue to return the message immediately');
+    };
+    document.getElementById('sc-duplicate').onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'duplicate'})});
+      appendFeed('info','SCENARIO','Duplicate: fanout+filter so multiple players can accept their own copies');
+    };
+    document.getElementById('sc-both-complete').onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'both_complete'})});
+      appendFeed('info','SCENARIO','Both complete: two players complete their own copies (player-based routing)');
+    };
+    document.getElementById('sc-dlq').onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'dlq_poison'})});
+      appendFeed('info','SCENARIO','DLQ: simulated poison message sent to DLQ');
+    };
+
+    function updateCtrlState(){ /* no-op after roster integration */ }
+    async function control(action, mode){
+      if (!activePlayer) return;
+      await fetch('/api/player/control', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player: activePlayer, action, mode}) });
+    }
+    // Player pill inline controls
+    rosterDiv.addEventListener('click', (e)=>{
+      const act = e.target.closest('.player-action');
+      if (act){
+        const name = act.getAttribute('data-name'); const action = act.getAttribute('data-action');
+        if (name && action){ fetch('/api/player/control', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player:name, action})}); }
+        e.stopPropagation(); return;
+      }
+      const pill = e.target.closest('.pill'); if (!pill) return;
+      activePlayer = pill.getAttribute('data-name');
+      renderRoster({roster: rosterState, player_stats:{}});
+    });
+
+    const help = document.getElementById('help');
+    document.getElementById('help-btn').onclick = () => help.classList.add('show');
+    document.getElementById('close-help').onclick = () => help.classList.remove('show');
+    document.getElementById('toggle-quests').onclick = () => {
+      const ds = document.querySelectorAll('details');
+      const anyOpen = Array.from(ds).some(d => d.open);
+      ds.forEach(d => d.open = !anyOpen);
+    };
+    document.getElementById('route-skill').onclick = async () => {
+      await fetch('/api/routing/set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode:'skill'})});
+      appendFeed('info', 'ROUTING', 'Switched to skill-based queues');
+      setRoutingActive('skill');
+    };
+    document.getElementById('route-player').onclick = async () => {
+      await fetch('/api/routing/set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode:'player'})});
+      appendFeed('info', 'ROUTING', 'Switched to player-based (fanout+skip)');
+      setRoutingActive('player');
+    };
+    document.getElementById('clear-feed').onclick = () => { feed.innerHTML = ''; seenSkips.clear(); };
+
+    // Failed panel actions (legacy UI) - null guarded
+    const listFailedBtn = document.getElementById('list-failed');
+    if (listFailedBtn){
+      listFailedBtn.onclick = async () => {
+        const res = await fetch('/api/failed/list');
+        const data = await res.json();
+        const el = document.getElementById('failed-list');
+        if (!el){ return; }
+        if (!data.ok) { el.textContent = 'Error listing failed'; return; }
+        if (!data.failed.length) { el.textContent = 'No failed quests'; return; }
+        el.innerHTML = data.failed.map(f=>`<div style="display:flex; align-items:center; gap:6px" class="failed-item"><button class="mini-btn failed-retry-one" data-qid="${f.quest_id}" title="Reissue">↻</button><span class="failed-label">${f.quest_id} (${f.quest_type})</span><button class="mini-btn failed-filter" data-qid="${f.quest_id}" title="Show only this">👁</button></div>`).join('');
+        el.querySelectorAll('.failed-retry-one').forEach(btn=>{
+          btn.onclick = async () => {
+            const qid = btn.getAttribute('data-qid');
+            await fetch('/api/failed/retry', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_id: qid})});
+            appendFeed('info','FAILED',`Reissued ${qid}`);
+            const again = document.getElementById('list-failed'); if (again) again.click();
+          };
+        });
+        el.querySelectorAll('.failed-filter').forEach(btn=>{
+          btn.onclick = () => {
+            const qid = btn.getAttribute('data-qid');
+            const current = Array.from(el.querySelectorAll('.failed-item'));
+            current.forEach(div=>{ if (div.querySelector('.failed-retry-one').getAttribute('data-qid') !== qid) div.style.display='none'; });
+            const showAll = document.createElement('button'); showAll.className='mini-btn'; showAll.textContent='Show all'; showAll.onclick=()=>{ const b=document.getElementById('list-failed'); if (b) b.click(); }; el.appendChild(showAll);
+          };
+        });
+      };
+    }
+    // Guard legacy handlers if present
+    const retryFailedBtn = document.getElementById('retry-failed');
+    if (retryFailedBtn){ retryFailedBtn.onclick = async () => {
+      const res = await fetch('/api/failed/retry', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+      const data = await res.json();
+      appendFeed('info','FAILED',`Retried ${data.count||0} failed quests`);
+      const fl = document.getElementById('failed-list'); if (fl) fl.textContent = 'No failed quests';
+    }; }
+    // Unified Messages panel
+    let msgTab = 'pending';
+    const msgListEl = document.getElementById('msg-list');
+    function renderMsg(items, type){
+      msgListEl.innerHTML = items.map(it=>{
+        const id = it.quest_id; const qt = it.quest_type; const age = (it.age_sec!=null?` · age ${it.age_sec}s`:'');
+        return `<div style="display:flex; align-items:center; gap:6px" class="msg-item" data-qid="${id}"><button class="mini-btn msg-reissue" data-qid="${id}" title="Reissue">↻</button><span class="msg-label">${id} (${qt})${age}</span><button class="mini-btn msg-filter" data-qid="${id}" title="Show only this">👁</button></div>`;
+      }).join('');
+      // wiring
+      msgListEl.querySelectorAll('.msg-reissue').forEach(btn=>{
+        btn.onclick = async ()=>{
+          const qid = btn.getAttribute('data-qid');
+          if (msgTab==='pending') await fetch('/api/pending/reissue',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_id: qid})});
+          if (msgTab==='failed') await fetch('/api/failed/retry',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_id: qid})});
+          if (msgTab==='dlq') await fetch('/api/dlq/requeue',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_id: qid})});
+          appendFeed('info', msgTab.toUpperCase(), `Reissued ${qid}`);
+          loadTab(msgTab);
+        };
+      });
+      msgListEl.querySelectorAll('.msg-filter').forEach(btn=>{
+        btn.onclick = ()=>{
+          const qid = btn.getAttribute('data-qid');
+          Array.from(msgListEl.querySelectorAll('.msg-item')).forEach(div=>{ if (div.getAttribute('data-qid')!==qid) div.style.display='none'; });
+          const showAll = document.createElement('button'); showAll.className='mini-btn'; showAll.textContent='Show all'; showAll.onclick=()=>loadTab(msgTab); msgListEl.appendChild(showAll);
+          // Filter quest board
+          document.querySelectorAll('.quest').forEach(card=>{
+            const cid = card.getAttribute('data-quest-id');
+            card.style.display = (cid===qid)?'':'none';
+          });
+        };
+      });
+    }
+    function setMsgTabActive(tab){ ['pending','failed','dlq'].forEach(t=>{ const el = document.getElementById('tab-'+t); if (el){ if (t===tab) el.classList.add('active'); else el.classList.remove('active'); } }); }
+    async function loadTab(tab){
+      msgTab = tab;
+      setMsgTabActive(tab);
+      let items = [];
+      if (tab==='pending'){
+        const r = await fetch('/api/pending/list'); const d = await r.json();
+        if (!d.ok){ msgListEl.textContent='Error'; return; }
+        items = d.pending||[];
+      } else if (tab==='failed'){
+        const r = await fetch('/api/failed/list'); const d = await r.json();
+        if (!d.ok){ msgListEl.textContent='Error'; return; }
+        items = d.failed||[];
+      } else if (tab==='dlq'){
+        const r = await fetch('/api/dlq/list'); const d = await r.json();
+        if (!d.ok){ msgListEl.textContent='Error'; return; }
+        items = d.items||[];
+      }
+      renderMsg(items, tab);
+    }
+    document.getElementById('tab-pending').onclick = ()=>loadTab('pending');
+    document.getElementById('tab-failed').onclick = ()=>loadTab('failed');
+    document.getElementById('tab-dlq').onclick = ()=>loadTab('dlq');
+    document.getElementById('msg-reissue-all').onclick = async ()=>{
+      if (msgTab==='pending') await fetch('/api/pending/reissue',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+      if (msgTab==='failed') await fetch('/api/failed/retry',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+      if (msgTab==='dlq') await fetch('/api/dlq/requeue',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+      loadTab(msgTab);
+    };
+    document.getElementById('msg-purge').onclick = async ()=>{
+      if (msgTab!=='dlq'){ appendFeed('warn','DLQ','Purge only for DLQ'); return; }
+      await fetch('/api/dlq/purge',{method:'POST'}); loadTab('dlq');
+    };
+    document.getElementById('msg-show-all').onclick = ()=>{
+      loadTab(msgTab);
+      document.querySelectorAll('.quest').forEach(card=>{ card.style.display=''; });
+    };
+    // load default tab
+    loadTab('pending');
+
+    // Sync broker KPIs
+    document.getElementById('sync-broker').onclick = async () => {
+      const res = await fetch('/api/broker/sync'); const data = await res.json();
+      if (!data.ok){ appendFeed('err','BROKER',`Sync failed: ${data.error||'unknown'}`); return; }
+      document.getElementById('status-broker').textContent = `ready=${data.total_ready} · unacked=${data.total_unacked}`;
+    };
+    // Send one buttons
+    document.querySelectorAll('.send-one').forEach(btn=>{
+      btn.onclick = async ()=>{
+        const t = btn.getAttribute('data-type');
+        try {
+          const r = await fetch('/api/master/one', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_type: t})});
+          const d = await r.json();
+          if (!d.ok){ appendFeed('err','MASTER',`Send one failed: ${d.error||'unknown'}`); return; }
+          appendFeed('info','MASTER',`Sent one: ${t}`);
+        } catch (e) {
+          appendFeed('err','MASTER',`Send one error`);
+        }
+      };
+    });
+    // Reset app
+    document.getElementById('reset-app').onclick = async () => {
+      await fetch('/api/reset', { method:'POST' });
+      appendFeed('warn','RESET','App state cleared');
+    };
+    // Message Chaos actions
+    const chaosButtons = {
+      drop: document.getElementById('chaos-drop'),
+      requeue: document.getElementById('chaos-requeue'),
+      dlq: document.getElementById('chaos-dlq'),
+      fail_early: document.getElementById('chaos-fail'),
+    };
+    let chaosActiveGlobal = null;
+    function updateChaosUI(){
+      Object.values(chaosButtons).forEach(b=>b.classList.remove('active'));
+      if (chaosActiveGlobal && chaosButtons[chaosActiveGlobal]) chaosButtons[chaosActiveGlobal].classList.add('active');
+    }
+    async function chaosArm(mode){
+      chaosActiveGlobal = mode;
+      updateChaosUI();
+      await fetch('/api/chaos/arm', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode})});
+      appendFeed('warn','CHAOS',`Armed next: ${mode}`);
+    }
+    chaosButtons.drop.onclick = () => chaosArm('drop');
+    chaosButtons.requeue.onclick = () => chaosArm('requeue');
+    chaosButtons.dlq.onclick = () => chaosArm('dlq');
+    chaosButtons.fail_early.onclick = () => chaosArm('fail_early');
+  </script>
+</body>
+</html>
