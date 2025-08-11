@@ -14,11 +14,18 @@ import (
 func (h *Handlers) GetRabbitMQMetrics(c *gin.Context) {
 	metrics, err := h.RabbitMQClient.DeriveMetricsFromRabbitMQ()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.APIResponse{
-			Success: false,
-			Error:   err.Error(),
-		})
-		return
+		// Fallback: provide empty metrics so UI can still render
+		metrics = map[string]interface{}{
+			"source":          "fallback",
+			"timestamp":       0,
+			"queue_stats":     map[string]interface{}{},
+			"consumer_stats":  map[string]interface{}{},
+			"total_pending":   0,
+			"total_unacked":   0,
+			"total_consumers": 0,
+			"per_type":        map[string]interface{}{},
+			"worker_roster":   map[string]interface{}{},
+		}
 	}
 
 	// Return metrics in both 'data' and 'metrics' fields for frontend compatibility
@@ -136,9 +143,22 @@ func (h *Handlers) GetRabbitMQScoreboard(c *gin.Context) {
 	// Get consumers from RabbitMQ to derive scoreboard
 	consumers, err := h.RabbitMQClient.GetConsumersFromAPI()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.APIResponse{
-			Success: false,
-			Error:   "Failed to get consumers from RabbitMQ: " + err.Error(),
+		// Fallback: build roster from known players in memory so UI can still show something
+		roster := make(map[string]interface{})
+		ps := h.getPlayerStatsSnapshot()
+		for name := range ps {
+			roster[name] = map[string]interface{}{"status": "online", "type": "go"}
+		}
+		c.JSON(http.StatusOK, models.APIResponse{
+			Success: true,
+			Data: map[string]interface{}{
+				"scoreboard":       map[string]interface{}{},
+				"roster":           roster,
+				"total_players":    len(roster),
+				"source":           "fallback",
+				"educational_note": "Fallback scoreboard derived from in-memory worker events",
+			},
+			Message: "Scoreboard fallback (management API unavailable)",
 		})
 		return
 	}
@@ -166,10 +186,35 @@ func (h *Handlers) GetRabbitMQScoreboard(c *gin.Context) {
 		})
 	}
 
+	// Generate roster data expected by frontend
+	roster := make(map[string]interface{})
+	playerQueues := make(map[string][]string)
+	playerConsumerCounts := make(map[string]int)
+
+	for _, item := range scoreboard {
+		player := item["player"].(string)
+		queue := item["queue"].(string)
+
+		if _, exists := playerQueues[player]; !exists {
+			playerQueues[player] = []string{}
+			playerConsumerCounts[player] = 0
+		}
+		playerQueues[player] = append(playerQueues[player], queue)
+		playerConsumerCounts[player]++
+	}
+
+	for player, queues := range playerQueues {
+		roster[player] = map[string]interface{}{
+			"queues":         queues,
+			"consumer_count": playerConsumerCounts[player],
+		}
+	}
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
 		Data: map[string]interface{}{
 			"scoreboard":       scoreboard,
+			"roster":           roster,
 			"total_players":    len(scoreboard),
 			"source":           "direct_rabbitmq_go_client",
 			"educational_note": "Scoreboard derived from RabbitMQ consumer data",

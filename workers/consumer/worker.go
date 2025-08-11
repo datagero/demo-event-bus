@@ -86,7 +86,7 @@ func (w *Worker) Start() error {
 			}
 
 			// Start workers for this skill queue
-			w.startWorkers(queueName)
+			w.startSkillWorkers(queueName, skill)
 		}
 	}
 
@@ -146,12 +146,20 @@ func (w *Worker) isPaused() bool {
 func (w *Worker) startWorkers(queueName string) {
 	for i := 0; i < w.config.WorkerCount; i++ {
 		w.wg.Add(1)
-		go w.workerLoop(queueName, i)
+		go w.workerLoop(queueName, i, "")
+	}
+}
+
+// startSkillWorkers starts worker goroutines for a specific skill queue
+func (w *Worker) startSkillWorkers(queueName string, skill string) {
+	for i := 0; i < w.config.WorkerCount; i++ {
+		w.wg.Add(1)
+		go w.workerLoop(queueName, i, skill)
 	}
 }
 
 // workerLoop is the main message processing loop for a worker goroutine
-func (w *Worker) workerLoop(queueName string, workerID int) {
+func (w *Worker) workerLoop(queueName string, workerID int, skill string) {
 	defer w.wg.Done()
 
 	log.Printf("🏃 [Go Worker] %s-worker-%d started on queue %s",
@@ -175,8 +183,13 @@ func (w *Worker) workerLoop(queueName string, workerID int) {
 		return w.processMessage(delivery)
 	}
 
-	// Create a meaningful consumer tag with player name and worker index
-	consumerTag := fmt.Sprintf("%s-worker-%d", w.config.PlayerName, workerID)
+	// Create a unique consumer tag that includes skill to avoid conflicts
+	var consumerTag string
+	if skill != "" {
+		consumerTag = fmt.Sprintf("%s-%s-worker-%d", w.config.PlayerName, skill, workerID)
+	} else {
+		consumerTag = fmt.Sprintf("%s-worker-%d", w.config.PlayerName, workerID)
+	}
 
 	// Start consuming (this blocks)
 	err := w.client.ConsumeWithTag(queueName, consumerTag, handler)
@@ -187,11 +200,18 @@ func (w *Worker) workerLoop(queueName string, workerID int) {
 
 // processMessage processes a single message
 func (w *Worker) processMessage(delivery amqp.Delivery) bool {
+	// --- Enhanced Debug Logging ---
+	log.Printf("📬 [Go Worker Debug] %s received raw message: %s", w.config.PlayerName, string(delivery.Body))
+
 	msg, err := broker.ParseMessage(delivery)
 	if err != nil {
-		log.Printf("❌ [Go Worker] Failed to parse message: %v", err)
+		log.Printf("❌ [Go Worker] Failed to parse message: %v. Raw body: %s", err, string(delivery.Body))
 		return true // Ack anyway to avoid poison message loop
 	}
+
+	// --- Enhanced Debug Logging ---
+	log.Printf("✅ [Go Worker Debug] %s parsed message: %+v", w.config.PlayerName, msg)
+	log.Printf("ℹ️ [Go Worker Debug] %s checking for skill '%s' in %v", w.config.PlayerName, msg.QuestType, w.config.Skills)
 
 	// Check if this worker should handle this quest type
 	if w.config.RoutingMode == "skill" && !w.hasSkill(msg.QuestType) {

@@ -52,31 +52,45 @@ func (h *Handlers) ReceiveWorkerEvents(c *gin.Context) {
 func (h *Handlers) handleMessageEvent(event map[string]interface{}) {
 	// Extract event details
 	eventStage, _ := event["event"].(string)
+	// Normalize to uppercase to accept both legacy (UPPER) and Go worker (lowercase) forms
+	switch eventStage {
+	case "accept":
+		eventStage = "ACCEPTED"
+	case "completed":
+		eventStage = "COMPLETED"
+	case "failed":
+		eventStage = "FAILED"
+	}
 	player, _ := event["player"].(string)
-	questId, _ := event["quest_id"].(string)
 
 	// Map Go worker event names to frontend event names
 	var msgType string
 	switch eventStage {
 	case "ACCEPTED":
 		msgType = "player_accept"
+		h.updatePlayerStat(player, "accepted", 1)
+		h.updatePlayerStat(player, "inflight", 1)
 	case "COMPLETED":
 		msgType = "result_done"
+		h.updatePlayerStat(player, "completed", 1)
 	case "FAILED":
 		msgType = "result_fail"
+		h.updatePlayerStat(player, "failed", 1)
 	default:
 		return // Unknown stage
 	}
 
 	// Broadcast to WebSocket clients
-	payload := map[string]interface{}{
-		"player":   player,
-		"quest_id": questId,
-		"event":    eventStage,
-		"source":   "go-worker",
+	// The payload should contain all the message fields for the frontend to render correctly
+	message, _ := event["message"].(map[string]interface{})
+	if message == nil {
+		message = make(map[string]interface{})
 	}
+	message["player"] = player    // Ensure player is in the top-level payload
+	message["event"] = eventStage // Add event stage for context
+	message["source"] = "go-worker-webhook"
 
-	h.broadcastMessage(msgType, payload)
+	h.broadcastMessage(msgType, message)
 }
 
 // handleWorkerStatusChange processes worker status change events

@@ -26,6 +26,9 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config, wsHub *websocket.Hub) {
 		RabbitMQClient: rabbitMQClient,
 	}
 
+	// Start periodic ticker that feeds UI graphs and roster snapshots
+	h.StartTicker()
+
 	// WebSocket endpoint
 	router.GET("/ws", websocket.HandleWebSocket(wsHub))
 
@@ -57,6 +60,11 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config, wsHub *websocket.Hub) {
 			players.POST("/delete", h.DeletePlayer)
 			players.POST("/control", h.ControlPlayer)
 		}
+
+		// Compatibility routes for frontend (singular player)
+		api.POST("/player/start", h.StartPlayer) // Frontend calls /api/player/start
+		api.POST("/player/delete", h.DeletePlayer)
+		api.POST("/player/control", h.ControlPlayer)
 
 		// Worker management (Go workers)
 		workers := api.Group("/workers")

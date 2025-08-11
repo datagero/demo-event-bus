@@ -115,7 +115,7 @@ func (h *Handlers) StartMaster(c *gin.Context) {
 	if req.Count <= 0 {
 		req.Count = 10
 	}
-	if req.Delay < 0 {
+	if req.Delay <= 0 {
 		req.Delay = 0.1
 	}
 
@@ -126,14 +126,36 @@ func (h *Handlers) StartMaster(c *gin.Context) {
 	for _, questType := range questTypes {
 		routingKey := fmt.Sprintf("game.quest.%s", questType)
 
-		// Publish wave of messages for this quest type
-		err := h.RabbitMQClient.PublishWave(routingKey, req.Count, time.Duration(req.Delay*float64(time.Second)))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, models.APIResponse{
-				Success: false,
-				Error:   fmt.Sprintf("Failed to publish %s wave: %v", questType, err),
-			})
-			return
+		// Publish individual messages and broadcast quest_issued for each
+		for i := 0; i < req.Count; i++ {
+			caseID := fmt.Sprintf("wave-%s-%d-%d", questType, time.Now().UnixNano(), i)
+			payload := map[string]interface{}{
+				"case_id":    caseID,
+				"quest_type": questType,
+				"difficulty": 1.0,
+				"work_sec":   2.0,
+				"points":     5,
+				"wave_index": i + 1,
+				"wave_total": req.Count,
+				"source":     "quest_wave",
+			}
+
+			err := h.RabbitMQClient.PublishMessage(routingKey, payload)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, models.APIResponse{
+					Success: false,
+					Error:   fmt.Sprintf("Failed to publish %s message %d: %v", questType, i+1, err),
+				})
+				return
+			}
+
+			// Broadcast quest_issued event for each message
+			h.broadcastMessage("quest_issued", payload)
+
+			// Apply delay between messages
+			if req.Delay > 0 && i < req.Count-1 {
+				time.Sleep(time.Duration(req.Delay * float64(time.Second)))
+			}
 		}
 		totalMessages += req.Count
 	}
@@ -189,6 +211,8 @@ func (h *Handlers) SendOne(c *gin.Context) {
 	payload := map[string]interface{}{
 		"case_id":    fmt.Sprintf("single-%s-%d", req.QuestType, time.Now().UnixNano()),
 		"quest_type": req.QuestType,
+		"difficulty": 1.0,
+		"work_sec":   2.0,
 		"points":     5,
 		"source":     "frontend_send_one",
 	}
@@ -203,12 +227,8 @@ func (h *Handlers) SendOne(c *gin.Context) {
 		return
 	}
 
-	// Broadcast the message sent
-	h.broadcastMessage("single_quest_sent", map[string]interface{}{
-		"quest_type":       req.QuestType,
-		"routing_key":      routingKey,
-		"educational_note": "Single quest message published via frontend",
-	})
+	// Broadcast quest_issued event for frontend quest board
+	h.broadcastMessage("quest_issued", payload)
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,

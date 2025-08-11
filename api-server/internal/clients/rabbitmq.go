@@ -94,7 +94,7 @@ func (c *RabbitMQClient) PublishMessage(routingKey string, payload map[string]in
 	}
 
 	err = c.channel.Publish(
-		"game.skill", // exchange
+		"game.skill", // exchange (game-specific)
 		routingKey,   // routing key
 		false,        // mandatory
 		false,        // immediate

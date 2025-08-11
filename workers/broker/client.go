@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	ExchangeName = "rte.topic"
+	ExchangeName = "game.skill"
 	ExchangeType = "topic"
 )
 
@@ -24,16 +24,17 @@ type Client struct {
 
 // Message represents a quest message
 type Message struct {
-	CaseID     string  `json:"case_id"`
-	EventStage string  `json:"event_stage"`
-	Status     string  `json:"status"`
-	Source     string  `json:"source"`
-	QuestType  string  `json:"quest_type"`
-	Difficulty string  `json:"difficulty"`
-	WorkSec    float64 `json:"work_sec"`
-	Points     int     `json:"points"`
-	Weight     int     `json:"weight"`
-	Player     string  `json:"player,omitempty"`
+	CaseID     string                 `json:"case_id"`
+	EventStage string                 `json:"event_stage"`
+	Status     string                 `json:"status"`
+	Source     string                 `json:"source"`
+	QuestType  string                 `json:"quest_type"`
+	Difficulty float64                `json:"difficulty"`
+	WorkSec    float64                `json:"work_sec"`
+	Points     int                    `json:"points"`
+	Weight     int                    `json:"weight"`
+	Player     string                 `json:"player,omitempty"`
+	Payload    map[string]interface{} `json:"payload"`
 }
 
 // NewClient creates a new RabbitMQ client
@@ -165,22 +166,49 @@ func (c *Client) ConsumeWithTag(queueName string, consumerTag string, handler fu
 
 	log.Printf("🔄 [Go Consumer] Waiting for messages on queue: %s", queueName)
 
-	for delivery := range deliveries {
-		// Call handler, if it returns true, ack the message
-		if handler(delivery) {
-			delivery.Ack(false)
-		} else {
-			// Handler wants to nack/requeue
-			delivery.Nack(false, true)
+	// Use a channel to signal completion, though we run forever
+	forever := make(chan bool)
+
+	go func() {
+		for delivery := range deliveries {
+			// Call handler, if it returns true, ack the message
+			if handler(delivery) {
+				delivery.Ack(false)
+			} else {
+				// Handler wants to nack/requeue
+				delivery.Nack(false, true)
+			}
 		}
-	}
+	}()
+
+	<-forever // Block forever
 
 	return nil
 }
 
-// ParseMessage parses a delivery into a Message struct
+// ParseMessage parses a delivery into a Message struct.
+// It is resilient to two formats:
+// 1. New format (flat): { "case_id": "...", "quest_type": "..." }
+// 2. Legacy Python format (nested): { "payload": { "case_id": "...", "quest_type": "..." } }
 func ParseMessage(delivery amqp.Delivery) (Message, error) {
 	var msg Message
+
+	// Try to unmarshal into the top-level struct first (new format)
 	err := json.Unmarshal(delivery.Body, &msg)
-	return msg, err
+	if err == nil && msg.QuestType != "" {
+		return msg, nil // Successfully parsed new format
+	}
+
+	// If that fails or results in an empty QuestType, try the legacy format
+	var legacyMsg struct {
+		Payload Message `json:"payload"`
+	}
+	err = json.Unmarshal(delivery.Body, &legacyMsg)
+	if err != nil {
+		// If both fail, return the original error
+		return msg, fmt.Errorf("failed to unmarshal message in any known format: %w", err)
+	}
+
+	// Return the nested message from the legacy payload
+	return legacyMsg.Payload, nil
 }

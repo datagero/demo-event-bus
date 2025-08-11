@@ -95,6 +95,10 @@ test_endpoint() {
 
 echo -e "\n${PURPLE}📋 Step 1: Starting RabbitMQ${NC}"
 
+# Force a clean stop and removal of the container first
+echo -e "${BLUE}🔄 Ensuring RabbitMQ container is stopped and removed...${NC}"
+docker-compose down --volumes
+
 if check_port $RABBITMQ_PORT "RabbitMQ AMQP"; then
     echo -e "${GREEN}✅ RabbitMQ AMQP already running${NC}"
 else
@@ -109,14 +113,23 @@ else
     wait_for_service $RABBITMQ_MGMT_PORT "RabbitMQ Management"
 fi
 
-# Test RabbitMQ Management API
+# Test RabbitMQ Management API with retry
 echo -e "${BLUE}🧪 Testing RabbitMQ Management API...${NC}"
-if curl -s -u guest:guest "http://localhost:${RABBITMQ_MGMT_PORT}/api/overview" > /dev/null; then
-    echo -e "${GREEN}✅ RabbitMQ Management API is responding${NC}"
-else
-    echo -e "${RED}❌ RabbitMQ Management API test failed${NC}"
-    exit 1
-fi
+max_retries=15
+retry_interval=2
+for ((i=1; i<=max_retries; i++)); do
+    if curl -s -u guest:guest "http://127.0.0.1:${RABBITMQ_MGMT_PORT}/api/overview" > /dev/null; then
+        echo -e "${GREEN}✅ RabbitMQ Management API is responding${NC}"
+        break
+    else
+        if [ $i -eq $max_retries ]; then
+            echo -e "${RED}❌ RabbitMQ Management API test failed after ${max_retries} attempts${NC}"
+            exit 1
+        fi
+        echo -e "${YELLOW}   Waiting for RabbitMQ Management API (attempt ${i}/${max_retries})...${NC}"
+        sleep $retry_interval
+    fi
+done
 
 # ==============================================================================
 # Step 2: Build and Start Go API Server
@@ -143,10 +156,10 @@ export RABBITMQ_PASS="guest"
 export WORKERS_URL="http://localhost:${GO_WORKERS_PORT}"
 export PYTHON_URL="http://localhost:8080"  # Legacy fallback (not used)
 
-# Start Go API server in background
-./api-server-complete &
+# Start Go API server in background, redirecting output to a log file
+./api-server-complete > ../api-server.log 2>&1 &
 GO_API_PID=$!
-echo -e "${GREEN}✅ Go API Server started (PID: ${GO_API_PID})${NC}"
+echo -e "${GREEN}✅ Go API Server started (PID: ${GO_API_PID}), logging to api-server.log${NC}"
 
 wait_for_service $GO_API_PORT "Go API Server"
 test_endpoint "http://localhost:${GO_API_PORT}/health" "Go API Server Health"
@@ -171,9 +184,9 @@ fi
 
 echo -e "${BLUE}🚀 Starting Go Workers on port ${GO_WORKERS_PORT}...${NC}"
 # Start Go workers with webhook pointing to Go API server
-./workers-complete --port ${GO_WORKERS_PORT} --webhook "http://localhost:${GO_API_PORT}/api/go-workers/webhook/events" &
+./workers-complete --port ${GO_WORKERS_PORT} --webhook "http://localhost:${GO_API_PORT}/api/go-workers/webhook/events" > ../workers.log 2>&1 &
 GO_WORKERS_PID=$!
-echo -e "${GREEN}✅ Go Workers started (PID: ${GO_WORKERS_PID})${NC}"
+echo -e "${GREEN}✅ Go Workers started (PID: ${GO_WORKERS_PID}), logging to workers.log${NC}"
 
 wait_for_service $GO_WORKERS_PORT "Go Workers"
 test_endpoint "http://localhost:${GO_WORKERS_PORT}/health" "Go Workers Health"

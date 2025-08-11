@@ -129,6 +129,15 @@ func (h *Handlers) QuickstartPlayers(c *gin.Context) {
 			"fail_pct":         failPct,
 			"workers":          int(workers),
 		})
+
+		// Also emit a frontend-compatible player_online event for immediate roster update
+		h.broadcastMessage("player_online", map[string]interface{}{
+			"player": player,
+			"source": "go-api",
+		})
+
+		// Ensure stats entry exists so throughput/activity can start rendering
+		h.ensurePlayer(player)
 	}
 
 	c.JSON(http.StatusOK, models.APIResponse{
@@ -209,6 +218,15 @@ func (h *Handlers) StartPlayer(c *gin.Context) {
 		"workers":          req.Workers,
 	})
 
+	// Also emit a frontend-compatible player_online event so the roster updates immediately
+	h.broadcastMessage("player_online", map[string]interface{}{
+		"player": req.Player,
+		"source": "go-api",
+	})
+
+	// Ensure stats entry exists so throughput/activity can start rendering
+	h.ensurePlayer(req.Player)
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
 		Message: fmt.Sprintf("Created Go worker '%s' with skills %v", req.Player, skills),
@@ -237,7 +255,13 @@ func (h *Handlers) DeletePlayer(c *gin.Context) {
 		return
 	}
 
-	// Broadcast roster update
+	// Broadcast disconnect to update roster immediately in the UI
+	h.broadcastMessage("player_disconnected", map[string]interface{}{
+		"player": req.Player,
+		"source": "go-api",
+	})
+
+	// Additionally broadcast a generic roster update signal
 	h.broadcastMessage("roster", map[string]interface{}{})
 
 	c.JSON(http.StatusOK, models.APIResponse{

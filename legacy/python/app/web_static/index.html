@@ -681,15 +681,23 @@
     const rosterState = {}; // name -> {skills, fail_pct, status, speed_multiplier, workers}
     let activePlayer = null;
     function renderRoster(snap) {
-      const r = snap.roster || {};
-      // remove players not present in snapshot (support deletions)
-      Object.keys(rosterState).forEach(k => { if (!(k in r)) delete rosterState[k]; });
-      Object.entries(r).forEach(([name,meta]) => { rosterState[name] = {...(rosterState[name]||{}), ...meta}; });
-      // reset Recruit bios so deleted players can be added again
+      // Defensively update rosterState only when a snapshot is explicitly provided.
+      // This prevents other WebSocket messages from accidentally clearing the roster.
+      if (snap && snap.roster) {
+        const r = snap.roster;
+        // Synchronize our client-side state with the incoming snapshot.
+        Object.keys(rosterState).forEach(k => { if (!(k in r)) delete rosterState[k]; });
+        Object.entries(r).forEach(([name,meta]) => { rosterState[name] = {...(rosterState[name]||{}), ...meta}; });
+      }
+
+      // Always re-render from the definitive client-side rosterState.
       document.querySelectorAll('.bio').forEach(b => {
         const pname = b.getAttribute('data-player');
-        if (pname && !(pname in r)) b.classList.remove('added');
+        if (pname && !(pname in rosterState)) {
+          b.classList.remove('added');
+        }
       });
+      
       const ordered = Object.entries(rosterState).sort((a,b)=>a[0].localeCompare(b[0]));
       let html = ordered.map(([name,meta]) => {
         const status = meta.status||'offline';
@@ -1186,6 +1194,12 @@
           parts.push(`${type}: P${stats.pending||0} A${stats.accepted||0} D${stats.completed||0} F${stats.failed||0}`);
         });
         typeMetricsDiv.textContent = parts.join('  ·  ');
+      }
+      
+      // Defensively check for scoreData before proceeding
+      if (!scoreData) {
+        console.warn("Polling received empty or invalid scoreData, skipping UI update.");
+        return;
       }
       
       // Update scoreboard from RabbitMQ-derived data
