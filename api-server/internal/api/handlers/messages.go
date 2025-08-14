@@ -4,14 +4,16 @@ import (
 	"demo-event-bus-api/internal/models"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-// PublishMessage publishes a single message using native Go RabbitMQ client
+// PublishMessage publishes a single message using native Go RabbitMQ client with correlation tracking
 func (h *Handlers) PublishMessage(c *gin.Context) {
 	var req struct {
 		RoutingKey string                 `json:"routing_key" binding:"required"`
@@ -26,8 +28,29 @@ func (h *Handlers) PublishMessage(c *gin.Context) {
 		return
 	}
 
+	// Generate correlation ID for message tracking
+	correlationID := uuid.New().String()
+	timestamp := time.Now()
+
+	// Add tracking metadata to payload
+	enhancedPayload := make(map[string]interface{})
+	for k, v := range req.Payload {
+		enhancedPayload[k] = v
+	}
+	enhancedPayload["correlation_id"] = correlationID
+	enhancedPayload["published_at"] = timestamp.Unix()
+	enhancedPayload["published_by"] = "api_endpoint"
+
+	// Log the publish event for traceability
+	log.Printf("[%s] localhost:9000 says: Publishing message with correlation_id=%s to routing_key=%s",
+		timestamp.Format(time.RFC3339), correlationID, req.RoutingKey)
+	log.Printf("[%s] localhost:9000 says: Message payload: %s",
+		timestamp.Format(time.RFC3339), toJSONString(enhancedPayload))
+
 	// Use the unified publish and broadcast helper
-	if err := h.publishAndBroadcast(req.RoutingKey, req.Payload, "api_endpoint"); err != nil {
+	if err := h.publishAndBroadcast(req.RoutingKey, enhancedPayload, "api_endpoint"); err != nil {
+		log.Printf("[%s] localhost:9000 says: FAILED to publish message correlation_id=%s, error=%s",
+			timestamp.Format(time.RFC3339), correlationID, err.Error())
 		c.JSON(http.StatusInternalServerError, models.APIResponse{
 			Success: false,
 			Error:   err.Error(),
@@ -35,10 +58,27 @@ func (h *Handlers) PublishMessage(c *gin.Context) {
 		return
 	}
 
+	log.Printf("[%s] localhost:9000 says: SUCCESS published message correlation_id=%s",
+		timestamp.Format(time.RFC3339), correlationID)
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
 		Message: "Message published successfully via Go RabbitMQ client",
+		Data: map[string]interface{}{
+			"correlation_id": correlationID,
+			"routing_key":    req.RoutingKey,
+			"published_at":   timestamp.Format(time.RFC3339),
+		},
 	})
+}
+
+// Helper function to safely convert to JSON string
+func toJSONString(data interface{}) string {
+	if jsonBytes, err := json.Marshal(data); err != nil {
+		return fmt.Sprintf("%+v", data)
+	} else {
+		return string(jsonBytes)
+	}
 }
 
 // PublishWave publishes multiple messages using native Go RabbitMQ client
@@ -370,6 +410,11 @@ func (h *Handlers) delegateToTypeNotImplemented(c *gin.Context, functionality st
 
 // Helper functions for RabbitMQ data processing
 func (h *Handlers) isGameQueue(queueName string) bool {
+	// Check if it's a DLQ queue first - these should NOT be considered pending
+	if h.IsDLQQueue(queueName) {
+		return false
+	}
+
 	gameQueuePrefixes := []string{"game.", "web."}
 	for _, prefix := range gameQueuePrefixes {
 		if len(queueName) >= len(prefix) && queueName[:len(prefix)] == prefix {

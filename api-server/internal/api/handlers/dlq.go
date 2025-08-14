@@ -87,14 +87,24 @@ func (h *Handlers) ListDLQMessages(c *gin.Context) {
 		// Track this as a DLQ queue regardless of message count
 		dlqQueues = append(dlqQueues, queueName)
 
-		// Always peek messages from DLQ queues - metadata count might be 0
-		// even when messages exist (due to requeue behavior)
-		dlqMessages, err := h.RabbitMQClient.PeekQueueMessages(queueName, 10)
+		// RabbitMQ metadata can be stale, so we'll use a progressive approach
+		// Start with a large peek size and get whatever is actually available
+		const maxPeekSize = 1000 // Generous limit for DLQ analysis
+
+		log.Printf("📋 [DLQ] Queue %s: attempting to peek up to %d messages", queueName, maxPeekSize)
+
+		dlqMessages, err := h.RabbitMQClient.PeekQueueMessages(queueName, maxPeekSize)
 		if err != nil {
+			log.Printf("⚠️ [DLQ] Failed to peek %s: %v", queueName, err)
 			continue
 		}
 
+		log.Printf("📋 [DLQ] Queue %s: retrieved %d messages", queueName, len(dlqMessages))
+
 		for _, msg := range dlqMessages {
+			// Add queue name to message for categorization
+			msg["queue"] = queueName
+
 			// Categorize DLQ message by death reason
 			category := h.CategorizeDLQMessage(msg)
 			dlqCategories[category]++
@@ -350,6 +360,37 @@ func (h *Handlers) SetupDLQTopology(replayExchange string, retryTTL int, maxRetr
 		return nil, fmt.Errorf("failed to bind unroutable queue to alternate exchange: %w", err)
 	}
 
+	// Configure the main game.skill exchange to use the alternate exchange for unroutable messages
+	// We need to recreate the main exchange with the alternate-exchange argument
+	mainExchange := "game.skill"
+	if err := h.RabbitMQClient.DeleteExchange(mainExchange); err != nil {
+		// Don't fail if exchange doesn't exist
+		fmt.Printf("Warning: Could not delete main exchange (may not exist): %v\n", err)
+	}
+
+	// Recreate main exchange with alternate exchange configuration
+	mainExchangeArgs := map[string]interface{}{
+		"alternate-exchange": alternateExchange,
+	}
+	if err := h.RabbitMQClient.CreateExchange(mainExchange, "topic", true, false, false, mainExchangeArgs); err != nil {
+		return nil, fmt.Errorf("failed to recreate main exchange with alternate exchange: %w", err)
+	}
+
+	// Rebind the existing queues to the recreated main exchange
+	mainQueueBindings := []struct {
+		queue      string
+		routingKey string
+	}{
+		{"game.skill.gather.q", "game.quest.gather"},
+		{"game.skill.slay.q", "game.quest.slay"},
+	}
+
+	for _, binding := range mainQueueBindings {
+		if err := h.RabbitMQClient.BindQueue(binding.queue, mainExchange, binding.routingKey, map[string]interface{}{}); err != nil {
+			fmt.Printf("Warning: Could not rebind queue %s: %v\n", binding.queue, err)
+		}
+	}
+
 	result := map[string]interface{}{
 		"exchanges_created":  createdExchanges,
 		"queues_created":     createdQueues,
@@ -426,12 +467,41 @@ func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
 		}
 	}
 
-	// Enhanced categorization based on queue name patterns
+	// Check message payload for failure indicators (worker-generated messages)
+	if payloadStr, ok := msg["payload"].(string); ok {
+		var payload map[string]interface{}
+		if json.Unmarshal([]byte(payloadStr), &payload) == nil {
+			// Check for worker failure indicators
+			if status, exists := payload["status"]; exists {
+				if statusStr, ok := status.(string); ok && strings.ToLower(statusStr) == "failed" {
+					return "failed"
+				}
+			}
+			if eventStage, exists := payload["event_stage"]; exists {
+				if stageStr, ok := eventStage.(string); ok && strings.Contains(strings.ToLower(stageStr), "failed") {
+					return "failed"
+				}
+			}
+			// Check nested payload for worker results
+			if nestedPayload, exists := payload["payload"]; exists {
+				if nestedMap, ok := nestedPayload.(map[string]interface{}); ok {
+					if status, exists := nestedMap["status"]; exists {
+						if statusStr, ok := status.(string); ok && strings.ToLower(statusStr) == "failed" {
+							return "failed"
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Enhanced categorization based on queue name patterns (lower priority than death reasons)
 	if queueName, ok := msg["queue"].(string); ok {
 		queueLower := strings.ToLower(queueName)
 
-		if strings.Contains(queueLower, "unroutable") || strings.Contains(queueLower, "unrout") {
-			return "unroutable"
+		// Only use queue name if we couldn't determine from death reason or payload
+		if strings.Contains(queueLower, "failed") || strings.Contains(queueLower, "poison") || strings.Contains(queueLower, "malformed") {
+			return "failed"
 		}
 		if strings.Contains(queueLower, "retry") || strings.Contains(queueLower, "retr") {
 			return "retrying"
@@ -439,17 +509,15 @@ func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
 		if strings.Contains(queueLower, "expired") || strings.Contains(queueLower, "ttl") {
 			return "expired"
 		}
-		if strings.Contains(queueLower, "failed") || strings.Contains(queueLower, "poison") || strings.Contains(queueLower, "malformed") {
-			return "failed"
+		// Only classify as unroutable if no other indicators suggest failure
+		if strings.Contains(queueLower, "unroutable") || strings.Contains(queueLower, "unrout") {
+			return "unroutable"
 		}
 	}
 
-	// Check routing key patterns
+	// Check routing key patterns (lowest priority)
 	if routingKey, ok := msg["routing_key"].(string); ok {
 		routingLower := strings.ToLower(routingKey)
-		if strings.Contains(routingLower, "dlq.unroutable") {
-			return "unroutable"
-		}
 		if strings.Contains(routingLower, "dlq.failed") || strings.Contains(routingLower, "dlq.rejected") {
 			return "failed"
 		}
@@ -459,9 +527,12 @@ func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
 		if strings.Contains(routingLower, "dlq.retry") {
 			return "retrying"
 		}
+		if strings.Contains(routingLower, "dlq.unroutable") {
+			return "unroutable"
+		}
 	}
 
-	return "failed" // Default fallback
+	return "failed" // Default fallback - most messages that reach DLQ are failed
 }
 
 func (h *Handlers) ExtractDeathInfo(msg map[string]interface{}) map[string]interface{} {

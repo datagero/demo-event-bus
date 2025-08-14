@@ -1,0 +1,3339 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Queue Quest</title>
+  <style>
+    :root { --bg:#0b1020; --panel:#121a33; --muted:#8aa0c7; --text:#e7eeff; --ok:#2ecc71; --warn:#f1c40f; --err:#e74c3c; --info:#3498db; --accent:#9b59b6; }
+    * { box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
+    header { padding: 16px 20px; background: #0e162b; border-bottom: 1px solid #1e2a4d; display:flex; justify-content:space-between; align-items:center; }
+    h1 { margin: 0; font-size: 20px; letter-spacing: .5px; }
+    header button { padding:8px 12px; border-radius:8px; border:1px solid #32406a; background:#1c2950; color:var(--text); cursor:pointer; }
+    main { padding: 20px; }
+    .grid { display: grid; grid-template-columns: 300px 1fr 340px 300px; gap: 16px; }
+    .card { background: var(--panel); border: 1px solid #1e2a4d; border-radius: 10px; padding: 12px; }
+    .card h3 { margin: 6px 0 10px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+    label { font-size: 12px; color: var(--muted); display: block; margin: 6px 0 2px; }
+    input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #32406a; background: #0e162b; color: var(--text); }
+    button { margin-top: 8px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #32406a; background: #1c2950; color: var(--text); cursor: pointer; }
+    button:hover { background: #233368; }
+    .two { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+
+    /* Quest board */
+    .quests { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:10px; }
+    .quest { border:1px solid #2a3863; background:#0e162b; border-radius:10px; padding:10px; position:relative; overflow:hidden; }
+    .quest .title { font-weight:700; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+    .quest .meta { font-size:12px; color:var(--muted); }
+    .quest .progress { margin-top:8px; height:8px; background:#0b1326; border:1px solid #1e2a4d; border-radius:999px; overflow:hidden; }
+    .quest .bar { height:100%; width:0%; background:linear-gradient(90deg, #2ecc71, #9b59b6); transition: width .1s linear; }
+    .quest.done .bar { background: #2ecc71; }
+    .quest.fail .bar { background: #e74c3c; }
+    .quest.unrout .bar { background: #7a2929; }
+    #reset-app.fixed { position: fixed; top: 12px; right: 12px; z-index: 100; padding:10px 12px; border:2px solid #7a2929; background:#4b1616; }
+
+    /* Roster */
+    .pill { padding: 8px 10px; border: 1px solid #2a3863; background: #0e162b; border-radius: 12px; margin: 4px; display: block; cursor: pointer; }
+    .pill.selected { border-color: #6fe0a0; box-shadow: 0 0 0 1px #6fe0a0 inset; }
+    .pill.go-worker { border-left: 3px solid #00d4ff; }
+    .pill.python-worker { border-left: 3px solid #ffd43b; }  /* Kept for future Python support */
+    .type-badge { font-size: 12px; margin-left: 4px; }
+    .dot { width:10px; height:10px; border-radius:50%; background:#4b4b4b; display:inline-block; }
+    .dot.online { background:#2ecc71; }
+    .dot.reconnecting { background:#f1c40f; }
+    .skill { font-size:11px; padding:2px 6px; border-radius:999px; border:1px solid #2a3863; background:#0b1326; }
+    .tiny-btn { padding: 1px 5px; font-size: 11px; border-radius: 6px; border: 1px solid #32406a; background:#1c2950; color: var(--text); cursor:pointer; }
+    .roster-wrap { display: grid; grid-template-columns: 1fr; gap: 6px; align-items:start; }
+    .pill .name { max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display:inline-block; }
+    .pill .skills { display:inline-flex; gap:4px; max-width: 160px; overflow: hidden; }
+    .pill .stats { min-width: 160px; text-align: left; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .pill .controls { display:inline-flex; gap:6px; }
+    .pill .line1, .pill .line2 { display:flex; align-items:center; justify-content:space-between; }
+    .pill .line1 { gap:8px; }
+    .pill .line2 { gap:8px; margin-top:4px; }
+    .bio { position: relative; border: 1px solid #2a3863; background:#0e162b; border-radius:8px; padding:8px; font-size:12px; color: var(--muted); }
+    .bio .name { color: var(--text); font-weight:600; }
+    .bio .conf { display:block; margin-top:2px; color: var(--muted); }
+    .bio .desc { display:block; margin-top:4px; color: var(--muted); }
+    .bio .bubble { display:none; position:absolute; left:100%; top:50%; transform: translate(12px,-50%); width:260px; background:#0e162b; border:1px solid #8ec6ff; border-radius:8px; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,.5); z-index:30; }
+    .bio:hover .bubble { display:block; }
+
+    /* Leaderboard */
+    .scores { display: flex; flex-direction:column; gap:6px; }
+    .score-row { display:flex; justify-content:space-between; gap:10px; padding:6px 10px; border:1px solid #2a3863; border-radius:8px; background:#0e162b; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:999px; border:1px solid #7a601e; background:#4b3c12; color:#ffd26f; margin-left:6px; }
+    .mini-btn { padding: 0 3px; line-height: 1; font-size: 10px; border-radius: 4px; border: 1px solid #32406a; background:#1c2950; color: var(--text); cursor: pointer; margin-right: 6px; display:inline-flex; align-items:center; justify-content:center; }
+    .medal { font-size:14px; }
+
+    /* Quest log */
+    .feed { height: 200px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: #0e162b; border: 1px solid #1e2a4d; border-radius: 8px; padding: 8px; }
+    .row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+    .tag { padding: 2px 6px; border-radius: 999px; font-size: 11px; }
+    .tag.info { background: #143a56; color: #8ec6ff; border: 1px solid #215b83; }
+    .tag.ok { background: #0f3b2a; color: #6fe0a0; border: 1px solid #1e6a4f; }
+    .tag.warn { background: #4b3c12; color: #ffd26f; border: 1px solid #7a601e; }
+    .tag.err { background: #4b1616; color: #ff9b9b; border: 1px solid #7a2929; }
+    .muted { color: var(--muted); }
+    /* Legend bubble */
+    .legend { position: relative; display: inline-block; }
+    .legend .bubble { display: none; position: absolute; left: 100%; top: 50%; transform: translate(12px, -50%); background: #0e162b; border: 1px solid #8ec6ff; color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 12px; width: 320px; z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+    .legend:hover .bubble { display: block; }
+    .active { outline: 2px solid #6fe0a0; box-shadow: 0 0 0 1px #6fe0a0 inset; }
+
+    /* Bio add pulse */
+    .bio.added { outline: 2px solid #6fe0a0; box-shadow: 0 0 0 2px rgba(111,224,160,.3); transition: box-shadow .3s ease; }
+
+    /* Help modal */
+    .modal { position:fixed; inset:0; display:none; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
+    .modal .inner { width: min(800px, 92vw); background: var(--panel); border:1px solid #1e2a4d; border-radius:12px; padding:16px; }
+    .modal.show { display:flex; }
+    
+    /* DLQ Management Styles */
+    .dlq-stat-card { 
+      background: #0e162b; 
+      border: 1px solid #1e2a4d; 
+      border-radius: 8px; 
+      padding: 8px; 
+      text-align: center;
+      transition: border-color 0.3s ease;
+    }
+    .dlq-stat-card:hover { border-color: #3a4b7d; }
+    .dlq-quest-filter { 
+      cursor: pointer; 
+      transition: all 0.2s ease;
+    }
+    .dlq-quest-filter:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-color: var(--accent);
+    }
+    .dlq-quest-filter.active { 
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(155, 89, 182, 0.3);
+      background: rgba(155, 89, 182, 0.1);
+    }
+    
+    /* Pulse animation for active DLQ indicators */
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    
+    /* Clean DLQ status buttons with subtle color distinction */
+    .dlq-status-btn {
+      min-width: 85px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      border: 1px solid;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.05);
+    }
+    
+    /* Failed category - Subtle red */
+    .dlq-status-btn[data-filter="failed"] {
+      border-color: #e74c3c;
+      color: #e74c3c;
+    }
+    .dlq-status-btn[data-filter="failed"]:hover {
+      background: rgba(231, 76, 60, 0.1);
+      border-color: #c0392b;
+    }
+    
+    /* Unroutable category - Subtle orange */
+    .dlq-status-btn[data-filter="unroutable"] {
+      border-color: #f39c12;
+      color: #f39c12;
+    }
+    .dlq-status-btn[data-filter="unroutable"]:hover {
+      background: rgba(243, 156, 18, 0.1);
+      border-color: #e67e22;
+    }
+    
+    /* Expired category - Subtle purple */
+    .dlq-status-btn[data-filter="expired"] {
+      border-color: #9b59b6;
+      color: #9b59b6;
+    }
+    .dlq-status-btn[data-filter="expired"]:hover {
+      background: rgba(155, 89, 182, 0.1);
+      border-color: #8e44ad;
+    }
+    
+    /* Retrying category - Subtle blue */
+    .dlq-status-btn[data-filter="retrying"] {
+      border-color: #3498db;
+      color: #3498db;
+    }
+    .dlq-status-btn[data-filter="retrying"]:hover {
+      background: rgba(52, 152, 219, 0.1);
+      border-color: #2980b9;
+    }
+    
+    /* Active state for DLQ buttons */
+    .dlq-status-btn.dlq-quest-filter.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    
+    .dlq-status-btn-all {
+      min-width: 60px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: white;
+    }
+    
+    .dlq-status-btn-all:hover {
+      background: #a569bd;
+      border-color: #a569bd;
+    }
+    
+    .dlq-actions-btn {
+      min-width: 40px;
+      padding: 6px 10px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .dlq-actions-btn:hover {
+      background: rgba(155, 89, 182, 0.1);
+      border-color: #a569bd;
+    }
+    
+    /* DLQ indicators on quest cards */
+    .quest .dlq-indicator {
+      font-size: 10px;
+      margin-left: 4px;
+      opacity: 0.7;
+      animation: pulse 2s infinite;
+    }
+    
+    .quest.dlq-unroutable {
+      border-left: 3px solid #f39c12;
+    }
+    
+    .quest.dlq-failed {
+      border-left: 3px solid #e74c3c;
+    }
+    
+    .quest.dlq-expired {
+      border-left: 3px solid #9b59b6;
+    }
+    
+    .quest.dlq-retrying {
+      border-left: 3px solid #3498db;
+    }
+    .dlq-stat-card[data-type="failed"] { border-left: 3px solid #e74c3c; }
+    .dlq-stat-card[data-type="unroutable"] { border-left: 3px solid #f39c12; }
+    .dlq-stat-card[data-type="expired"] { border-left: 3px solid #9b59b6; }
+    .dlq-stat-card[data-type="retrying"] { border-left: 3px solid #3498db; }
+    .dlq-stat-number { 
+      font-size: 18px; 
+      font-weight: bold; 
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .dlq-stat-label { 
+      font-size: 11px; 
+      font-weight: 600; 
+      color: var(--text); 
+      margin-top: 2px;
+    }
+    .dlq-stat-desc { 
+      font-size: 9px; 
+      color: var(--muted); 
+      margin-top: 1px;
+    }
+    
+    .action-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .action-btn.setup { background: #27ae60; color: white; }
+    .action-btn.setup:hover { background: #2ecc71; }
+    .action-btn.replay { background: #3498db; color: white; }
+    .action-btn.replay:hover { background: #5dade2; }
+    .action-btn.danger { background: #e74c3c; color: white; }
+    .action-btn.danger:hover { background: #ec7063; }
+    
+    .dlq-filter {
+      padding: 4px 8px;
+      font-size: 11px;
+      border: 1px solid #32406a;
+      background: #1c2950;
+      color: var(--text);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .dlq-filter:hover { background: #233368; }
+    .dlq-filter.active { 
+      background: var(--accent); 
+      border-color: var(--accent); 
+      color: white;
+    }
+    
+    .dlq-message-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-bottom: 1px solid #1e2a4d;
+      font-size: 11px;
+      transition: background-color 0.2s ease;
+    }
+    .dlq-message-item:hover { background: rgba(255,255,255,0.02); }
+    .dlq-message-item:last-child { border-bottom: none; }
+    
+    .dlq-message-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .dlq-message-meta {
+      font-size: 9px;
+      color: var(--muted);
+    }
+    .dlq-message-actions {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .dlq-category-badge {
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 600;
+    }
+    .dlq-category-badge.failed { background: #4b1616; color: #ff9b9b; border: 1px solid #7a2929; }
+    .dlq-category-badge.unroutable { background: #4b3c12; color: #ffd26f; border: 1px solid #7a601e; }
+    .dlq-category-badge.expired { background: #3d2a4b; color: #c39bd3; border: 1px solid #6a3d7a; }
+    .dlq-category-badge.retrying { background: #143a56; color: #8ec6ff; border: 1px solid #215b83; }
+    .help li { margin-bottom:6px; }
+
+    /* Card Game Styles */
+    .card-green { background: #27ae60; color: white; }
+    .card-yellow { background: #f39c12; color: white; }
+    .card-red { background: #e74c3c; color: white; }
+    .card-black { background: #2c3e50; color: white; }
+    
+    .effect-pill { 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-size: 12px; 
+      background: #34495e; 
+      color: #ecf0f1; 
+      display: flex; 
+      align-items: center; 
+      gap: 4px;
+    }
+    
+    .effect-green { background: #27ae60; }
+    .effect-yellow { background: #f39c12; }
+    .effect-red { background: #e74c3c; }
+    .effect-black { background: #2c3e50; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🧭 Queue Quest</h1>
+    <div style="display:flex; gap:8px; align-items:center">
+      <div id="worker-status" style="font-size:12px; padding:4px 8px; border-radius:6px; background:#1c2950; border:1px solid #32406a">
+        <span id="worker-mode">🚀 Go workers ready</span>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <label style="font-size:12px; color:#8aa0c7; display:flex; gap:4px; align-items:center">
+          <input type="checkbox" id="raw-mode-toggle" style="width:auto">
+          Raw RabbitMQ Mode
+        </label>
+        <label style="font-size:12px; color:#8aa0c7; display:flex; gap:4px; align-items:center">
+          <input type="checkbox" id="rmq-derived-toggle" style="width:auto" checked>
+          🐰 Direct RabbitMQ APIs
+        </label>
+        <button id="help-btn">How it works</button>
+        <button id="scores-btn">Leaderboard</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="card" style="margin-bottom:12px; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap">
+      <div>
+        <label>Routing</label>
+        <div class="two" style="min-width:320px">
+          <button id="route-skill" title="Single delivery: one shared queue per skill; only one player receives each message.">Skill-based (shared)</button>
+          <button id="route-player" title="Multi delivery: each player queue receives its own copy; unskilled requeue.">Player-based (fanout)</button>
+        </div>
+      </div>
+      <div>
+        <label>Wave</label>
+        <div class="two" style="min-width:320px">
+          <div>
+            <label style="display:block; font-size:12px; color:#8aa0c7">Count</label>
+            <input id="count" type="number" value="20" min="1" step="1">
+          </div>
+          <div>
+            <label style="display:block; font-size:12px; color:#8aa0c7">Delay (sec)</label>
+            <input id="delay" type="number" value="0.1" min="0" step="0.05">
+          </div>
+        </div>
+      </div>
+      <div style="align-self:flex-end; display:flex; gap:8px; align-items:flex-end">
+        <button id="start-master" style="width:auto">Start Quest Wave</button>
+        <button id="reset-app" class="mini-btn" style="width:auto; padding:10px 12px; border:2px solid #7a2929; background:#4b1616">Reset</button>
+      </div>
+      <div style="display:flex; gap:6px; align-items:flex-end">
+        <label style="display:block; font-size:12px; color:#8aa0c7">Quick Play</label>
+        <button id="qp-quick" style="width:auto" title="Recruit Alice+Bob and start a wave">Quick Start</button>
+        <button class="qp-preset" data-count="10" data-delay="0.3" style="width:auto" title="10 quests @ 0.3s">Chill</button>
+        <button class="qp-preset" data-count="20" data-delay="0.1" style="width:auto" title="20 quests @ 0.1s">Normal</button>
+        <button class="qp-preset" data-count="40" data-delay="0.05" style="width:auto" title="40 quests @ 0.05s">Chaos</button>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:6px; align-items:flex-end">
+        <label style="display:block; font-size:12px; color:#8aa0c7">Send one</label>
+        <button class="send-one" data-type="gather" style="width:auto">gather</button>
+        <button class="send-one" data-type="slay" style="width:auto">slay</button>
+        <button class="send-one" data-type="escort" style="width:auto">escort</button>
+      </div>
+    </div>
+            <div class="card" id="statusbar" style="margin-bottom:12px; display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap">
+        <!-- Left side - Basic status -->
+        <div style="display:flex; gap:12px; align-items:center">
+          <div>Routing: <span id="status-routing" class="tag info">?</span></div>
+          <div>Wave: <span id="status-wave" class="tag info">count=20 · delay=0.1s</span></div>
+          <div>Broker: <span id="status-broker" class="tag info">ready=– · unacked=–</span> <button id="sync-broker" class="mini-btn" title="Sync broker KPIs">↻</button></div>
+        </div>
+        
+        <!-- Center - Prominent DLQ Status -->
+        <div style="display:flex; gap:10px; align-items:center; padding:6px 12px; background:rgba(155, 89, 182, 0.08); border:1px solid var(--accent); border-radius:6px">
+          <span style="color:var(--accent); font-weight:bold; font-size:14px">⚰️ DLQ:</span>
+          <span id="dlq-status-failed" class="dlq-quest-filter dlq-status-btn" data-filter="failed" title="Click to filter failed quests">Failed: 0</span>
+          <span id="dlq-status-unroutable" class="dlq-quest-filter dlq-status-btn" data-filter="unroutable" title="Click to filter unroutable quests">Unroutable: 0</span>
+          <span id="dlq-status-expired" class="dlq-quest-filter dlq-status-btn" data-filter="expired" title="Click to filter expired quests">Expired: 0</span>
+          <span id="dlq-status-retrying" class="dlq-quest-filter dlq-status-btn" data-filter="retrying" title="Click to filter retrying quests">Retrying: 0</span>
+          <button id="dlq-status-all" class="dlq-quest-filter dlq-status-btn-all" data-filter="all" title="Show all quests">All</button>
+          <button id="dlq-actions-menu" class="dlq-actions-btn" title="DLQ Management">⚙️</button>
+        </div>
+        
+        <!-- Right side spacer -->
+        <div></div>
+      </div>
+
+    <!-- Card Game Section -->
+    <div class="card" id="cardgame-panel" style="margin-bottom:12px; border: 2px solid #9b59b6;">
+      <h3>🃏 Card Quest Challenge</h3>
+      <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div id="cardgame-controls" style="display:flex; gap:8px; align-items:center;">
+          <button id="start-cardgame" style="background:#2ecc71; border-color:#27ae60;">Start Challenge</button>
+          <button id="stop-cardgame" style="background:#e74c3c; border-color:#c0392b;" disabled>Stop</button>
+          <button id="draw-card" style="background:#f39c12; border-color:#e67e22;" disabled>Manual Draw</button>
+        </div>
+        <div id="cardgame-status" style="display:flex; gap:12px; align-items:center;">
+          <div>Score: <span id="game-score" class="tag info">1000</span></div>
+          <div>Next Card: <span id="card-timer" class="tag warn">--</span></div>
+          <div>Effects: <span id="active-effects" class="tag">0</span></div>
+        </div>
+      </div>
+      
+      <div id="current-card" style="display:none; padding:12px; border:1px solid #34495e; border-radius:8px; margin-bottom:12px;">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div id="card-color-badge" class="tag">GREEN</div>
+          <div style="flex:1;">
+            <h4 id="card-name" style="margin:0 0 4px 0;">Card Name</h4>
+            <p id="card-desc" style="margin:0; font-size:14px; color:#8aa0c7;">Card description...</p>
+          </div>
+          <div id="card-duration" style="color:#f39c12; font-weight:bold;">15s</div>
+        </div>
+      </div>
+      
+      <div id="active-effects-list" style="display:none;">
+        <h4 style="margin:8px 0 4px 0; font-size:14px; color:#8aa0c7;">Active Effects:</h4>
+        <div id="effects-container" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Controls ⚙️</h3>
+        <h3>Scenarios 🧪</h3>
+        <div class="two">
+          <button id="sc-late-bind" title="Messages published before queue exists → worker creates queue → backlog management">Late-bind escort (backlog handoff)</button>
+          <button id="sc-routing" title="Compare skill-based vs player-based routing behavior">Routing comparison</button>
+        </div>
+
+        <div class="muted" style="margin-top:6px; font-size:12px">Educational scenarios that demonstrate unique RabbitMQ behaviors.</div>
+        <hr style="border-color:#1e2a4d; margin:10px 0">
+        <h3>Enhanced Message Chaos 🌪️</h3>
+        <div style="margin-bottom:12px">
+          <div style="margin-bottom:8px">
+            <label style="display:block; font-size:12px; color:#8aa0c7; margin-bottom:4px">Action</label>
+            <select id="chaos-action" style="width:100%; padding:6px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+              <optgroup label="🐰 RabbitMQ-Native Actions" style="background:#1e2a4d; color:#8aa0c7">
+                <option value="rmq_delete_queue">Delete Queue (Direct RMQ API)</option>
+                <option value="rmq_unbind_queue">Unbind Queue (Break Routing)</option>
+                <option value="rmq_block_connection">Close AMQP Connection</option>
+                <option value="rmq_purge_queue">Purge Queue Messages</option>
+              </optgroup>
+              <optgroup label="🔧 Legacy App-Level Actions" style="background:#2c1810; color:#d4af37">
+                <option value="drop">Drop (real disconnect + auto-reconnect)</option>
+                <option value="requeue">Requeue (NACK with requeue)</option>
+                <option value="dlq">DLQ (NACK to dead letter)</option>
+                <option value="fail_early">Fail Early (immediate fail)</option>
+                <option value="disconnect">Disconnect (player offline)</option>
+                <option value="pause">Pause (5 second pause)</option>
+              </optgroup>
+            </select>
+          </div>
+          
+          <div class="two" style="margin-bottom:8px">
+            <div>
+              <label style="display:block; font-size:12px; color:#8aa0c7; margin-bottom:4px">Target Player</label>
+              <select id="chaos-player" style="width:100%; padding:6px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                <option value="">Any Player</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:#8aa0c7; margin-bottom:4px">Target Queue/Type</label>
+              <select id="chaos-quest-type" style="width:100%; padding:6px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                <option value="">Any Quest</option>
+                <option value="gather">Gather</option>
+                <option value="slay">Slay</option>
+                <option value="escort">Escort</option>
+                <option value="game.skill.gather.q">Queue: game.skill.gather.q</option>
+                <option value="game.skill.slay.q">Queue: game.skill.slay.q</option>
+                <option value="web.scoreboard.q">Queue: web.scoreboard.q</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="margin-bottom:8px">
+            <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:#8aa0c7">
+              <input type="checkbox" id="chaos-auto-trigger">
+              Auto-publish messages after delay
+            </label>
+            <div id="chaos-auto-settings" style="display:none; margin-top:6px; padding-left:20px">
+              <div class="two">
+                <div>
+                  <label style="font-size:11px; color:#8aa0c7">Delay (sec)</label>
+                  <input type="number" id="chaos-delay" value="2" min="0.1" step="0.1" style="width:100%; padding:4px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                </div>
+                <div>
+                  <label style="font-size:11px; color:#8aa0c7">Count</label>
+                  <input type="number" id="chaos-count" value="1" min="1" step="1" style="width:100%; padding:4px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="two" style="gap:8px">
+            <button id="chaos-arm" style="background:#e74c3c; border-color:#c0392b">Arm Chaos</button>
+            <button id="chaos-disarm" style="background:#7f8c8d; border-color:#6c7b7d">Disarm</button>
+          </div>
+          
+          <div id="chaos-status" style="margin-top:8px; padding:6px; background:#2c3e50; border-radius:4px; font-size:12px; display:none">
+            <div>Status: <span id="chaos-status-text">Disarmed</span></div>
+          </div>
+        </div>
+        <div class="muted" style="font-size:12px">Powerful chaos system: target specific players/quests, auto-trigger scenarios.</div>
+
+      </div>
+
+      <div class="card">
+        <h3>Quest Board <button id="toggle-quests" style="width:auto; float:right">Toggle</button></h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0">
+          <div id="type-metrics" class="muted"></div>
+          <div class="legend" style="margin-left:auto"><button style="width:auto">Legend</button><div class="bubble"><strong>Ready</strong>: in queue, not delivered.<br/><strong>Unacked</strong>: delivered to a player; processing until ack.<br/>If player disconnects before ack, it returns to Ready.</div></div>
+        </div>
+        <details open>
+          <summary>gather</summary>
+          <div id="quests-gather" class="quests"></div>
+        </details>
+        <details open>
+          <summary>slay</summary>
+          <div id="quests-slay" class="quests"></div>
+        </details>
+        <details open>
+          <summary>escort</summary>
+          <div id="quests-escort" class="quests"></div>
+        </details>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px">
+          <h3 style="margin:0">Quest Log</h3>
+          <button id="clear-feed" style="width:auto">Clear</button>
+        </div>
+        <div id="feed" class="feed"></div>
+      </div>
+
+      <div class="card" id="player-pane">
+        <h3>Activity</h3>
+        <canvas id="activity" width="300" height="80" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
+        <h3 style="margin-top:12px">Throughput <button id="throughput-help" class="tiny-btn" style="margin-left:4px" title="Click for explanation">?</button></h3>
+        <canvas id="throughput" width="300" height="100" style="width:100%; background:#0e162b; border:1px solid #1e2a4d; border-radius:8px"></canvas>
+        <div id="throughput-legend" class="muted" style="margin-top:6px; font-size:12px"></div>
+        <h3 style="margin-top:12px">Roster</h3>
+        <div id="roster"></div>
+        <div class="muted" style="margin-top:6px; font-size:12px">
+          🚀 Go workers (blue border)<br>
+          Tip: Click a player pill to select; use the tiny buttons on each pill for Pause/Resume/Crash.
+        </div>
+        <hr style="border-color:#1e2a4d; margin:10px 8px">
+        <h3>Recruit 👥</h3>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">
+          <button id="quick-alice-bob">Quickstart: Alice+Bob</button>
+          <button id="add-random">Add Random Player</button>
+          <button id="toggle-custom">Custom Player…</button>
+        </div>
+        <div id="custom-form" style="display:none; margin-top:8px">
+          <label>Name</label>
+          <input id="player" type="text" value="carol">
+          <label>Skills</label>
+          <div class="two">
+            <label style="display:flex; gap:6px; align-items:center"><input type="checkbox" id="sk_gather" checked> gather</label>
+            <label style="display:flex; gap:6px; align-items:center"><input type="checkbox" id="sk_slay" checked> slay</label>
+            <label style="display:flex; gap:6px; align-items:center"><input type="checkbox" id="sk_escort" checked> escort</label>
+          </div>
+          <label>Fail chance</label>
+          <input id="fail" type="number" value="0.2" min="0" max="1" step="0.05">
+          <div class="two">
+            <div>
+              <label>Speed (lower=faster)</label>
+              <input id="speed" type="number" value="1.0" min="0.05" step="0.05">
+            </div>
+            <div>
+              <label>Workers</label>
+              <input id="workers" type="number" value="1" min="1" step="1">
+            </div>
+          </div>
+          <div class="two">
+            <div>
+              <label>Prefetch</label>
+              <input id="prefetch" type="number" value="1" min="1" step="1">
+            </div>
+            <div>
+              <label>Chaos drop rate</label>
+              <input id="drop_rate" type="number" value="0" min="0" max="1" step="0.05">
+            </div>
+          </div>
+          <div>
+            <label>Chaos skip rate</label>
+            <input id="skip_rate" type="number" value="0" min="0" max="1" step="0.05">
+          </div>
+          <button id="start-player">Add Player</button>
+        </div>
+        <div class="muted" style="margin-top:6px; font-size:12px">Click a hero to recruit instantly:</div>
+        <div class="bio" data-player="alice" data-skills="gather,slay" data-fail="0.2" data-speed="1.0" data-workers="1">
+          <div class="name">Alice</div>
+          <span class="conf">gather · slay · w1 · s1.0</span>
+          <span class="desc">A balanced worker for fairness and redelivery demos.</span>
+          <div class="bubble">
+            A balanced worker specialized in gather and slay. One worker (prefetch defaults to 1). Great for demonstrating single-delivery fairness and redelivery.
+          </div>
+        </div>
+        <div class="bio" style="margin-top:6px" data-player="bob" data-skills="slay,escort" data-fail="0.1" data-speed="0.7" data-workers="2">
+          <div class="name">Bob</div>
+          <span class="conf">slay · escort · w2 · s0.7</span>
+          <span class="desc">A faster, concurrent worker to visualize contention and unacked.</span>
+          <div class="bubble">
+            A faster, concurrent worker specialized in slay and escort. Two workers for higher parallelism (watch unacked) and contention scenarios.
+          </div>
+        </div>
+        <div class="bio" style="margin-top:6px" data-player="carol" data-skills="slay" data-fail="0.15" data-speed="0.8" data-workers="1">
+          <div class="name">Carol</div>
+          <span class="conf">slay · w1 · s0.8 · fail 0.15</span>
+          <span class="desc">A focused slayer with slightly faster speed and small failure rate.</span>
+          <div class="bubble">
+            Good to demonstrate competition on slay quests and failure handling.
+          </div>
+        </div>
+        <div class="bio" style="margin-top:6px" data-player="dave" data-skills="gather,escort" data-fail="0.1" data-speed="1.3" data-workers="2">
+          <div class="name">Dave</div>
+          <span class="conf">gather · escort · w2 · s1.3</span>
+          <span class="desc">A steady multi-worker for breadth; useful to drain backlogs.</span>
+          <div class="bubble">
+            Shows the effect of workers>1 and higher processing time for variance.
+          </div>
+        </div>
+        <div class="muted" style="margin-top:6px">RabbitMQ UI: http://localhost:15672</div>
+      </div>
+
+      <!-- RabbitMQ Direct Introspection Panel -->
+      <div class="card" id="rabbitmq-pane">
+        <h3>🐰 RabbitMQ Direct View</h3>
+        <div class="muted" style="margin-bottom:8px; font-size:12px">
+          Direct RabbitMQ data - minimal abstraction for educational purposes
+        </div>
+        
+        <!-- Queue Stats -->
+        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Live Queue Stats</h4>
+        <div id="rmq-queue-stats" style="font-family:monospace; font-size:11px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:120px; overflow-y:auto">
+          <div class="muted">Connecting to RabbitMQ...</div>
+        </div>
+        
+        <!-- Exchange Topology -->
+        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Exchange Bindings</h4>
+        <div id="rmq-topology" style="font-family:monospace; font-size:11px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:100px; overflow-y:auto">
+          <div class="muted">Loading topology...</div>
+        </div>
+        
+        <!-- Live Message Stream -->
+        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Live Message Stream</h4>
+        <div id="rmq-live-stream" style="font-family:monospace; font-size:10px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:180px; overflow-y:auto">
+          <div class="muted">Connecting to live message stream...</div>
+        </div>
+        
+        <!-- Message Peek Controls -->
+        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Message Peek</h4>
+        <div style="display:flex; gap:6px; margin-bottom:4px">
+          <select id="rmq-queue-select" style="flex:1; padding:4px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px; font-size:11px">
+            <option value="">Select queue...</option>
+          </select>
+          <button id="rmq-peek-btn" style="width:auto; padding:4px 8px; font-size:11px">Peek</button>
+        </div>
+        <div id="rmq-messages" style="font-family:monospace; font-size:10px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:120px; overflow-y:auto">
+          <div class="muted">Select a queue and click Peek to view messages</div>
+        </div>
+        
+        <!-- Educational Abstraction Comparison -->
+        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Educational Comparison</h4>
+        <div style="font-size:10px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px">
+          <div style="color:#ffd26f; margin-bottom:4px">🎯 <strong>Abstraction Layers Removed:</strong></div>
+          <div style="color:#e7eeff; line-height:1.4">
+            ❌ Internal quest state tracking<br>
+            ❌ Server-side scoreboard aggregation<br>
+            ❌ Manual message counting<br>
+            ❌ Internal roster management<br>
+            ✅ Direct RabbitMQ queue queries<br>
+            ✅ Live consumer information<br>
+            ✅ Real-time queue depths
+          </div>
+          <div style="margin-top:6px; padding-top:4px; border-top:1px solid #1e2a4d">
+            <div style="color:#8aa0c7; font-size:9px">
+              <strong>Data Sources:</strong><br>
+              <span style="color:#6fe0a0">✓ Main APIs</span> - RabbitMQ-derived<br>
+              <span style="color:#ffd26f">⚠ Expired/Failed</span> - App-level (valid)<br>
+              <span style="color:#8ec6ff">ℹ Current Source:</span> <span id="current-data-source">Standard</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Raw API Access -->
+        <div style="margin-top:8px; padding:6px; background:#1c2950; border:1px solid #32406a; border-radius:4px">
+          <div style="font-size:11px; color:#8aa0c7; margin-bottom:4px">Direct RabbitMQ Management API:</div>
+          <div style="font-size:10px; font-family:monospace">
+            <a href="http://localhost:15672" target="_blank" style="color:#6fe0a0">Management UI</a> |
+            <a href="/api/rabbitmq/raw/queues" target="_blank" style="color:#6fe0a0">Raw Queues</a> |
+            <a href="/api/rabbitmq/raw/exchanges" target="_blank" style="color:#6fe0a0">Raw Exchanges</a> |
+            <a href="/api/rabbitmq/derived/metrics" target="_blank" style="color:#6fe0a0">Derived Metrics</a>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </main>
+
+  <!-- DLQ Actions Modal -->
+  <div id="dlq-modal" class="modal">
+    <div class="inner" style="max-width:600px">
+      <h3>⚰️ Dead Letter Queue Management</h3>
+      
+      <!-- Quick Actions -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap">
+        <button id="dlq-setup-auto" class="action-btn setup" title="Auto-setup DLQ topology">🔧 Setup</button>
+        <button id="dlq-replay-all" class="action-btn replay" title="Replay all DLQ messages">🔄 Replay All</button>
+        <button id="dlq-purge-all" class="action-btn danger" title="Purge all DLQ messages">🗑️ Purge All</button>
+        <button id="dlq-refresh" class="action-btn info" title="Refresh DLQ data">↻ Refresh</button>
+      </div>
+      
+      <!-- DLQ Messages List -->
+      <div style="margin-bottom:16px">
+        <h4 style="margin-bottom:8px">Active DLQ Messages</h4>
+        <div id="dlq-messages-container" style="max-height:300px; overflow-y:auto; border:1px solid #1e2a4d; border-radius:6px; background:#0e162b">
+          <div id="dlq-messages-list" class="muted" style="padding:8px; font-size:11px">
+            Loading DLQ messages...
+          </div>
+        </div>
+      </div>
+      
+      <!-- Educational Info -->
+      <div style="background:#0e162b; border-radius:4px; border-left:3px solid var(--info); padding:8px; font-size:11px">
+        <div style="color:var(--muted); margin-bottom:8px">
+          💡 <strong>DLQ Types:</strong> Failed (worker rejected), Unroutable (no queue), Expired (TTL), Retrying (backoff)
+        </div>
+        <div style="color:var(--muted); margin-bottom:8px">
+          🔄 <strong>Alternate Exchange:</strong> The main exchange (<code>game.skill</code>) routes unroutable messages to <code>game.unroutable</code> alternate exchange, preventing message loss.
+        </div>
+        <div style="color:var(--muted); font-size:10px">
+          <strong>Example:</strong> Publishing to routing key <code>game.quest.INVALID</code> (no matching queue) → automatically goes to unroutable DLQ
+        </div>
+      </div>
+      
+      <div style="text-align:right; margin-top:16px">
+        <button onclick="document.getElementById('dlq-modal').style.display='none'" style="background:var(--panel); border:1px solid #34495e">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="help" class="modal">
+    <div class="inner">
+      <h3>How it works</h3>
+      <ul class="help">
+        <li>Master publishes quests to <code>game.quest.&lt;type&gt;</code> with difficulty/weight/points.</li>
+        <li>Players consume from shared per-skill queues (Skill mode) or per-player queues (Player mode).</li>
+        <li>On ACCEPT, the message is <strong>Unacked</strong> until ack; on SKIP, it is NACK requeue and returns to <strong>Ready</strong>.</li>
+        <li>Results publish to <code>game.quest.&lt;type&gt;.done|fail</code>; scoreboard totals points live.</li>
+        <li>Crash before ack ⇒ message returns to Ready (redelivery). Prefetch controls in-flight concurrency.</li>
+        <li>DLQ: NACK requeue=false sends to a dead-letter queue for triage. Reissue or purge from Messages panel.</li>
+      </ul>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="close-help" style="width:auto">Close</button>
+      </div>
+    </div>
+  </div>
+  <div id="scores-modal" class="modal">
+    <div class="inner">
+      <h3>Leaderboard 🏆</h3>
+      <div id="scores" class="scores"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="close-scores" style="width:auto">Close</button>
+      </div>
+    </div>
+  </div>
+  <div id="quest-modal" class="modal">
+    <div class="inner">
+      <h3>Quest details</h3>
+      <div id="qm-header" class="muted" style="margin-bottom:6px"></div>
+      <div id="qm-body" class="feed" style="height:240px"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="qm-close" style="width:auto">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const feed = document.getElementById('feed');
+    // scores is rendered inside the scores modal; guard if absent
+    const rosterDiv = document.getElementById('roster');
+    const questsByType = {
+      gather: document.getElementById('quests-gather'),
+      slay: document.getElementById('quests-slay'),
+      escort: document.getElementById('quests-escort'),
+    };
+    const typeMetricsDiv = document.getElementById('type-metrics');
+    const historyByQuest = {}; // id -> [{ts,type,text}]
+    const reissueAlias = {}; // newId -> originalId
+    function resolveAlias(id){
+      let cur = id; const seen = new Set();
+      while (reissueAlias[cur] && !seen.has(cur)) { seen.add(cur); cur = reissueAlias[cur]; }
+      return cur;
+    }
+
+    const quests = {}; // questId -> {el, start, dur}
+    function questId(p){
+      const id = p.case_id || p.quest_id || p.id;
+      if (p.reissue_of){ reissueAlias[id] = p.reissue_of; }
+      return resolveAlias(id);
+    }
+
+    function medal(idx){ return idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':'🎯'; }
+
+    function line(tagClass, title, body) {
+      const row = document.createElement('div'); row.className = 'row';
+      const tag = document.createElement('span'); tag.className = `tag ${tagClass}`; tag.textContent = title;
+      const span = document.createElement('span'); span.textContent = body;
+      row.appendChild(tag); row.appendChild(span); return row;
+    }
+    const seenSkips = new Set();
+    function appendFeed(tagClass, title, body, dedupeKey) {
+      if (dedupeKey && seenSkips.has(dedupeKey)) return;
+      if (dedupeKey) seenSkips.add(dedupeKey);
+      feed.appendChild(line(tagClass, title, body));
+      // cap at ~300 lines
+      while (feed.childElementCount > 300) feed.removeChild(feed.firstChild);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function renderScores(snap) {
+      const scores = document.getElementById('scores');
+      if (!scores) return;
+      const s = snap.scoreboard || {}; const f = snap.fails || {};
+      const entries = Object.entries(s).sort((a,b)=>b[1]-a[1]);
+      const icon = (i)=> i===0?'🥇':(i===1?'🥈':(i===2?'🥉':'🎯'));
+      scores.innerHTML = entries.length ? entries.map(([p,pts],i) => {
+        const fail = f[p] || 0; const st = (snap.player_stats&&snap.player_stats[p])||{inflight:0};
+        const meta = (snap.roster&&snap.roster[p])||{}; const spd = meta.speed_multiplier!=null?meta.speed_multiplier:1.0; const wrk = meta.workers!=null?meta.workers:1;
+        const title = `${p} — workers:${wrk} speed:${spd}\npoints:${pts} fails:${fail} inflight(unacked):${st.inflight}`;
+        return `<div class="score-row" title="${title}"><span>${icon(i)} ${p}${st.inflight?` <span class='badge'>${st.inflight} unacked</span>`:''}</span><span>${pts} pts${fail?` · fails:${fail}`:''}</span></div>`;
+      }).join('') : '<div class="muted">No scores yet</div>';
+    }
+
+    const rosterState = {}; // name -> {skills, fail_pct, status, speed_multiplier, workers}
+    let activePlayer = null;
+    function renderRoster(snap) {
+      // Defensively update rosterState only when a snapshot is explicitly provided.
+      // This prevents other WebSocket messages from accidentally clearing the roster.
+      if (snap && snap.roster) {
+        const r = snap.roster;
+        // Synchronize our client-side state with the incoming snapshot.
+        Object.keys(rosterState).forEach(k => { if (!(k in r)) delete rosterState[k]; });
+        Object.entries(r).forEach(([name,meta]) => { rosterState[name] = {...(rosterState[name]||{}), ...meta}; });
+      }
+
+      // Always re-render from the definitive client-side rosterState.
+      document.querySelectorAll('.bio').forEach(b => {
+        const pname = b.getAttribute('data-player');
+        if (pname && !(pname in rosterState)) {
+          b.classList.remove('added');
+        }
+      });
+      
+      const ordered = Object.entries(rosterState).sort((a,b)=>a[0].localeCompare(b[0]));
+      let html = ordered.map(([name,meta]) => {
+        const status = meta.status||'offline';
+        const dotClass = status==='online'?'online':(status==='reconnecting'?'reconnecting':'');
+        const ps = (snap.player_stats&&snap.player_stats[name])||{accepted:0,completed:0,failed:0,inflight:0};
+        const spd = meta.speed_multiplier!=null ? Number(meta.speed_multiplier) : 1.0;
+        const wrk = meta.workers!=null ? meta.workers : 1;
+        const spdTxt = spd.toFixed(2);
+        const failTxt = (meta.fail_pct!=null ? meta.fail_pct : 0).toFixed(2);
+        const workerType = meta.type || 'go';  // Default to Go workers in Go-only system
+        const typeIcon = workerType === 'go' ? '🚀' : '🐍';
+        const typeLabel = workerType === 'go' ? 'Go' : 'Python';
+        const tip = `${name} — ${status} (${typeLabel})\nskills: ${(meta.skills||[]).join(',')}\nworkers: ${String(wrk).padStart(2,' ')}  speed: ${spdTxt}\naccepted: ${String(ps.accepted).padStart(3,' ')}  completed: ${String(ps.completed).padStart(3,' ')}  failed: ${String(ps.failed).padStart(3,' ')}\ninflight (unacked): ${String(ps.inflight).padStart(2,' ')}`;
+        const skills = (meta.skills||[]).map(s=>`<span class='skill'>${s}</span>`).join(' ');
+        const sel = (name===activePlayer)?' selected':'';
+        const typeClass = workerType === 'go' ? 'go-worker' : 'python-worker';
+        return `<span class="pill ${typeClass}${sel}" data-name="${name}" title="${tip}">
+          <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span class="type-badge">${typeIcon}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
+          <div class="line2"><span class="stats">w${String(wrk).padStart(2,' ')} · s${spdTxt} · f${failTxt}</span>
+            <span class="controls">
+              <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Disconnect (real disconnect - stays offline)">⏸</button>
+              <button class="tiny-btn player-action" data-action="resume" data-name="${name}" title="Reconnect (restart worker)">▶</button>
+              <button class="tiny-btn player-action" data-action="crash" data-name="${name}" title="Crash + Auto-reconnect (3s delay)">⚡</button>
+              <button class="tiny-btn player-delete" data-name="${name}" title="Delete">🗑</button>
+            </span>
+          </div>
+        </span>`;
+      }).join(' ');
+      rosterDiv.innerHTML = html ? `<div class='roster-wrap'>${html}</div>` : '<div class="muted">No players yet</div>';
+    }
+
+    function ensureQuestCard(p) {
+      const rawId = p.case_id || p.quest_id || p.id;
+      const id = questId(p); if (!id) return { el: null, start: Date.now(), dur: 1000 };
+      // Dedupe: if a transient card was created with rawId before alias, remove it
+      if (rawId && rawId !== id && quests[rawId] && quests[id]) {
+        const dup = quests[rawId];
+        if (dup.el && dup.el.parentNode) dup.el.parentNode.removeChild(dup.el);
+        delete quests[rawId];
+      }
+      // If a card exists for rawId but not yet for aliased id, migrate it to aliased key
+      if (rawId && rawId !== id && quests[rawId] && !quests[id]){
+        quests[id] = quests[rawId];
+        delete quests[rawId];
+        if (quests[id].el) quests[id].el.setAttribute('data-quest-id', id);
+        return quests[id];
+      }
+      if (quests[id]) return quests[id];
+      const el = document.createElement('div'); el.className = 'quest';
+      const icon = p.quest_type==='slay'?'⚔️':(p.quest_type==='escort'?'🛡️':'📦');
+      el.innerHTML = `<div class="title">${icon} ${p.quest_type} <span class="muted" style="margin-left:auto">${p.points} pts · w${p.weight||1}</span></div>
+      <div class="meta"><span class="status tag warn">Ready</span> · assigned to <span class="who">Unassigned</span></div>
+      <div class="progress"><div class="bar"></div></div>
+      <div class="muted" style="margin-top:6px"><small>timeline:</small><ul class="tl" style="margin:6px 0 0 14px; padding:0; list-style:none"></ul></div>`;
+      el.setAttribute('data-quest-id', id);
+      (questsByType[p.quest_type] || questsByType['gather']).prepend(el);
+      el.addEventListener('click', ()=>openQuestModal(id, p.quest_type));
+      const obj = { el, start: Date.now(), dur: Math.max(500, Math.round((p.work_sec||1)*1000)) };
+      quests[id] = obj; return obj;
+    }
+
+    function tick() {
+      const now = Date.now();
+      Object.values(quests).forEach(q => {
+        const pct = Math.max(0, Math.min(100, Math.round(((now - q.start) / q.dur) * 100)));
+        const bar = q.el.querySelector('.bar'); if (bar) bar.style.width = pct + '%';
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // activity sparkline
+    const act = { ts: [], online: [] };
+    const thr = { ts: [], perPlayer: {}, colors: {} };
+    function drawActivity(){
+      const canvas = document.getElementById('activity');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      if (act.ts.length < 2) return;
+      const maxOnline = Math.max(1, ...act.online);
+      const w = canvas.width, h = canvas.height, n = act.ts.length;
+      ctx.strokeStyle = '#6fe0a0'; ctx.beginPath();
+      act.online.forEach((v,i) => {
+        const x = (i/(n-1))*w;
+        const y = h - (v/maxOnline)*h;
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    }
+
+    function drawThroughput(){
+      const canvas = document.getElementById('throughput');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      const colors = ['#6fe0a0','#8ec6ff','#ffd26f','#ff9b9b','#9b59b6','#f39c12','#1abc9c'];
+      const players = Object.keys(thr.perPlayer);
+      const maxY = Math.max(1, ...players.flatMap(p=>thr.perPlayer[p]||[0]));
+      players.forEach((p,idx)=>{
+        thr.colors[p] = thr.colors[p] || colors[idx % colors.length];
+        ctx.strokeStyle = thr.colors[p]; ctx.beginPath();
+        const series = thr.perPlayer[p]||[]; const n = series.length;
+        ctx.beginPath();
+        series.forEach((v,i)=>{
+          const x = (i/(Math.max(1,n-1)))*canvas.width;
+          const y = canvas.height - (v/maxY)*canvas.height;
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+      });
+      // legend
+      const legend = document.getElementById('throughput-legend');
+      legend.innerHTML = players.map(p=>`<span style="display:inline-flex; align-items:center; gap:6px; margin-right:10px"><span style="width:10px; height:10px; background:${thr.colors[p]}; display:inline-block; border-radius:2px"></span>${p}</span>`).join('');
+    }
+
+    function setStatus(el, label, cls){ const st=el.querySelector('.status'); if(st){ st.textContent=label; st.className = `status tag ${cls}`; } }
+    function addTL(el, type, text){ const tl = el && el.querySelector('.tl'); if (!tl) return; const li = document.createElement('li'); const tag = document.createElement('span'); tag.className = `tag ${type}`; tag.textContent = type.toUpperCase(); const span = document.createElement('span'); span.textContent = ' ' + text; li.appendChild(tag); li.appendChild(span); tl.appendChild(li); }
+    function addHist(id, ts, type, text){ historyByQuest[id] = historyByQuest[id]||[]; historyByQuest[id].push({ts,type,text}); }
+    
+    function addChaosTimelineEvent(player, eventType, description) {
+      console.log(`[CHAOS] Adding ${eventType} event for ${player}: ${description}`);
+      
+      // Find all quest cards that are assigned to this player (including completed ones)
+      // and add chaos events to their timelines if they were recently processed
+      let eventsAdded = 0;
+      for (const questId in quests) {
+        const quest = quests[questId];
+        // Check if this quest is assigned to the player
+        // For chaos events, we want to show them even on completed quests
+        // if they were involved in the chaos (recent processing)
+        if (quest.assigned_to === player) {
+          const questCard = document.querySelector(`[data-quest-id="${questId}"]`);
+          if (questCard) {
+            // For disconnect events, always add to any active quest by this player
+            // For reconnect events, add to any quest that was recently processed
+            let shouldAddEvent = false;
+            
+            if (eventType === 'disconnect') {
+              // Add disconnect to any quest assigned to this player (active or recently completed)
+              shouldAddEvent = true;
+            } else if (eventType === 'reconnect' || eventType === 'reconnect_failed') {
+              // Add reconnect events to quests that were recently processed (within last 30 seconds)
+              const now = Date.now() / 1000;
+              const recentThreshold = 30; // seconds
+              const history = historyByQuest[questId] || [];
+              const hasRecentActivity = history.some(h => (now - h.ts) < recentThreshold);
+              shouldAddEvent = hasRecentActivity || !quest.status.match(/completed|failed/i);
+            }
+            
+            if (shouldAddEvent) {
+              let emoji, text, className;
+              if (eventType === 'disconnect') {
+                emoji = '⚠️';
+                text = `CHAOS: ${player} disconnected`;
+                className = 'warn';
+              } else if (eventType === 'reconnect') {
+                emoji = '🔄';
+                text = `CHAOS: ${player} reconnected`;
+                className = 'ok';
+              } else if (eventType === 'reconnect_failed') {
+                emoji = '❌';
+                text = `CHAOS: ${player} reconnect failed`;
+                className = 'err';
+              }
+              
+              // Use the existing addTL function to add timeline entry
+              addTL(questCard, className, `${emoji} ${text}`);
+              
+              // Also add to history for persistence
+              const now = Date.now() / 1000;
+              addHist(questId, now, className, `${emoji} ${text}`);
+              eventsAdded++;
+              
+              console.log(`[CHAOS] Added ${eventType} to quest ${questId} timeline`);
+            }
+          } else {
+            console.log(`[CHAOS] Quest ${questId} assigned to ${player} but shouldAddEvent=false (status: ${quest.status})`);
+          }
+        }
+      }
+      console.log(`[CHAOS] Total chaos events added: ${eventsAdded}`);
+    }
+    
+    function fmtTs(ts){ const d=new Date(ts*1000); return d.toLocaleTimeString(); }
+    function openQuestModal(id, type){ const modal=document.getElementById('quest-modal'); const head=document.getElementById('qm-header'); const body=document.getElementById('qm-body'); head.textContent = `${id} (${type})`; const hist=historyByQuest[id]||[]; body.innerHTML = hist.map(h=>`[${fmtTs(h.ts)}] ${h.type.toUpperCase()} ${h.text}`).join('\n'); modal.classList.add('show'); }
+    document.getElementById('qm-close').onclick=()=>document.getElementById('quest-modal').classList.remove('show');
+    const lastEventByQuest = {}; // questId -> drop|requeue|dlq
+
+    const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(`${wsProto}://${location.host}/ws`);
+    
+    // RabbitMQ Direct WebSocket Connection for educational introspection
+    const rmqWs = new WebSocket(`${wsProto}://${location.host}/ws/rabbitmq`);
+    let rmqQueues = [];
+    
+    rmqWs.onmessage = (ev) => {
+      const msg = JSON.parse(ev.data);
+      
+      if (msg.type === 'rabbitmq_queues') {
+        rmqQueues = msg.data || [];
+        updateRmqQueueStats(msg.data);
+        updateQueueSelector(msg.data);
+      } else if (msg.type === 'rabbitmq_topology') {
+        updateRmqTopology(msg.exchanges, msg.bindings);
+      } else if (msg.type === 'live_message') {
+        addLiveMessage(msg);
+      } else if (msg.type === 'message_history') {
+        displayMessageHistory(msg.messages);
+      } else if (msg.type === 'error') {
+        console.error('RabbitMQ WebSocket error:', msg.message);
+      }
+    };
+    
+    rmqWs.onerror = (err) => {
+      console.error('RabbitMQ WebSocket connection error:', err);
+      document.getElementById('rmq-queue-stats').innerHTML = '<div style="color:#e74c3c">RabbitMQ connection failed</div>';
+    };
+    
+    function updateRmqQueueStats(queues) {
+      const container = document.getElementById('rmq-queue-stats');
+      if (!queues || queues.length === 0) {
+        container.innerHTML = '<div class="muted">No game queues found</div>';
+        return;
+      }
+      
+      const lines = queues.map(q => {
+        const name = q.name || 'unknown';
+        const ready = q.messages_ready || 0;
+        const unacked = q.messages_unacknowledged || 0;
+        const consumers = q.consumers || 0;
+        const state = q.state || 'unknown';
+        
+        return `<div style="margin-bottom:2px">
+          <span style="color:#6fe0a0">${name}</span>
+          <span style="color:#8aa0c7">ready:</span><span style="color:#ffd26f">${ready}</span>
+          <span style="color:#8aa0c7">unacked:</span><span style="color:#ff9b9b">${unacked}</span>
+          <span style="color:#8aa0c7">consumers:</span><span style="color:#8ec6ff">${consumers}</span>
+          <span style="color:#8aa0c7">[${state}]</span>
+        </div>`;
+      }).join('');
+      
+      container.innerHTML = lines;
+    }
+    
+    function updateRmqTopology(exchanges, bindings) {
+      const container = document.getElementById('rmq-topology');
+      if (!exchanges || !bindings) {
+        container.innerHTML = '<div class="muted">No topology data</div>';
+        return;
+      }
+      
+      const lines = [];
+      exchanges.forEach(ex => {
+        if (ex.name && ex.name !== '') {
+          lines.push(`<div style="color:#6fe0a0; margin-bottom:2px">Exchange: ${ex.name} (${ex.type})</div>`);
+          const exBindings = bindings.filter(b => b.source === ex.name);
+          exBindings.forEach(b => {
+            lines.push(`<div style="margin-left:12px; color:#8aa0c7; font-size:10px">
+              → ${b.destination} [${b.routing_key || 'no-key'}]
+            </div>`);
+          });
+        }
+      });
+      
+      container.innerHTML = lines.join('') || '<div class="muted">No bindings found</div>';
+    }
+    
+    function updateQueueSelector(queues) {
+      const select = document.getElementById('rmq-queue-select');
+      select.innerHTML = '<option value="">Select queue...</option>';
+      (queues || []).forEach(q => {
+        const option = document.createElement('option');
+        option.value = q.name;
+        option.textContent = `${q.name} (${q.messages_ready || 0} ready)`;
+        select.appendChild(option);
+      });
+    }
+    
+    let liveMessageCount = 0;
+    const MAX_LIVE_MESSAGES = 30;
+    
+    function addLiveMessage(messageData) {
+      // Process message for raw mode calculations
+      processRawMessage(messageData);
+      
+      const container = document.getElementById('rmq-live-stream');
+      const timestamp = new Date(messageData.timestamp * 1000).toLocaleTimeString();
+      const source = messageData.source || 'unknown';
+      const routingKey = messageData.routing_key || 'no-key';
+      
+      // Color code by source
+      let sourceColor = '#8aa0c7';
+      if (source === 'publish') sourceColor = '#6fe0a0';  // Green for outgoing
+      else if (source === 'scoreboard_consumer') sourceColor = '#ff9b9b';  // Red for incoming
+      else if (source.includes('worker')) sourceColor = '#8ec6ff';  // Blue for workers
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.style.marginBottom = '4px';
+      messageDiv.style.borderBottom = '1px solid #1e2a4d';
+      messageDiv.style.paddingBottom = '2px';
+      messageDiv.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <span style="color:${sourceColor}; font-weight:bold">${source}</span>
+          <span style="color:#8aa0c7; font-size:9px">${timestamp}</span>
+        </div>
+        <div style="color:#ffd26f; font-size:9px; margin:1px 0">${routingKey}</div>
+        <div style="color:#e7eeff; font-size:9px; max-height:40px; overflow-y:auto">
+          ${JSON.stringify(messageData.payload, null, 1).replace(/\\n/g, '').substring(0, 200)}${JSON.stringify(messageData.payload).length > 200 ? '...' : ''}
+        </div>
+      `;
+      
+      container.appendChild(messageDiv);
+      liveMessageCount++;
+      
+      // Limit number of displayed messages
+      while (liveMessageCount > MAX_LIVE_MESSAGES) {
+        container.removeChild(container.firstElementChild);
+        liveMessageCount--;
+      }
+      
+      // Auto-scroll to bottom
+      container.scrollTop = container.scrollHeight;
+    }
+    
+    function displayMessageHistory(messages) {
+      const container = document.getElementById('rmq-live-stream');
+      container.innerHTML = '';
+      liveMessageCount = 0;
+      
+      if (!messages || messages.length === 0) {
+        container.innerHTML = '<div class="muted">No recent messages</div>';
+        return;
+      }
+      
+      messages.forEach(msg => addLiveMessage(msg));
+    }
+    
+    // Client-side raw data processing for educational purposes
+    let rawModeEnabled = false;
+    let clientSideStats = {
+      scoreboard: {},
+      player_stats: {},
+      processed_results: new Set()
+    };
+    
+    function processRawMessage(messageData) {
+      if (!rawModeEnabled) return;
+      
+      const payload = messageData.payload;
+      const eventStage = payload.event_stage || '';
+      const player = payload.player || '';
+      const points = parseInt(payload.points || 0);
+      const caseId = payload.case_id;
+      
+      // Client-side processing - direct from RabbitMQ messages
+      if (eventStage.endsWith('COMPLETED') && caseId && !clientSideStats.processed_results.has(caseId) && player) {
+        clientSideStats.processed_results.add(caseId);
+        clientSideStats.scoreboard[player] = (clientSideStats.scoreboard[player] || 0) + points;
+        
+        // Update player stats
+        if (!clientSideStats.player_stats[player]) {
+          clientSideStats.player_stats[player] = { accepted: 0, completed: 0, failed: 0 };
+        }
+        clientSideStats.player_stats[player].completed += 1;
+        
+        // Update UI with raw calculations
+        updateRawModeUI();
+      } else if (eventStage.endsWith('FAILED') && caseId && !clientSideStats.processed_results.has(caseId) && player) {
+        clientSideStats.processed_results.add(caseId);
+        
+        if (!clientSideStats.player_stats[player]) {
+          clientSideStats.player_stats[player] = { accepted: 0, completed: 0, failed: 0 };
+        }
+        clientSideStats.player_stats[player].failed += 1;
+        
+        updateRawModeUI();
+      }
+    }
+    
+    function updateRawModeUI() {
+      if (!rawModeEnabled) return;
+      
+      // Update scores with client-side calculations
+      const scoresDiv = document.getElementById('scores');
+      if (scoresDiv) {
+        const sortedScores = Object.entries(clientSideStats.scoreboard)
+          .sort(([,a], [,b]) => b - a)
+          .slice(0, 10);
+          
+        scoresDiv.innerHTML = sortedScores.map(([player, score]) => {
+          const stats = clientSideStats.player_stats[player] || {};
+          return `<div class="score-row">
+            <span>${player}</span>
+            <span class="badge">${score}</span>
+            <span style="font-size:10px; color:#8aa0c7">
+              C:${stats.completed || 0} F:${stats.failed || 0}
+            </span>
+          </div>`;
+        }).join('') || '<div class="muted">No scores yet (raw mode)</div>';
+      }
+      
+      // Show raw mode indicator
+      document.getElementById('worker-mode').innerHTML = 
+        rawModeEnabled ? '🐰 Raw RabbitMQ Mode' : '🚀 Go workers ready';
+    }
+    
+    // RabbitMQ-derived metrics mode - enable by default for educational value
+    let rmqDerivedMode = true;
+    
+    // Raw mode toggle handler
+    document.getElementById('raw-mode-toggle').onchange = function() {
+      rawModeEnabled = this.checked;
+      
+      if (rawModeEnabled) {
+        // Disable RabbitMQ-derived mode when raw mode is enabled
+        document.getElementById('rmq-derived-toggle').checked = false;
+        rmqDerivedMode = false;
+        
+        // Reset client-side calculations
+        clientSideStats = {
+          scoreboard: {},
+          player_stats: {},
+          processed_results: new Set()
+        };
+        
+        alert('🐰 Raw RabbitMQ Mode Enabled\n\nScoreboard now calculated client-side from raw RabbitMQ messages.\nThis demonstrates minimal abstraction for educational purposes.');
+      } else {
+        alert('🚀 Standard Mode Enabled\n\nReturning to server-aggregated data.');
+      }
+      
+      updateRawModeUI();
+    };
+    
+    // RabbitMQ-derived toggle handler
+    document.getElementById('rmq-derived-toggle').onchange = function() {
+      rmqDerivedMode = this.checked;
+      
+      if (rmqDerivedMode) {
+        // Disable raw mode when RabbitMQ-derived mode is enabled
+        document.getElementById('raw-mode-toggle').checked = false;
+        rawModeEnabled = false;
+        
+        // Start polling RabbitMQ for derived metrics
+        startRmqDerivedPolling();
+        
+        alert('📊 RabbitMQ-Derived Metrics Enabled\n\nAll metrics now calculated directly from RabbitMQ Management API.\nThis shows how to derive application state from broker internals.');
+      } else {
+        stopRmqDerivedPolling();
+        alert('🚀 Standard Mode Enabled\n\nReturning to server-aggregated data.');
+      }
+      
+      updateModeIndicator();
+    };
+    
+    let rmqPollingInterval = null;
+    
+    function startRmqDerivedPolling() {
+      stopRmqDerivedPolling(); // Clear any existing interval
+      
+      rmqPollingInterval = setInterval(async () => {
+        try {
+          // Get RabbitMQ-derived metrics
+          const metricsResponse = await fetch('/api/rabbitmq/derived/metrics');
+          const metricsResult = await metricsResponse.json();
+          
+          // Get RabbitMQ-derived scoreboard
+          const scoreResponse = await fetch('/api/rabbitmq/derived/scoreboard');
+          const scoreResult = await scoreResponse.json();
+          
+          if (metricsResult.ok && scoreResult.ok) {
+            updateUIFromRabbitMQ(metricsResult.metrics, scoreResult.data);
+          }
+        } catch (e) {
+          console.error('RabbitMQ polling error:', e);
+        }
+      }, 2000); // Poll every 2 seconds
+    }
+    
+    function stopRmqDerivedPolling() {
+      if (rmqPollingInterval) {
+        clearInterval(rmqPollingInterval);
+        rmqPollingInterval = null;
+      }
+    }
+    
+    function updateUIFromRabbitMQ(metrics, scoreData) {
+      // Update pending/unacked counters from RabbitMQ
+      document.getElementById('status-pending').textContent = metrics.total_pending || 0;
+      
+      // Update type metrics from RabbitMQ queue states
+      const typeMetricsDiv = document.getElementById('type-metrics');
+      if (metrics.per_type) {
+        const parts = [];
+        Object.entries(metrics.per_type).forEach(([type, stats]) => {
+          parts.push(`${type}: P${stats.pending||0} A${stats.accepted||0} D${stats.completed||0} F${stats.failed||0}`);
+        });
+        typeMetricsDiv.textContent = parts.join('  ·  ');
+      }
+      
+      // Defensively check for scoreData before proceeding
+      if (!scoreData) {
+        console.warn("Polling received empty or invalid scoreData, skipping UI update.");
+        return;
+      }
+      
+      // Update scoreboard from RabbitMQ-derived data
+      if (scoreData.scoreboard) {
+        const scoresDiv = document.getElementById('scores');
+        if (scoresDiv) {
+          const sortedScores = Object.entries(scoreData.scoreboard)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 10);
+            
+          scoresDiv.innerHTML = sortedScores.map(([player, score]) => {
+            const stats = scoreData.player_stats[player] || {};
+            return `<div class="score-row">
+              <span>${player}</span>
+              <span class="badge">${score}</span>
+              <span style="font-size:10px; color:#8aa0c7">
+                C:${stats.completed || 0} F:${stats.failed || 0}
+              </span>
+            </div>`;
+          }).join('') || '<div class="muted">No scores yet (RabbitMQ-derived)</div>';
+        }
+      }
+      
+      // Update roster from actual RabbitMQ consumers
+      if (scoreData.roster) {
+        updateRosterFromRabbitMQ(scoreData.roster);
+      }
+    }
+    
+    function updateRosterFromRabbitMQ(rabbitMQRoster) {
+      const rosterDiv = document.getElementById('roster');
+      if (!rosterDiv) return;
+      
+      const entries = Object.entries(rabbitMQRoster);
+      if (entries.length === 0) {
+        rosterDiv.innerHTML = '<div class="muted">No active consumers in RabbitMQ</div>';
+        return;
+      }
+      
+      rosterDiv.innerHTML = entries.map(([workerName, workerInfo]) => {
+        const queueList = (workerInfo.queues || []).map(q => q.split('.').pop()).join(', ');
+        return `<div class="pill go-worker" style="margin-bottom:4px">
+          <div class="line1">
+            <span class="name">${workerName}</span>
+            <span class="dot online"></span>
+            <span class="type-badge">RMQ</span>
+          </div>
+          <div class="line2" style="font-size:11px; color:#8aa0c7">
+            Consumers: ${workerInfo.consumer_count || 0} | Queues: ${queueList || 'none'}
+          </div>
+        </div>`;
+      }).join('');
+    }
+    
+    function updateModeIndicator() {
+      const indicator = document.getElementById('worker-mode');
+      if (rmqDerivedMode) {
+        indicator.innerHTML = '📊 RabbitMQ-Derived Mode';
+      } else if (rawModeEnabled) {
+        indicator.innerHTML = '🐰 Raw RabbitMQ Mode';
+      } else {
+        indicator.innerHTML = '🚀 Go workers ready';
+      }
+    }
+    
+    function updateDataSourceIndicator(msg) {
+      const sourceElement = document.getElementById('current-data-source');
+      if (!sourceElement) return;
+      
+      let sourceText = 'Standard';
+      let sourceColor = '#8aa0c7';
+      
+      if (rmqDerivedMode) {
+        sourceText = 'RabbitMQ-Derived';
+        sourceColor = '#6fe0a0';
+      } else if (rawModeEnabled) {
+        sourceText = 'Raw Messages';
+        sourceColor = '#ffd26f';
+      } else if (msg.source) {
+        // Check if the WebSocket message includes source information
+        if (msg.source === 'direct_rabbitmq') {
+          sourceText = 'RabbitMQ API';
+          sourceColor = '#6fe0a0';
+        } else if (msg.source === 'app_state') {
+          sourceText = 'App State';
+          sourceColor = '#ff9b9b';
+        } else if (msg.source.includes('fallback')) {
+          sourceText = 'Fallback';
+          sourceColor = '#ffd26f';
+        }
+      }
+      
+      sourceElement.textContent = sourceText;
+      sourceElement.style.color = sourceColor;
+    }
+    
+    // Message peek functionality
+    document.getElementById('rmq-peek-btn').onclick = async () => {
+      const queueName = document.getElementById('rmq-queue-select').value;
+      if (!queueName) {
+        document.getElementById('rmq-messages').innerHTML = '<div style="color:#e74c3c">Please select a queue first</div>';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/rabbitmq/raw/messages/${queueName}?count=5`);
+        const result = await response.json();
+        
+        if (result.ok && result.messages) {
+          const container = document.getElementById('rmq-messages');
+          if (result.messages.length === 0) {
+            container.innerHTML = '<div class="muted">No messages in queue</div>';
+          } else {
+            const lines = result.messages.map((msg, i) => {
+              const payload = JSON.stringify(JSON.parse(msg.payload), null, 2);
+              return `<div style="border-bottom:1px solid #1e2a4d; padding:4px 0; margin-bottom:4px">
+                <div style="color:#6fe0a0; font-size:11px">Message ${i+1}:</div>
+                <div style="color:#8aa0c7; font-size:9px">Routing: ${msg.routing_key || 'none'}</div>
+                <pre style="margin:2px 0; color:#e7eeff; font-size:9px; white-space:pre-wrap">${payload}</pre>
+              </div>`;
+            }).join('');
+            container.innerHTML = lines;
+          }
+        } else {
+          document.getElementById('rmq-messages').innerHTML = `<div style="color:#e74c3c">Error: ${result.error}</div>`;
+        }
+              } catch (e) {
+          document.getElementById('rmq-messages').innerHTML = `<div style="color:#e74c3c">Failed to fetch messages: ${e.message}</div>`;
+        }
+      };
+    
+    // Initialize RabbitMQ-derived mode on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      if (rmqDerivedMode) {
+        startRmqDerivedPolling();
+        updateModeIndicator();
+      }
+    });
+    
+    // update quick-add hover titles from stats
+    function updateQuickTitles(msg){
+      const stats = msg.player_stats || {}; const sb = msg.scoreboard || {}; const r = msg.roster || {};
+      const alice = document.getElementById('add-alice'); const bob = document.getElementById('add-bob');
+      const fmt = (name) => {
+        const s = stats[name] || {accepted:0, completed:0, failed:0};
+        const pts = sb[name] || 0; const status = (r[name]&&r[name].status)||'offline';
+        const meta = r[name]||{}; const spd = meta.speed_multiplier!=null?meta.speed_multiplier:1.0; const wrk = meta.workers!=null?meta.workers:1;
+        return `${name} — ${status}\nworkers: ${wrk}  speed: ${spd}\naccepted: ${s.accepted}  completed: ${s.completed}  failed: ${s.failed}\npoints: ${pts}`;
+      };
+      if (alice) alice.title = fmt('alice'); if (bob) bob.title = fmt('bob');
+    }
+
+    // update worker status indicator in header
+    function updateWorkerStatus(msg) {
+      const workerModeEl = document.getElementById('worker-mode');
+      if (!workerModeEl) return;
+      
+      const roster = msg.roster || {};
+      
+      // Count workers (all Go workers in this system)
+      const workerCount = Object.keys(roster).length;
+      
+      if (workerCount > 0) {
+        workerModeEl.innerHTML = `🚀 Go workers (${workerCount})`;
+      } else {
+        workerModeEl.innerHTML = '🚀 Go workers ready';
+      }
+    }
+
+    ws.onmessage = (ev) => {
+      const msg = JSON.parse(ev.data);
+      
+      // Update data source indicator
+      updateDataSourceIndicator(msg);
+      
+      renderScores(msg); 
+      if (msg.roster !== undefined) {
+        renderRoster(msg);
+      }
+      updateQuickTitles(msg);
+      updateChaosPlayerOptions(msg.roster);
+      updateWorkerStatus(msg);
+      // aggregates per type
+        if (msg.metrics && msg.metrics.per_type){
+        const parts = [];
+        Object.entries(msg.metrics.per_type).forEach(([t,m]) => {
+          parts.push(`${t}: P${m.pending||0} A${m.accepted||0} D${m.completed||0} F${m.failed||0}`);
+        });
+        typeMetricsDiv.textContent = parts.join('  ·  ');
+        if (msg.metrics.total_pending!=null){
+          document.getElementById('status-pending').textContent = String(msg.metrics.total_pending);
+        }
+          if (msg.metrics.total_expired!=null){
+            document.getElementById('status-expired').textContent = String(msg.metrics.total_expired);
+          }
+      }
+
+      // activity: count truly online players (not disconnected, reconnecting, etc.)
+      const onlineCount = Object.values(msg.roster||{}).filter(r => r.status === 'online').length;
+      if (msg.type==='tick'){
+        act.ts.push(msg.payload.ts); act.online.push(onlineCount);
+        while (act.ts.length > 60) { act.ts.shift(); act.online.shift(); }
+        drawActivity();
+        // throughput: rate of completion (delta per tick) by player
+        const ps = msg.player_stats || {};
+        Object.keys(ps).forEach(p=>{ 
+          if (!thr.perPlayer[p]) thr.perPlayer[p] = [];
+          if (!thr.lastCompleted) thr.lastCompleted = {};
+        });
+        Object.entries(ps).forEach(([p,st])=>{
+          const completed = st.completed || 0;
+          const lastCompleted = thr.lastCompleted[p] || 0;
+          const delta = Math.max(0, completed - lastCompleted); // Rate of completion this tick
+          thr.perPlayer[p].push(delta);
+          thr.lastCompleted[p] = completed;
+          if (thr.perPlayer[p].length > 60) thr.perPlayer[p].shift();
+        });
+        drawThroughput();
+        // Update card game UI from tick
+        if (msg.payload.game_active !== undefined) {
+          updateCardGameUI({
+            active: msg.payload.game_active,
+            score: msg.payload.game_score || 1000,
+            timer: msg.payload.card_timer || 0,
+            active_effects: []
+          });
+        }
+      }
+
+      if (msg.type === 'master_wave_started') {
+        appendFeed('info', 'MASTER', `Wave: ${msg.payload.count} quests @ ${msg.payload.delay}s`);
+      } else if (msg.type === 'quest_issued') {
+        const p = msg.payload; const id = questId(p); const existed = !!quests[id];
+        const qc = ensureQuestCard(p);
+        appendFeed('info', 'QUEST', `${p.quest_type} (${p.difficulty}) worth ${p.points} pts${p.reissue_of? ' (reissue)': ''}${p.unroutable?' · UNROUTABLE':''}`);
+        addHist(id, msg.ts, p.unroutable ? 'err' : 'info', p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued'));
+        const tl = qc.el && qc.el.querySelector('.tl');
+        if (tl){ const li = document.createElement('li'); li.textContent = p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued'); tl.appendChild(li); }
+        if (qc.el){
+          // Only reset if not already completed (preserve completed state)
+          if (!qc.el.classList.contains('done')) {
+            qc.el.querySelector('.who').textContent = 'Unassigned';
+            qc.el.classList.remove('fail');
+            const bar = qc.el.querySelector('.bar'); if (bar) bar.style.width = '0%';
+            // Don't set initial status here - let RabbitMQ updates handle it
+          }
+          const qobj = quests[id]; if (qobj){ qobj.start = Date.now(); qobj.dur = Math.max(500, Math.round((p.work_sec||1)*1000)); }
+        }
+      } else if (msg.type === 'player_online') {
+        const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'online'}; renderRoster({roster: rosterState});
+        appendFeed('info', 'PLAYER', `${p.player} online`);
+        // Activity updates only on tick events for proper pacing
+      } else if (msg.type === 'player_reconnecting') {
+        const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'reconnecting'}; renderRoster({roster: rosterState});
+        appendFeed('warn', 'PLAYER', `${p.player} reconnecting`);
+        // Activity updates only on tick events for proper pacing
+      } else if (msg.type === 'player_disconnected') {
+        const p = msg.payload; 
+        rosterState[p.player] = {...(rosterState[p.player]||{}), status:'disconnected'}; 
+        renderRoster({roster: rosterState});
+        appendFeed('err', 'PLAYER', `${p.player} CRASHED mid-processing (message will be redelivered)`);
+        // Activity updates only on tick events for proper pacing
+      } else if (msg.type === 'player_accept') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){
+          const whoEl = q.el.querySelector('.who');
+          const prev = whoEl.textContent;
+          if (prev && prev !== 'Unassigned' && prev !== p.player){
+            const reason = lastEventByQuest[questId(p)] === 'drop' ? 'disconnected' : (lastEventByQuest[questId(p)] === 'requeue' ? 'requeued' : 'returned');
+            addTL(q.el, 'warn', `${prev} ${reason} → Ready`);
+          }
+          whoEl.textContent = p.player;
+          setStatus(q.el, 'Unacked', 'ok');
+        }
+        appendFeed('ok', 'ACCEPT', `${p.player} -> ${questId(p)} (${p.quest_type}) ${p.difficulty}`);
+        if (q && q.el){ addTL(q.el, 'ok', `accepted by ${p.player}`); }
+        addHist(questId(p), msg.ts, 'ok', `accepted by ${p.player}`);
+      } else if (msg.type === 'player_skip') {
+        const p = msg.payload; appendFeed('warn', 'SKIP', `${p.player} ignored ${p.quest_id} (${p.quest_type})`, `${p.player}:${p.quest_id}`);
+        const q = ensureQuestCard({ case_id: p.quest_id, quest_type: p.quest_type, points: 0, difficulty: 'medium' });
+        if (q.el){ addTL(q.el, 'warn', `${p.player} skipped`); addTL(q.el, 'info', `re-issued`); }
+        addHist(p.quest_id, msg.ts, 'warn', `${p.player} skipped`); addHist(p.quest_id, msg.ts, 'info', 're-issued');
+      } else if (msg.type === 'msg_drop') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){ addTL(q.el, 'warn', `${p.player} disconnected before ack`); addTL(q.el, 'info', `re-issued`); lastEventByQuest[questId(p)] = 'drop'; }
+        addHist(questId(p), msg.ts, 'warn', `${p.player} disconnected before ack`); addHist(questId(p), msg.ts, 'info', 're-issued');
+        if (chaosActiveGlobal==='drop'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'msg_requeue') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){ addTL(q.el, 'warn', `${p.player} NACK requeue`); addTL(q.el, 'info', `re-issued`); lastEventByQuest[questId(p)] = 'requeue'; }
+        addHist(questId(p), msg.ts, 'warn', `${p.player} NACK requeue`); addHist(questId(p), msg.ts, 'info', 're-issued');
+        if (chaosActiveGlobal==='requeue'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'msg_dlq') {
+        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){ addTL(q.el, 'err', `${p.player} NACK to DLQ`); lastEventByQuest[questId(p)] = 'dlq'; }
+        addHist(questId(p), msg.ts, 'err', `${p.player} NACK to DLQ`);
+        if (chaosActiveGlobal==='dlq'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'result_done') {
+        // KEEP: Completed state is preserved locally since RabbitMQ won't have these messages
+        const p = msg.payload; const q = quests[questId(p)]; if (q && q.el){
+          q.el.classList.add('done'); q.el.querySelector('.bar').style.width = '100%';
+          q.el.querySelector('.who').textContent = p.player || (q.el.querySelector('.who').textContent);
+          setStatus(q.el, 'Completed', 'ok');
+          // Store completed state in local memory
+          rabbitMQQuestData.completed[questId(p)] = {
+            player: p.player,
+            timestamp: Date.now(),
+            payload: p
+          };
+        }
+        appendFeed('ok', 'DONE', `${p.player} completed ${p.quest_type} (+${p.points} pts)`);
+        if (q && q.el){ addTL(q.el, 'ok', `completed by ${p.player}`); }
+        addHist(questId(p), msg.ts, 'ok', `completed by ${p.player}`);
+        if (chaosActiveGlobal==='fail_early'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'result_fail') {
+        // DISABLED: Failed state now comes from RabbitMQ DLQ
+        // Just log it for feed but don't update quest card state
+        const p = msg.payload;
+        appendFeed('err', 'FAIL', `${p.player} failed ${p.quest_type}`);
+        addHist(questId(p), msg.ts, 'err', `failed by ${p.player}`);
+        if (chaosActiveGlobal==='fail_early'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'roster') {
+        // roster snapshot
+        renderRoster(msg);
+        // Activity updates only on tick events for proper pacing
+      } else if (msg.type === 'routing_mode') {
+        const mode = (msg.payload&&msg.payload.mode) || msg.routing_mode || 'skill';
+        setRoutingActive(mode);
+      } else if (msg.type === 'reset') {
+        // Clear UI state completely
+        document.getElementById('type-metrics').textContent = '';
+        document.getElementById('status-pending').textContent = '0';
+        document.getElementById('status-expired').textContent = '0';
+        document.getElementById('scores').innerHTML = '';
+        document.getElementById('roster').innerHTML = '<div class="muted">No players yet</div>';
+        
+        // Clear all quest elements
+        Object.values(quests).forEach(q=>{ if(q.el && q.el.parentNode){ q.el.parentNode.removeChild(q.el); } });
+        for (const k in quests) delete quests[k];
+        document.getElementById('quest-list').innerHTML = '';
+        
+        // Clear RabbitMQ quest data including completed states
+        rabbitMQQuestData = { pending: [], dlq: [], completed: {} };
+        
+        // Clear activity and throughput data
+        act.ts = []; act.online = [];
+        thr.ts = []; thr.perPlayer = {}; thr.colors = {}; thr.lastCompleted = {};
+        
+        // Clear charts
+        const ac = document.getElementById('activity').getContext('2d'); ac.clearRect(0,0,300,80);
+        const thrc = document.getElementById('throughput').getContext('2d'); thrc.clearRect(0,0,300,100);
+        
+        // Reset roster state
+        rosterState = {};
+        
+        // Allow re-adding preset characters
+        document.querySelectorAll('.bio').forEach(b => b.classList.remove('added'));
+        
+        // If this is a hard reset, reload the page
+        if (msg.payload && msg.payload.hard_reset) {
+          appendFeed('warn', 'RESET', 'Hard reset - reloading page...');
+          setTimeout(() => {
+            window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
+          }, 500);
+        }
+      } else if (msg.type === 'card_drawn') {
+        showCard(msg.payload.card);
+        appendFeed('warn', 'CARD', `${msg.payload.card.color.toUpperCase()}: ${msg.payload.card.name}`);
+      } else if (msg.type === 'card_applied') {
+        appendFeed('info', 'EFFECT', `Applied: ${msg.payload.card.name}`);
+      } else if (msg.type === 'card_expired') {
+        appendFeed('info', 'EFFECT', `Expired: ${msg.payload.type}`);
+      } else if (msg.type === 'card_game_started') {
+        appendFeed('info', 'CARD GAME', `Challenge started! Duration: ${msg.payload.duration}s`);
+      } else if (msg.type === 'card_game_stopped') {
+        appendFeed('info', 'CARD GAME', `Challenge ended. Final score: ${msg.payload.final_score}`);
+      } else if (msg.type === 'round_ended') {
+        appendFeed('info', 'CARD GAME', `Round completed! Score: ${msg.payload.score} | Duration: ${Math.round(msg.payload.duration)}s`);
+      } else if (msg.type === 'chaos_triggered') {
+        const p = msg.payload;
+        appendFeed('warn', 'CHAOS', `Triggered: ${p.action} on ${p.player} (${p.quest_type} ${p.quest_id})`);
+        // Disarm after trigger
+        chaosConfig.enabled = false;
+        updateChaosUI();
+      } else if (msg.type === 'chaos_auto_trigger') {
+        const p = msg.payload;
+        appendFeed('info', 'CHAOS', `Auto-trigger: publishing ${p.count} ${p.quest_type} for ${p.action}`);
+      } else if (msg.type === 'scenario_step') {
+        const p = msg.payload;
+        appendFeed('info', 'SCENARIO', `Step ${p.step}: ${p.desc}`);
+      } else if (msg.type === 'scenario_complete') {
+        const p = msg.payload;
+        appendFeed('ok', 'SCENARIO', `Completed: ${p.name}`);
+      } else if (msg.type === 'chaos_disconnect') {
+        const p = msg.payload;
+        appendFeed('warn', 'CHAOS', `⚠️ ${p.player} disconnected: ${p.description}`);
+        // Add disconnect event to quest timeline if we have a current quest
+        addChaosTimelineEvent(p.player, 'disconnect', p.description);
+      } else if (msg.type === 'chaos_reconnect') {
+        const p = msg.payload;
+        appendFeed('ok', 'CHAOS', `🔄 ${p.player} reconnected: ${p.description}`);
+        // Add reconnect event to quest timeline if we have a current quest
+        addChaosTimelineEvent(p.player, 'reconnect', p.description);
+      } else if (msg.type === 'chaos_reconnect_failed') {
+        const p = msg.payload;
+        appendFeed('err', 'CHAOS', `❌ ${p.player} reconnect failed: ${p.description}`);
+        // Add failed reconnect event to quest timeline if we have a current quest
+        addChaosTimelineEvent(p.player, 'reconnect_failed', p.description);
+      }
+    };
+
+    function setRoutingActive(mode){
+      const a = document.getElementById('route-skill');
+      const b = document.getElementById('route-player');
+      a.classList.remove('active'); b.classList.remove('active');
+      if (mode==='skill') a.classList.add('active'); else b.classList.add('active');
+      document.getElementById('status-routing').textContent = mode;
+      document.getElementById('status-routing').className = 'tag info';
+    }
+    document.getElementById('start-master').onclick = async () => {
+      const count = parseInt(document.getElementById('count').value, 10);
+      const delay = parseFloat(document.getElementById('delay').value);
+      await fetch('/api/master/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({count, delay}) });
+      document.getElementById('status-wave').textContent = `count=${count} · delay=${delay}s`;
+    };
+    // Quick Play buttons
+    document.getElementById('qp-quick').onclick = async () => {
+      await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'alice_bob'})});
+      const count = 20, delay = 0.1;
+      await fetch('/api/master/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({count, delay}) });
+      document.getElementById('status-wave').textContent = `count=${count} · delay=${delay}s`;
+      appendFeed('info','PLAY',`Quick Start: Alice+Bob · ${count}@${delay}s`);
+    };
+    document.querySelectorAll('.qp-preset').forEach(btn=>{
+      btn.onclick = () => {
+        const c = parseInt(btn.getAttribute('data-count')||'20',10);
+        const d = parseFloat(btn.getAttribute('data-delay')||'0.1');
+        document.getElementById('count').value = String(c);
+        document.getElementById('delay').value = String(d);
+        document.getElementById('status-wave').textContent = `count=${c} · delay=${d}s`;
+      };
+    });
+
+    function selectedSkills(){
+      const arr = [];
+      if (document.getElementById('sk_gather').checked) arr.push('gather');
+      if (document.getElementById('sk_slay').checked) arr.push('slay');
+      if (document.getElementById('sk_escort').checked) arr.push('escort');
+      return arr.join(',');
+    }
+
+    document.getElementById('toggle-custom').onclick = () => {
+      const cf = document.getElementById('custom-form');
+      cf.style.display = cf.style.display==='none' ? '' : 'none';
+    };
+
+    document.getElementById('start-player').onclick = async () => {
+      const player = document.getElementById('player').value.trim();
+      const skills = selectedSkills();
+      const fail_pct = parseFloat(document.getElementById('fail').value);
+      const speed_multiplier = parseFloat(document.getElementById('speed').value);
+      const workers = parseInt(document.getElementById('workers').value, 10);
+      const prefetch = parseInt(document.getElementById('prefetch').value, 10);
+      const drop_rate = parseFloat(document.getElementById('drop_rate').value);
+      const skip_rate = parseFloat(document.getElementById('skip_rate').value);
+      await fetch('/api/player/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player, skills, fail_pct, speed_multiplier, workers, prefetch, drop_rate, skip_rate}) });
+      appendFeed('info','PLAYERS',`Started ${player} (${skills})`);
+    };
+    // Quickstart
+    document.getElementById('quick-alice-bob').onclick = async () => {
+      await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'alice_bob'})});
+      appendFeed('info','PLAYERS','Started Alice and Bob');
+    };
+    // Click-to-add bios
+    document.querySelectorAll('.bio').forEach(bio=>{
+      bio.onclick = async (e) => {
+        // Ignore clicks on bubbles
+        if (e.target.closest('.bubble')) return;
+        const player = bio.getAttribute('data-player');
+        const skills = bio.getAttribute('data-skills')||'';
+        const fail = parseFloat(bio.getAttribute('data-fail')||'0.2');
+        const speed = parseFloat(bio.getAttribute('data-speed')||'1.0');
+        const workers = parseInt(bio.getAttribute('data-workers')||'1', 10);
+        if (bio.classList.contains('added')){ return; }
+        bio.classList.add('added');
+        const resp = await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'custom', players:[{player, skills, fail_pct:fail, speed_multiplier:speed, workers}]})});
+        const data = await resp.json().catch(()=>({ok:false}));
+        if (!data.ok){ appendFeed('warn','PLAYERS',`Could not add ${player}${data.error?': '+data.error:''}`); return; }
+        appendFeed('info','PLAYERS',`Started ${player}`);
+      };
+    });
+    document.getElementById('add-random').onclick = async () => {
+      const names = ['lara','neo','trinity','morpheus','ripley','sarah','t-800','arthur','diana'];
+      const skills = ['gather','slay','escort'];
+      const pick = (arr)=>arr[Math.floor(Math.random()*arr.length)];
+      const name = pick(names) + Math.floor(Math.random()*100);
+      const sk = Array.from(new Set([pick(skills), pick(skills)])).join(',');
+      const fail = Math.random()*0.4;
+      const speed = 0.5 + Math.random()*1.5;
+      const workers = 1 + Math.floor(Math.random()*3);
+      await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'custom', players:[{player:name, skills:sk, fail_pct:fail, speed_multiplier:speed, workers:workers}]})});
+      appendFeed('info','PLAYERS',`Started ${name} (${sk})`);
+    };
+    document.getElementById('sc-routing').onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'routing_comparison'})});
+      appendFeed('info','SCENARIO','Routing comparison: skill vs player-based routing behavior');
+    };
+    const scLate = document.getElementById('sc-late-bind');
+    if (scLate){ scLate.onclick = async () => {
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'late_bind_escort'})});
+      appendFeed('info','SCENARIO','Late-bind escort: backlog handoff demo');
+    }; }
+
+
+    function updateCtrlState(){ /* no-op after roster integration */ }
+    async function control(action, mode){
+      if (!activePlayer) return;
+      await fetch('/api/player/control', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player: activePlayer, action, mode}) });
+    }
+    // Player pill inline controls
+    rosterDiv.addEventListener('click', (e)=>{
+      const act = e.target.closest('.player-action');
+      if (act){
+        const name = act.getAttribute('data-name'); const action = act.getAttribute('data-action');
+        if (name && action){ fetch('/api/player/control', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player:name, action})}); }
+        // do NOT change selection when clicking control buttons
+        e.stopPropagation(); return;
+      }
+        const del = e.target.closest('.player-delete');
+        if (del){
+          const name = del.getAttribute('data-name');
+          if (name){ fetch('/api/player/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player:name})}); }
+          e.stopPropagation(); return;
+        }
+      const pill = e.target.closest('.pill'); if (!pill) return;
+      activePlayer = pill.getAttribute('data-name');
+      renderRoster({roster: rosterState, player_stats:{}});
+    });
+
+    const help = document.getElementById('help');
+    document.getElementById('help-btn').onclick = () => help.classList.add('show');
+    document.getElementById('close-help').onclick = () => help.classList.remove('show');
+    const scoresModal = document.getElementById('scores-modal');
+    document.getElementById('scores-btn').onclick = () => scoresModal.classList.add('show');
+    document.getElementById('close-scores').onclick = () => scoresModal.classList.remove('show');
+    
+    // Throughput help toggle
+    document.getElementById('throughput-help').onclick = () => {
+      alert('Throughput Graph Explanation:\n\n' +
+            '• Shows per-player completion rate over time\n' +
+            '• Each line represents one worker/player\n' +
+            '• Y-axis: Number of quests completed per time period\n' +
+            '• X-axis: Time progression (60 data points)\n' +
+            '• Colors match the player legend below\n' +
+            '• Higher peaks = faster completion rate\n' +
+            '• This is NOT absolute rate, but trend over time');
+    };
+    
+    document.getElementById('toggle-quests').onclick = () => {
+      const ds = document.querySelectorAll('details');
+      const anyOpen = Array.from(ds).some(d => d.open);
+      ds.forEach(d => d.open = !anyOpen);
+    };
+    document.getElementById('route-skill').onclick = async () => {
+      await fetch('/api/routing/set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode:'skill'})});
+      appendFeed('info', 'ROUTING', 'Switched to skill-based queues');
+      setRoutingActive('skill');
+    };
+    document.getElementById('route-player').onclick = async () => {
+      await fetch('/api/routing/set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({mode:'player'})});
+      appendFeed('info', 'ROUTING', 'Switched to player-based (fanout+skip)');
+      setRoutingActive('player');
+    };
+    document.getElementById('clear-feed').onclick = () => { feed.innerHTML = ''; seenSkips.clear(); };
+
+    // Failed panel actions (legacy UI) - null guarded
+    const listFailedBtn = document.getElementById('list-failed');
+    if (listFailedBtn){
+      listFailedBtn.onclick = async () => {
+        const res = await fetch('/api/failed/list');
+        const data = await res.json();
+        const el = document.getElementById('failed-list');
+        if (!el){ return; }
+        if (!data.ok) { el.textContent = 'Error listing failed'; return; }
+        if (!data.failed.length) { el.textContent = 'No failed quests'; return; }
+        el.innerHTML = data.failed.map(f=>`<div style="display:flex; align-items:center; gap:6px" class="failed-item"><button class="mini-btn failed-retry-one" data-qid="${f.quest_id}" title="Reissue">↻</button><span class="failed-label">${f.quest_id} (${f.quest_type})</span><button class="mini-btn failed-filter" data-qid="${f.quest_id}" title="Show only this">👁</button></div>`).join('');
+        el.querySelectorAll('.failed-retry-one').forEach(btn=>{
+          btn.onclick = async () => {
+            const qid = btn.getAttribute('data-qid');
+            await fetch('/api/failed/retry', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_id: qid})});
+            appendFeed('info','FAILED',`Reissued ${qid}`);
+            const again = document.getElementById('list-failed'); if (again) again.click();
+          };
+        });
+        el.querySelectorAll('.failed-filter').forEach(btn=>{
+          btn.onclick = () => {
+            const qid = btn.getAttribute('data-qid');
+            const current = Array.from(el.querySelectorAll('.failed-item'));
+            current.forEach(div=>{ if (div.querySelector('.failed-retry-one').getAttribute('data-qid') !== qid) div.style.display='none'; });
+            const showAll = document.createElement('button'); showAll.className='mini-btn'; showAll.textContent='Show all'; showAll.onclick=()=>{ const b=document.getElementById('list-failed'); if (b) b.click(); }; el.appendChild(showAll);
+          };
+        });
+      };
+    }
+    // Guard legacy handlers if present
+    const retryFailedBtn = document.getElementById('retry-failed');
+    if (retryFailedBtn){ retryFailedBtn.onclick = async () => {
+      const res = await fetch('/api/failed/retry', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})});
+      const data = await res.json();
+      appendFeed('info','FAILED',`Retried ${data.count||0} failed quests`);
+      const fl = document.getElementById('failed-list'); if (fl) fl.textContent = 'No failed quests';
+    }; }
+    // Advanced DLQ Management System
+    let dlqCurrentFilter = 'all';
+    let dlqData = { categories: {}, messages: [] };
+    let dlqLastUpdate = null;
+    
+    // Real-time RabbitMQ-driven quest state system
+    let rabbitMQQuestData = { pending: [], dlq: [], completed: {} };
+    let questStateUpdateInterval = null;
+    
+    // Main DLQ data fetcher and updater
+    async function refreshDLQData() {
+      try {
+        const response = await fetch('/api/dlq/list');
+        const result = await response.json();
+        
+        if (result.ok && result.data) {
+          dlqData = result.data;
+          dlqLastUpdate = new Date();
+          updateDLQStatistics();
+          renderDLQMessages();
+          updateLastUpdateTime();
+          showEducationalHints();
+        } else {
+          console.error('Failed to fetch DLQ data:', result.error);
+          showDLQError('Failed to fetch DLQ data: ' + (result.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('DLQ fetch error:', error);
+        showDLQError('Network error fetching DLQ data');
+      }
+    }
+    
+    // Update the statistics in statusbar
+    function updateDLQStatistics() {
+      const stats = dlqData.categories || {};
+      
+      // Update statusbar indicators with enhanced visibility
+      ['failed', 'unroutable', 'expired', 'retrying'].forEach(type => {
+        const statusEl = document.getElementById(`dlq-status-${type}`);
+        if (statusEl) {
+          const count = stats[type] || 0;
+          statusEl.textContent = `${type.charAt(0).toUpperCase() + type.slice(1)}: ${count}`;
+          
+          // Enhanced visual feedback for non-zero counts
+          if (count > 0) {
+            statusEl.style.fontWeight = 'bold';
+            statusEl.style.opacity = '1';
+            statusEl.style.transform = 'scale(1.05)';
+            statusEl.style.animation = 'pulse 2s infinite';
+            statusEl.style.boxShadow = '0 0 8px rgba(255,255,255,0.3)';
+          } else {
+            statusEl.style.fontWeight = 'normal';
+            statusEl.style.opacity = '0.6';
+            statusEl.style.transform = 'scale(1)';
+            statusEl.style.animation = 'none';
+            statusEl.style.boxShadow = 'none';
+          }
+        }
+      });
+      
+      // Update the DLQ container visibility based on total messages
+      const total = Object.values(stats).reduce((sum, count) => sum + count, 0);
+      const dlqContainer = document.querySelector('#statusbar [style*="background:rgba(155, 89, 182, 0.1)"]');
+      if (dlqContainer) {
+        if (total > 0) {
+          dlqContainer.style.borderWidth = '2px';
+          dlqContainer.style.boxShadow = '0 0 12px rgba(155, 89, 182, 0.4)';
+        } else {
+          dlqContainer.style.borderWidth = '1px';
+          dlqContainer.style.boxShadow = 'none';
+        }
+      }
+    }
+    
+    // Render DLQ messages in the list
+    function renderDLQMessages() {
+      const container = document.getElementById('dlq-messages-list');
+      if (!container) return;
+      
+      const messages = dlqData.messages || [];
+      const filteredMessages = dlqCurrentFilter === 'all' ? 
+        messages : messages.filter(msg => msg.category === dlqCurrentFilter);
+      
+      if (filteredMessages.length === 0) {
+        container.innerHTML = '<div class="muted" style="padding:12px; text-align:center">No DLQ messages found</div>';
+        return;
+      }
+      
+      container.innerHTML = filteredMessages.map(msg => {
+        const rk = msg.routing_key || '?';
+        const payloadStr = msg.payload || '{}';
+        let payload = {};
+        try { payload = JSON.parse(payloadStr); } catch(e) {}
+        const id = payload.id || payload.case_id || '(no id)';
+        const category = msg.category || 'unknown';
+        const queue = msg.queue || 'unknown';
+        
+        return `
+          <div class="dlq-message-item" data-category="${category}" data-id="${id}">
+            <div class="dlq-message-info">
+              <div style="display:flex; align-items:center; gap:6px">
+                <span class="dlq-category-badge ${category}">${category.toUpperCase()}</span>
+                <span style="font-weight:600; color:var(--text)">${id}</span>
+              </div>
+              <div class="dlq-message-meta">
+                <span>Route: ${rk}</span> • <span>Queue: ${queue}</span>
+              </div>
+            </div>
+            <div class="dlq-message-actions">
+              <button class="mini-btn dlq-replay-one" data-id="${id}" title="Replay this message">🔄</button>
+              <button class="mini-btn dlq-inspect-one" data-id="${id}" title="Inspect message details">👁</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Wire up message actions
+      container.querySelectorAll('.dlq-replay-one').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.getAttribute('data-id');
+          try {
+            const response = await fetch('/api/dlq/reissue', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({quest_id: id})
+            });
+            const result = await response.json();
+            if (result.ok) {
+              appendFeed('info', 'DLQ', `Replayed message ${id}`);
+              setTimeout(refreshDLQData, 500); // Refresh after a short delay
+            } else {
+              appendFeed('err', 'DLQ', `Failed to replay ${id}: ${result.error}`);
+            }
+          } catch (error) {
+            appendFeed('err', 'DLQ', `Error replaying ${id}`);
+          }
+        };
+      });
+      
+      container.querySelectorAll('.dlq-inspect-one').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const msg = filteredMessages.find(m => {
+            try {
+              const payload = JSON.parse(m.payload || '{}');
+              return payload.id === id || payload.case_id === id;
+            } catch(e) { return false; }
+          });
+          if (msg) {
+            showMessageInspector(msg);
+          }
+        };
+      });
+    }
+    
+    // Show detailed message inspector with copyable logs
+    function showMessageInspector(msg) {
+      // Create detailed inspection modal
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.8); z-index: 1000; display: flex; 
+        align-items: center; justify-content: center;
+      `;
+      
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: var(--panel); border: 1px solid var(--accent); 
+        border-radius: 8px; padding: 20px; max-width: 800px; max-height: 80vh; 
+        overflow-y: auto; color: var(--text);
+      `;
+      
+      // Extract message details - handle different message structures
+      const payload = JSON.parse(msg.payload || '{}');
+      
+      // Try multiple extraction paths for different message types
+      let originalId = 'unknown';
+      let correlationId = 'unknown';
+      let publishedAt = 'unknown';
+      let publishedBy = 'unknown';
+      
+      // Path 1: Direct payload extraction (normal messages)
+      if (payload.correlation_id) {
+        correlationId = payload.correlation_id;
+        originalId = payload.id || 'unknown';
+        publishedAt = payload.published_at ? new Date(payload.published_at * 1000).toISOString() : 'unknown';
+        publishedBy = payload.published_by || 'unknown';
+      }
+      // Path 2: Nested payload extraction (unroutable messages may have nested structure)
+      else if (payload.payload && typeof payload.payload === 'object') {
+        const nestedPayload = payload.payload;
+        correlationId = nestedPayload.correlation_id || 'unknown';
+        originalId = payload.id || nestedPayload.id || 'unknown';
+        publishedAt = nestedPayload.published_at ? new Date(nestedPayload.published_at * 1000).toISOString() : 'unknown';
+        publishedBy = nestedPayload.published_by || 'unknown';
+      }
+      // Path 3: Try to extract from message headers and root level
+      else {
+        originalId = payload.id || msg.message_id || 'unknown';
+        
+        // For unroutable messages, check headers first (most reliable)
+        if (msg.properties && msg.properties.headers) {
+          const headers = msg.properties.headers;
+          correlationId = headers.correlation_id || 'unknown';
+          if (headers.published_at) {
+            publishedAt = new Date(headers.published_at * 1000).toISOString();
+          }
+          publishedBy = headers.published_by || 'unknown';
+        }
+        
+        // Fallback: try to parse stringified JSON in payload
+        if (correlationId === 'unknown' && typeof payload === 'string') {
+          try {
+            const parsedPayload = JSON.parse(payload);
+            correlationId = parsedPayload.correlation_id || 'unknown';
+            originalId = parsedPayload.id || 'unknown';
+            publishedAt = parsedPayload.published_at ? new Date(parsedPayload.published_at * 1000).toISOString() : 'unknown';
+            publishedBy = parsedPayload.published_by || 'unknown';
+          } catch (e) {
+            // If parsing fails, keep current values
+          }
+        }
+      }
+      const deathInfo = msg.death_info || {};
+      const headers = msg.properties?.headers || {};
+      const timestamp = new Date().toISOString();
+      
+      // Generate clean, readable copyable log format
+      const logEntries = [
+        `=== DLQ MESSAGE INSPECTION ===`,
+        `Timestamp: ${timestamp}`,
+        `Source: localhost:9000`,
+        ``,
+        `MESSAGE IDENTITY:`,
+        `  Message ID:    ${originalId}`,
+        `  Correlation:   ${correlationId}`,
+        `  Category:      ${msg.category.toUpperCase()}`,
+        ``,
+        `ORIGINAL PUBLICATION:`,
+        `  Published At:  ${publishedAt}`,
+        `  Published By:  ${publishedBy}`,
+        `  Routing Key:   ${msg.routing_key}`,
+        `  Exchange:      ${headers['x-first-death-exchange'] || 'unknown'}`,
+        `  Target Queue:  ${headers['x-first-death-queue'] || 'unknown'}`,
+        ``,
+        `FAILURE ANALYSIS:`,
+        `  Death Reason:  ${deathInfo.reason || 'unknown'}`,
+        `  Death Count:   ${deathInfo.count || 0}`,
+        `  Current DLQ:   ${msg.queue}`,
+        ``,
+        `DEBUGGING:`,
+        `  Search Logs:   grep "correlation_id=${correlationId}" api-server.log`,
+        `  Trace Publish: grep "Publishing.*${correlationId}" api-server.log`,
+        `  RabbitMQ UI:   http://localhost:15672/#/queues/%2F/${encodeURIComponent(msg.queue)}`,
+        `  Queue Info:    curl -u guest:guest "localhost:15672/api/queues/%2f/${encodeURIComponent(msg.queue)}"`,
+        ``,
+        `TRACEABILITY STATUS:`,
+        `  Has Correlation ID: ${correlationId !== 'unknown' ? 'YES' : 'NO'}`,
+        `  Has Publish Time:   ${publishedAt !== 'unknown' ? 'YES' : 'NO'}`,
+        `  Has Publisher Info: ${publishedBy !== 'unknown' ? 'YES' : 'NO'}`,
+        `  Message Journey:    ${correlationId !== 'unknown' ? 'TRACEABLE' : 'LIMITED_TRACING'}`,
+        ``,
+        `PAYLOAD:`,
+        `${msg.payload}`,
+        ``,
+        `=== END INSPECTION ===`
+      ].join('\\n');
+      
+      content.innerHTML = `
+        <h3>⚰️ DLQ Message Inspector</h3>
+        <div style="margin-bottom: 16px">
+          <strong>Message ID:</strong> ${originalId}<br>
+          <strong>Correlation ID:</strong> <code style="background: rgba(155, 89, 182, 0.2); padding: 2px 4px; border-radius: 3px">${correlationId}</code><br>
+          <strong>Category:</strong> <span class="tag ${getCategoryColor(msg.category)}">${msg.category}</span><br>
+          <strong>Current Queue:</strong> ${msg.queue}<br>
+          <strong>Death Reason:</strong> ${deathInfo.reason || 'unknown'}<br>
+          <strong>Published:</strong> ${publishedAt} by ${publishedBy}
+        </div>
+        
+        <h4>🔍 Message Journey</h4>
+        <div style="background: #0e162b; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 11px; margin-bottom: 16px">
+          📤 Published to: <span style="color: var(--info)">${headers['x-first-death-exchange'] || 'unknown'}</span><br>
+          🎯 Routing key: <span style="color: var(--warn)">${msg.routing_key}</span><br>
+          📦 Target queue: <span style="color: var(--info)">${headers['x-first-death-queue'] || 'unknown'}</span><br>
+          ❌ Failed: <span style="color: var(--err)">${deathInfo.reason || 'unknown'}</span> (attempt ${deathInfo.count || 0})<br>
+          ⚰️ Moved to DLQ: <span style="color: var(--muted)">${msg.queue}</span>
+        </div>
+        
+        <h4>📋 Copyable Log Format</h4>
+        <textarea id="message-logs" readonly style="width: 100%; height: 200px; background: #0a0f1a; color: var(--text); border: 1px solid var(--muted); border-radius: 4px; padding: 8px; font-family: monospace; font-size: 11px">${logEntries}</textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 16px">
+          <button onclick="copyMessageLogs()" style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer">📋 Copy Logs</button>
+          <button onclick="this.closest('.modal-overlay').remove()" style="background: var(--panel); border: 1px solid var(--muted); color: var(--text); padding: 8px 16px; border-radius: 4px; cursor: pointer">Close</button>
+        </div>
+      `;
+      
+      modal.className = 'modal-overlay';
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      // Close on background click
+      modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+      };
+    }
+    
+    // Helper function to get category color
+    function getCategoryColor(category) {
+      const colors = {
+        failed: 'err',
+        unroutable: 'warn', 
+        expired: 'info',
+        retrying: 'ok'
+      };
+      return colors[category] || 'info';
+    }
+    
+    // Copy logs to clipboard
+    function copyMessageLogs() {
+      const textarea = document.getElementById('message-logs');
+      textarea.select();
+      document.execCommand('copy');
+      
+      // Show feedback
+      const button = event.target;
+      const originalText = button.textContent;
+      button.textContent = '✅ Copied!';
+      button.style.background = 'var(--ok)';
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = 'var(--accent)';
+      }, 2000);
+    }
+    
+    // Update last refresh time
+    function updateLastUpdateTime() {
+      const el = document.getElementById('dlq-last-update');
+      if (el && dlqLastUpdate) {
+        el.textContent = dlqLastUpdate.toLocaleTimeString();
+      }
+    }
+    
+    // Show educational hints based on current state
+    function showEducationalHints() {
+      const hintsEl = document.getElementById('dlq-hints');
+      if (!hintsEl) return;
+      
+      const stats = dlqData.categories || {};
+      const totalMessages = Object.values(stats).reduce((sum, count) => sum + count, 0);
+      
+      let hint = '';
+      if (totalMessages === 0) {
+        hint = '✅ <strong>All Clear!</strong> No messages in DLQ. System is healthy.';
+      } else if (stats.unroutable > 0) {
+        hint = '🚨 <strong>Routing Issue:</strong> Unroutable messages indicate missing queues or wrong routing keys.';
+      } else if (stats.failed > 0) {
+        hint = '⚠️ <strong>Processing Issues:</strong> Failed messages were rejected by workers. Check worker logs.';
+      } else if (stats.expired > 0) {
+        hint = '⏰ <strong>Timing Issues:</strong> Messages expired due to TTL. Consider increasing timeouts.';
+      } else if (stats.retrying > 0) {
+        hint = '🔄 <strong>Retry In Progress:</strong> Messages are being retried automatically.';
+      }
+      
+      hintsEl.innerHTML = `<div style="font-size:11px; color:var(--muted)">${hint}</div>`;
+    }
+    
+    // Show error state
+    function showDLQError(message) {
+      const container = document.getElementById('dlq-messages-list');
+      if (container) {
+        container.innerHTML = `<div style="padding:12px; text-align:center; color:var(--err)">${message}</div>`;
+      }
+    }
+    
+    // Filter management for both DLQ messages and quest board
+    function setDLQFilter(filter) {
+      dlqCurrentFilter = filter;
+      
+      // Update stat card active states
+      document.querySelectorAll('.dlq-quest-filter').forEach(card => {
+        card.classList.toggle('active', card.getAttribute('data-filter') === filter);
+      });
+      
+      renderDLQMessages();
+      filterQuestBoard(filter);
+      
+      // Refresh DLQ data to ensure quest linking is accurate
+      if (filter !== 'all') {
+        refreshDLQData();
+      }
+    }
+    
+    // Filter quest board by DLQ message type
+    function filterQuestBoard(filter) {
+      const quests = document.querySelectorAll('.quest');
+      
+      if (filter === 'all') {
+        // Show all quests
+        quests.forEach(quest => {
+          quest.style.display = '';
+        });
+        showFilterHint('Showing all quests');
+      } else {
+        // Filter quests by DLQ category
+        let visibleCount = 0;
+        quests.forEach(quest => {
+          const shouldShow = questMatchesDLQFilter(quest, filter);
+          quest.style.display = shouldShow ? '' : 'none';
+          if (shouldShow) visibleCount++;
+        });
+        
+        const filterLabels = {
+          failed: 'failed/rejected',
+          unroutable: 'unroutable',
+          expired: 'expired/TTL',
+          retrying: 'retrying'
+        };
+        showFilterHint(`Showing ${visibleCount} ${filterLabels[filter]} quests`);
+      }
+    }
+    
+    // Check if a quest matches the DLQ filter
+    function questMatchesDLQFilter(questElement, filter) {
+      // First check quest classes for DLQ-related indicators
+      if (filter === 'failed' && (questElement.classList.contains('fail') || questElement.classList.contains('failed'))) {
+        return true;
+      }
+      if (filter === 'unroutable' && questElement.classList.contains('unrout')) {
+        return true;
+      }
+      if (filter === 'expired' && questElement.classList.contains('expired')) {
+        return true;
+      }
+      if (filter === 'retrying' && questElement.classList.contains('retry')) {
+        return true;
+      }
+      
+      // Check quest status text
+      const statusEl = questElement.querySelector('.status');
+      if (statusEl) {
+        const statusText = statusEl.textContent.toLowerCase();
+        if (filter === 'failed' && (statusText.includes('failed') || statusText.includes('rejected'))) {
+          return true;
+        }
+        if (filter === 'unroutable' && statusText.includes('unroutable')) {
+          return true;
+        }
+        if (filter === 'expired' && (statusText.includes('expired') || statusText.includes('ttl'))) {
+          return true;
+        }
+        if (filter === 'retrying' && statusText.includes('retry')) {
+          return true;
+        }
+      }
+      
+      // Enhanced matching: Check if this quest has a corresponding DLQ message
+      const questId = questElement.getAttribute('data-quest-id');
+      if (questId && dlqData.messages) {
+        const hasDLQMessage = dlqData.messages.some(msg => {
+          if (msg.category !== filter) return false;
+          
+          // Try to extract quest/case ID from DLQ message
+          let msgId = null;
+          try {
+            const payload = JSON.parse(msg.payload || '{}');
+            msgId = payload.case_id || payload.id || payload.quest_id;
+            
+            // Also check nested payload structure
+            if (!msgId && payload.payload) {
+              const nested = typeof payload.payload === 'object' ? payload.payload : JSON.parse(payload.payload);
+              msgId = nested.case_id || nested.id || nested.quest_id;
+            }
+          } catch (e) {
+            // If parsing fails, continue
+          }
+          
+          // Match by ID or by routing key patterns
+          return msgId === questId || 
+                 (msg.routing_key && msg.routing_key.includes(questId)) ||
+                 (questId.includes(msgId) && msgId && msgId.length > 5); // Avoid false matches with short IDs
+        });
+        
+        if (hasDLQMessage) {
+          // Add visual indicator that this quest has DLQ messages
+          if (!questElement.classList.contains(`dlq-${filter}`)) {
+            questElement.classList.add(`dlq-${filter}`);
+            // Add a small indicator to show this quest has DLQ issues
+            const indicator = questElement.querySelector('.dlq-indicator') || (() => {
+              const el = document.createElement('span');
+              el.className = 'dlq-indicator';
+              el.style.cssText = 'font-size:10px; margin-left:4px; opacity:0.7;';
+              questElement.querySelector('.title').appendChild(el);
+              return el;
+            })();
+            indicator.textContent = filter === 'unroutable' ? '📍' : 
+                                  filter === 'failed' ? '❌' : 
+                                  filter === 'expired' ? '⏰' : '🔄';
+            indicator.title = `Has ${filter} messages in DLQ`;
+          }
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    
+    // Show filter hint to user
+    function showFilterHint(message) {
+      const hintsEl = document.getElementById('dlq-hints');
+      if (hintsEl) {
+        hintsEl.innerHTML = `<div style="font-size:11px; color:var(--info)">🔍 <strong>Quest Filter:</strong> ${message}</div>`;
+      }
+    }
+    
+    // Auto-refresh DLQ data periodically for real-time sync
+    function startDLQAutoRefresh() {
+      setInterval(refreshDLQData, 3000); // Refresh every 3 seconds for real-time updates
+    }
+    
+    // Real-time RabbitMQ-driven quest state system
+    async function fetchRabbitMQQuestStates() {
+      try {
+        // Fetch pending messages from RabbitMQ queues
+        const pendingResponse = await fetch('/api/pending/list');
+        const pendingData = await pendingResponse.json();
+        
+        // Fetch DLQ messages for failed/unroutable/expired states  
+        const dlqResponse = await fetch('/api/dlq/list');
+        const dlqData = await dlqResponse.json();
+        
+        if (pendingData.ok && dlqData.ok) {
+          return {
+            pending: pendingData.data?.messages || [],
+            dlq: dlqData.data?.messages || [],
+            categories: dlqData.data?.categories || {}
+          };
+        }
+      } catch (error) {
+        console.error('Failed to fetch RabbitMQ quest states:', error);
+      }
+      return { pending: [], dlq: [], categories: {} };
+    }
+    
+    async function updateQuestCardsFromRabbitMQ() {
+      const rabbitMQData = await fetchRabbitMQQuestStates();
+      console.log('🔍 RabbitMQ Data fetched:', {
+        pending: rabbitMQData.pending.length,
+        dlq: rabbitMQData.dlq.length,
+        dlqMessages: rabbitMQData.dlq
+      });
+      
+      // Build quest state map - DLQ takes priority over pending
+      const questStates = new Map();
+      
+      // First, record all pending states
+      rabbitMQData.pending.forEach(msg => {
+        let questId = msg.quest_id;
+        
+        // Extract quest ID from nested payload structure
+        if (!questId && msg.payload) {
+          try {
+            const payload = JSON.parse(msg.payload);
+            questId = payload.payload?.case_id || payload.payload?.id || payload.case_id || payload.id;
+          } catch (e) {
+            // Continue if parsing fails
+          }
+        }
+        
+        if (questId) {
+          console.log('🟡 Pending quest found:', questId, msg.status);
+          questStates.set(questId, {
+            status: msg.status === 'unacked' ? 'processing' : 'pending',
+            source: 'pending',
+            data: msg
+          });
+        }
+      });
+      
+      // Then, override with DLQ states (higher priority)
+      rabbitMQData.dlq.forEach(msg => {
+        let questId = null;
+        try {
+          const payload = JSON.parse(msg.payload || '{}');
+          // Use questId() function logic for consistency: case_id || quest_id || id
+          let questData = payload;
+          
+          // If there's a nested payload, extract it first
+          if (payload.payload) {
+            const nested = typeof payload.payload === 'object' ? payload.payload : JSON.parse(payload.payload);
+            // Merge outer and inner data, prioritizing inner payload for quest info
+            questData = { ...payload, ...nested };
+          }
+          
+          // Use same priority as questId() function: case_id || quest_id || id
+          questId = questData.case_id || questData.quest_id || questData.id;
+          
+          console.log('🔍 DLQ ID extraction:', {
+            outerPayload: payload,
+            questData: questData,
+            extractedId: questId
+          });
+          
+        } catch (e) {
+          console.log('❌ Failed to parse DLQ payload:', msg.payload);
+        }
+        
+        if (questId) {
+          console.log('🔴 DLQ quest found:', questId, msg.category);
+          questStates.set(questId, {
+            status: msg.category,
+            source: 'dlq',
+            data: msg
+          });
+        } else {
+          console.log('⚠️ No quest ID extracted from DLQ message:', msg);
+        }
+      });
+      
+      console.log('🗺️ Final quest states map:', Array.from(questStates.entries()));
+      
+      // Clear existing quest card states (except completed)
+      document.querySelectorAll('.quest').forEach(quest => {
+        if (!quest.classList.contains('done')) { // Preserve completed quests
+          // Reset to unknown state - will be updated from RabbitMQ data
+          quest.classList.remove('fail', 'unrout', 'dlq-failed', 'dlq-unroutable', 'dlq-expired', 'dlq-retrying');
+          quest.querySelector('.who').textContent = 'Unassigned';
+          quest.querySelector('.bar').style.width = '0%';
+          
+          // Remove DLQ indicators
+          const indicator = quest.querySelector('.dlq-indicator');
+          if (indicator) {
+            indicator.remove();
+          }
+        }
+      });
+      
+      // Apply quest states based on priority (DLQ > Pending)
+      questStates.forEach((state, questId) => {
+        const questCard = document.querySelector(`[data-quest-id="${questId}"]`);
+        console.log(`🎯 Processing quest ${questId}:`, {
+          cardFound: !!questCard,
+          cardCompleted: questCard?.classList.contains('done'),
+          state: state
+        });
+        
+        if (!questCard) {
+          console.log(`❌ Quest card not found for ID: ${questId}, attempting to create from DLQ data...`);
+          
+          // Check if any quest card exists with related IDs to prevent duplicates
+          const payload = JSON.parse(state.data?.payload || '{}');
+          let questData = payload;
+          if (payload.payload) {
+            const nested = typeof payload.payload === 'object' ? payload.payload : JSON.parse(payload.payload);
+            questData = { ...payload, ...nested };
+          }
+          
+          const possibleIds = [
+            questData.case_id,
+            questData.quest_id, 
+            questData.id,
+            questId
+          ].filter(Boolean);
+          
+          // Check if any existing quest card matches any of these IDs
+          let existingCard = null;
+          for (const id of possibleIds) {
+            existingCard = document.querySelector(`[data-quest-id="${id}"]`);
+            if (existingCard) {
+              console.log(`🔗 Found existing quest card with related ID: ${id}, will update that card instead`);
+              questCard = existingCard;
+              break;
+            }
+          }
+          
+          // Only create if no related quest card exists
+          if (!questCard && state.source === 'dlq' && state.data) {
+            try {
+              const payload = JSON.parse(state.data.payload || '{}');
+              
+              // Extract nested payload if it exists (same as DLQ extraction logic)
+              let questData = payload;
+              if (payload.payload) {
+                const nested = typeof payload.payload === 'object' ? payload.payload : JSON.parse(payload.payload);
+                questData = { ...payload, ...nested };
+              }
+              
+              // Create quest card with consistent ID structure
+              const questCardData = {
+                case_id: questData.case_id || questData.quest_id || questData.id,
+                quest_id: questData.quest_id,
+                id: questData.id,
+                quest_type: questData.quest_type || 'gather',
+                points: questData.points || 5,
+                work_sec: questData.work_sec || 2,
+                difficulty: questData.difficulty || 1
+              };
+              console.log(`🔨 Creating quest card for DLQ message:`, questCardData);
+              ensureQuestCard(questCardData);
+              
+              // Now try to find the card again
+              const newQuestCard = document.querySelector(`[data-quest-id="${questId}"]`);
+              if (newQuestCard) {
+                console.log(`✅ Successfully created quest card for ${questId}`);
+                // Continue processing with the newly created card
+                questCard = newQuestCard;
+              } else {
+                console.log(`❌ Failed to create quest card for ${questId}`);
+                return;
+              }
+            } catch (e) {
+              console.log(`❌ Failed to parse DLQ payload for quest creation:`, e);
+              return;
+            }
+          } else {
+            return;
+          }
+        }
+        
+        if (questCard.classList.contains('done')) {
+          console.log(`✅ Quest ${questId} is completed, skipping update`);
+          return;
+        }
+        
+        if (state.source === 'dlq') {
+          console.log(`🔴 Applying DLQ state "${state.status}" to quest ${questId}`);
+          // Handle DLQ states
+          switch (state.status) {
+            case 'failed':
+              questCard.classList.add('fail', 'dlq-failed');
+              setStatus(questCard, 'Failed', 'err');
+              console.log(`🔴 Applied "Failed" status to quest ${questId}`);
+              break;
+            case 'unroutable':
+              questCard.classList.add('unrout', 'dlq-unroutable');
+              setStatus(questCard, 'Unroutable', 'err');
+              console.log(`🟠 Applied "Unroutable" status to quest ${questId}`);
+              break;
+            case 'expired':
+              questCard.classList.add('dlq-expired');
+              setStatus(questCard, 'Expired', 'warn');
+              console.log(`⏰ Applied "Expired" status to quest ${questId}`);
+              break;
+            case 'retrying':
+              questCard.classList.add('dlq-retrying');
+              setStatus(questCard, 'Retrying', 'info');
+              console.log(`🔄 Applied "Retrying" status to quest ${questId}`);
+              break;
+            default:
+              console.log(`⚠️ Unknown DLQ status: ${state.status} for quest ${questId}`);
+          }
+          
+          // Add DLQ indicator
+          let indicator = questCard.querySelector('.dlq-indicator');
+          if (!indicator) {
+            indicator = document.createElement('span');
+            indicator.className = 'dlq-indicator';
+            indicator.style.cssText = 'font-size:10px; margin-left:4px; opacity:0.7;';
+            questCard.querySelector('.title').appendChild(indicator);
+          }
+          indicator.textContent = state.status === 'unroutable' ? '📍' : 
+                                state.status === 'failed' ? '❌' : 
+                                state.status === 'expired' ? '⏰' : '🔄';
+          indicator.title = `${state.status.toUpperCase()} in DLQ`;
+          
+        } else if (state.source === 'pending') {
+          // Handle pending states (only if not overridden by DLQ)
+          if (state.status === 'processing') {
+            setStatus(questCard, 'Processing', 'info');
+            questCard.querySelector('.who').textContent = 'Worker Processing';
+            const bar = questCard.querySelector('.bar');
+            if (bar) {
+              bar.style.width = '50%';
+              bar.style.transition = 'width 2s ease-in-out';
+            }
+          } else {
+            setStatus(questCard, 'Pending', 'warn');
+          }
+        }
+      });
+    }
+
+    
+    // Create quest cards from RabbitMQ data (for page refresh)
+    async function createQuestCardsFromRabbitMQ() {
+      const rabbitMQData = await fetchRabbitMQQuestStates();
+      
+      // Track which quest IDs we've seen
+      const seenQuestIds = new Set();
+      
+      // Create quest cards from pending messages
+      rabbitMQData.pending.forEach(msg => {
+        let questId, questType, payload;
+        
+        try {
+          const parsedPayload = JSON.parse(msg.payload);
+          payload = parsedPayload.payload || parsedPayload;
+          questId = payload.case_id || payload.id || payload.quest_id;
+          questType = payload.quest_type || 'gather';
+        } catch (e) {
+          return; // Skip malformed messages
+        }
+        
+        if (!questId || seenQuestIds.has(questId)) return;
+        seenQuestIds.add(questId);
+        
+        // Create quest card if it doesn't exist
+        if (!document.querySelector(`[data-quest-id="${questId}"]`)) {
+          const questData = {
+            case_id: questId,
+            quest_type: questType,
+            points: payload.points || 5,
+            work_sec: payload.work_sec || 2,
+            difficulty: payload.difficulty || 1
+          };
+          ensureQuestCard(questData);
+        }
+      });
+      
+      // Create quest cards from DLQ messages
+      rabbitMQData.dlq.forEach(msg => {
+        let questId, questType, payload;
+        
+        try {
+          const parsedPayload = JSON.parse(msg.payload);
+          payload = parsedPayload.payload || parsedPayload;
+          questId = payload.case_id || payload.id || payload.quest_id;
+          questType = payload.quest_type || 'gather';
+        } catch (e) {
+          return; // Skip malformed messages
+        }
+        
+        if (!questId || seenQuestIds.has(questId)) return;
+        seenQuestIds.add(questId);
+        
+        // Create quest card if it doesn't exist
+        if (!document.querySelector(`[data-quest-id="${questId}"]`)) {
+          const questData = {
+            case_id: questId,
+            quest_type: questType,
+            points: payload.points || 5,
+            work_sec: payload.work_sec || 2,
+            difficulty: payload.difficulty || 1
+          };
+          ensureQuestCard(questData);
+        }
+      });
+      
+      // Now update all quest cards with their current states
+      updateQuestCardsFromRabbitMQ();
+    }
+    
+    function startRabbitMQQuestUpdates() {
+      // First, create any missing quest cards from RabbitMQ data
+      createQuestCardsFromRabbitMQ();
+      
+      // Then start regular updates every 2 seconds
+      questStateUpdateInterval = setInterval(updateQuestCardsFromRabbitMQ, 2000);
+    }
+    
+    function stopRabbitMQQuestUpdates() {
+      if (questStateUpdateInterval) {
+        clearInterval(questStateUpdateInterval);
+        questStateUpdateInterval = null;
+      }
+    }
+    
+    // Initialize DLQ Management System
+    function initializeDLQManagement() {
+      // Setup auto-setup button
+      const setupBtn = document.getElementById('dlq-setup-auto');
+      if (setupBtn) {
+        setupBtn.onclick = async () => {
+          try {
+            setupBtn.disabled = true;
+            setupBtn.textContent = '🔧 Setting up...';
+            
+            const response = await fetch('/api/dlq/setup', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.ok) {
+              appendFeed('info', 'DLQ', 'DLQ topology setup completed');
+              setTimeout(refreshDLQData, 1000);
+            } else {
+              appendFeed('err', 'DLQ', `Setup failed: ${result.error}`);
+            }
+          } catch (error) {
+            appendFeed('err', 'DLQ', 'Setup request failed');
+          } finally {
+            setupBtn.disabled = false;
+            setupBtn.textContent = '🔧 Setup';
+          }
+        };
+      }
+      
+      // Setup replay all button
+      const replayBtn = document.getElementById('dlq-replay-all');
+      if (replayBtn) {
+        replayBtn.onclick = async () => {
+          if (!confirm('Replay all DLQ messages back to their original queues?')) return;
+          
+          try {
+            replayBtn.disabled = true;
+            replayBtn.textContent = '🔄 Replaying...';
+            
+            const response = await fetch('/api/dlq/reissue/all', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.ok) {
+              appendFeed('info', 'DLQ', `Replayed all DLQ messages`);
+              setTimeout(refreshDLQData, 1000);
+            } else {
+              appendFeed('err', 'DLQ', `Replay failed: ${result.error}`);
+            }
+          } catch (error) {
+            appendFeed('err', 'DLQ', 'Replay request failed');
+          } finally {
+            replayBtn.disabled = false;
+            replayBtn.textContent = '🔄 Replay All';
+          }
+        };
+      }
+      
+      // Setup purge all button
+      const purgeBtn = document.getElementById('dlq-purge-all');
+      if (purgeBtn) {
+        purgeBtn.onclick = async () => {
+          if (!confirm('⚠️ DESTRUCTIVE: Permanently delete all DLQ messages? This cannot be undone!')) return;
+          
+          try {
+            purgeBtn.disabled = true;
+            purgeBtn.textContent = '🗑️ Purging...';
+            
+            const response = await fetch('/api/dlq/purge', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.ok) {
+              appendFeed('warn', 'DLQ', 'All DLQ messages purged');
+              setTimeout(refreshDLQData, 1000);
+            } else {
+              appendFeed('err', 'DLQ', `Purge failed: ${result.error}`);
+            }
+          } catch (error) {
+            appendFeed('err', 'DLQ', 'Purge request failed');
+          } finally {
+            purgeBtn.disabled = false;
+            purgeBtn.textContent = '🗑️ Purge All';
+          }
+        };
+      }
+      
+      // Setup refresh button
+      const refreshBtn = document.getElementById('dlq-refresh');
+      if (refreshBtn) {
+        refreshBtn.onclick = refreshDLQData;
+      }
+      
+      // Setup clickable statusbar DLQ filters
+      document.querySelectorAll('.dlq-quest-filter').forEach(element => {
+        element.onclick = () => {
+          const filter = element.getAttribute('data-filter');
+          setDLQFilter(filter);
+        };
+      });
+      
+      // Setup DLQ modal trigger
+      const dlqActionsBtn = document.getElementById('dlq-actions-menu');
+      if (dlqActionsBtn) {
+        dlqActionsBtn.onclick = () => {
+          document.getElementById('dlq-modal').style.display = 'block';
+          refreshDLQData(); // Refresh data when modal opens
+        };
+      }
+      
+      // Initial load and start auto-refresh
+      refreshDLQData();
+      startDLQAutoRefresh();
+    }
+    // TTL setter
+    const ttlBtn = document.getElementById('ttl-set'); if (ttlBtn){ ttlBtn.onclick = async ()=>{
+      const skill = (document.getElementById('ttl-skill').value||'').trim();
+      const ttl = parseInt(document.getElementById('ttl-ms').value||'0',10);
+      if (!skill || !ttl) return;
+      await fetch('/api/retention/set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({skill, ttl_ms: ttl})});
+      appendFeed('info','TTL',`Set ${skill} TTL to ${ttl}ms`);
+    }; }
+    // Routes panel
+    async function refreshRoutes(){
+      const el = document.getElementById('routes');
+      if (!el) return;
+      const r = await fetch('/api/broker/routes'); const d = await r.json();
+      if (!d.ok){ el.textContent = 'Error'; return; }
+      el.innerHTML = d.routes.map(it=>`<div>${it.routing_key} → ${it.queue}</div>`).join('');
+    }
+    const refreshBtn = document.getElementById('refresh-routes'); if (refreshBtn){ refreshBtn.onclick = refreshRoutes; refreshRoutes(); }
+    // Keyboard shortcuts
+    document.addEventListener('keydown', async (e) => {
+      const tag = (e.target && (e.target.tagName||'')).toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'w') { document.getElementById('start-master').click(); }
+      else if (k === 'q') { document.getElementById('qp-quick').click(); }
+      else if (k === 'r') { const b = document.getElementById('add-random'); if (b) b.click(); }
+      else if (k === '1') { const b = document.querySelector('.send-one[data-type="gather"]'); if (b) b.click(); }
+      else if (k === '2') { const b = document.querySelector('.send-one[data-type="slay"]'); if (b) b.click(); }
+      else if (k === '3') { const b = document.querySelector('.send-one[data-type="escort"]'); if (b) b.click(); }
+      else if (k === 'p') { const b = document.getElementById('tab-pending'); if (b) b.click(); }
+      else if (k === 'f') { const b = document.getElementById('tab-failed'); if (b) b.click(); }
+      else if (k === 'd') { const b = document.getElementById('tab-dlq'); if (b) b.click(); }
+      else if (k === 'x') {
+        const actions = ['drop','requeue','dlq','fail_early','disconnect','pause'];
+        const currentAction = document.getElementById('chaos-action').value;
+        const currentIndex = actions.indexOf(currentAction);
+        const nextAction = actions[(currentIndex + 1) % actions.length];
+        
+        document.getElementById('chaos-action').value = nextAction;
+        document.getElementById('chaos-arm').click();
+      }
+    });
+
+    // Sync broker KPIs
+    document.getElementById('sync-broker').onclick = async () => {
+      const res = await fetch('/api/broker/sync'); const data = await res.json();
+      if (!data.ok){ appendFeed('err','BROKER',`Sync failed: ${data.error||'unknown'}`); return; }
+      document.getElementById('status-broker').textContent = `ready=${data.total_ready} · unacked=${data.total_unacked}`;
+    };
+    // Send one buttons
+    document.querySelectorAll('.send-one').forEach(btn=>{
+      btn.onclick = async ()=>{
+        const t = btn.getAttribute('data-type');
+        try {
+          const r = await fetch('/api/master/one', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({quest_type: t})});
+          const d = await r.json();
+          if (!d.ok){ appendFeed('err','MASTER',`Send one failed: ${d.error||'unknown'}`); return; }
+          appendFeed('info','MASTER',`Sent one: ${t}`);
+        } catch (e) {
+          appendFeed('err','MASTER',`Send one error`);
+        }
+      };
+    });
+    // Reset app - Hard Reset
+    document.getElementById('reset-app').onclick = async () => {
+      if (confirm('Hard Reset: Stop all workers, clear cache, and reload UI?')) {
+        const response = await fetch('/api/reset', { method:'POST' });
+        const result = await response.json();
+        appendFeed('warn','RESET', result.message || 'Hard reset completed');
+        
+        // Clear local UI state
+        quests = {};
+        rosterState = {};
+        act.ts = []; act.online = [];
+        thr.ts = []; thr.perPlayer = {}; thr.colors = {};
+        
+        // Clear browser storage and cache
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          if ('caches' in window) {
+            caches.keys().then(names => names.forEach(name => caches.delete(name)));
+          }
+        } catch (e) {
+          console.log('Cache clearing failed (expected in some browsers):', e);
+        }
+        
+        // Clear displays
+        document.getElementById('quest-list').innerHTML = '';
+        document.getElementById('roster').innerHTML = '<div class="muted">No players yet</div>';
+        document.getElementById('type-metrics').textContent = '';
+        document.getElementById('status-pending').textContent = '0';
+        document.getElementById('scores').innerHTML = '';
+        
+        // Clear charts
+        const ac = document.getElementById('activity').getContext('2d'); ac.clearRect(0,0,300,80);
+        const thrc = document.getElementById('throughput').getContext('2d'); thrc.clearRect(0,0,300,100);
+        
+        // Force reload with cache busting
+        setTimeout(() => {
+          window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
+        }, 1000);
+      }
+    };
+    // Enhanced Chaos System
+    let chaosConfig = { enabled: false };
+    
+    // Update player dropdown with current roster
+    function updateChaosPlayerOptions(roster) {
+      const select = document.getElementById('chaos-player');
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">Any Player</option>';
+      Object.keys(roster || {}).forEach(player => {
+        const option = document.createElement('option');
+        option.value = player;
+        option.textContent = player;
+        select.appendChild(option);
+      });
+      select.value = currentValue; // Restore selection
+    }
+    
+    // Toggle auto-trigger settings visibility
+    document.getElementById('chaos-auto-trigger').onchange = () => {
+      const checked = document.getElementById('chaos-auto-trigger').checked;
+      document.getElementById('chaos-auto-settings').style.display = checked ? 'block' : 'none';
+    };
+    
+    // Arm chaos button
+    document.getElementById('chaos-arm').onclick = async () => {
+      const action = document.getElementById('chaos-action').value;
+      const target_player = document.getElementById('chaos-player').value || null;
+      const target_value = document.getElementById('chaos-quest-type').value || null;
+      const auto_trigger = document.getElementById('chaos-auto-trigger').checked;
+      const trigger_delay = parseFloat(document.getElementById('chaos-delay').value);
+      const trigger_count = parseInt(document.getElementById('chaos-count').value);
+      
+      // Determine if target is a queue name or quest type
+      const isQueue = target_value && target_value.includes('.q');
+      const req = {
+        action,
+        target_player,
+        target_queue: isQueue ? target_value : null,
+        target_quest_type: !isQueue ? target_value : null,
+        auto_trigger,
+        trigger_delay,
+        trigger_count
+      };
+      
+      try {
+        const res = await fetch('/api/chaos/arm', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify(req)
+        });
+        const data = await res.json();
+        
+        if (data.ok) {
+          chaosConfig = data.config;
+          updateChaosUI();
+          const target = target_player ? ` (${target_player})` : '';
+          const queue = req.target_queue ? ` queue:${req.target_queue}` : '';
+          const quest = req.target_quest_type ? ` type:${req.target_quest_type}` : '';
+          const auto = auto_trigger ? ` + auto-publish ${trigger_count} after ${trigger_delay}s` : '';
+          const isRmq = action.startsWith('rmq_') ? ' [RabbitMQ-Native]' : ' [App-Level]';
+          appendFeed('warn', 'CHAOS', `Armed: ${action}${target}${queue}${quest}${auto}${isRmq}`);
+          
+          // Show educational note for RabbitMQ-native actions
+          if (data.educational_note) {
+            appendFeed('info', 'EDUCATIONAL', data.educational_note);
+          }
+        } else {
+          appendFeed('err', 'CHAOS', `Failed to arm: ${data.error}`);
+        }
+      } catch (err) {
+        appendFeed('err', 'CHAOS', 'Failed to arm chaos');
+      }
+    };
+    
+    // Disarm chaos button
+    document.getElementById('chaos-disarm').onclick = async () => {
+      try {
+        const res = await fetch('/api/chaos/disarm', { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.ok) {
+          chaosConfig = data.config;
+          updateChaosUI();
+          appendFeed('info', 'CHAOS', 'Disarmed');
+        }
+      } catch (err) {
+        appendFeed('err', 'CHAOS', 'Failed to disarm');
+      }
+    };
+    
+    // Update chaos UI based on current config
+    function updateChaosUI() {
+      const statusDiv = document.getElementById('chaos-status');
+      const statusText = document.getElementById('chaos-status-text');
+      
+      if (chaosConfig.enabled) {
+        statusDiv.style.display = 'block';
+        statusText.textContent = `Armed: ${chaosConfig.action}`;
+        document.getElementById('chaos-arm').style.background = '#f39c12';
+        document.getElementById('chaos-disarm').style.background = '#e74c3c';
+      } else {
+        statusDiv.style.display = 'none';
+        document.getElementById('chaos-arm').style.background = '#e74c3c';
+        document.getElementById('chaos-disarm').style.background = '#7f8c8d';
+      }
+    }
+    
+    // Load initial chaos status
+    fetch('/api/chaos/status').then(r => r.json()).then(config => {
+      chaosConfig = config;
+      updateChaosUI();
+    }).catch(() => {});
+    
+    let chaosActiveGlobal = null; // Legacy variable for compatibility
+
+    // Card Game System
+    let cardGameActive = false;
+    
+    function updateCardGameUI(status) {
+      document.getElementById('game-score').textContent = status.score || 1000;
+      document.getElementById('card-timer').textContent = status.timer > 0 ? `${status.timer}s` : '--';
+      document.getElementById('active-effects').textContent = (status.active_effects || []).length;
+      
+      // Update button states
+      document.getElementById('start-cardgame').disabled = status.active;
+      document.getElementById('stop-cardgame').disabled = !status.active;
+      document.getElementById('draw-card').disabled = !status.active;
+      
+      cardGameActive = status.active;
+    }
+    
+    function showCard(card) {
+      const cardEl = document.getElementById('current-card');
+      const colorBadge = document.getElementById('card-color-badge');
+      const nameEl = document.getElementById('card-name');
+      const descEl = document.getElementById('card-desc');
+      const durationEl = document.getElementById('card-duration');
+      
+      colorBadge.textContent = card.color.toUpperCase();
+      colorBadge.className = `tag card-${card.color}`;
+      nameEl.textContent = card.name;
+      descEl.textContent = card.desc;
+      durationEl.textContent = card.duration > 0 ? `${card.duration}s` : 'Instant';
+      
+      cardEl.style.display = 'block';
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        cardEl.style.display = 'none';
+      }, 5000);
+    }
+    
+    function updateActiveEffects(effects) {
+      const container = document.getElementById('effects-container');
+      const listEl = document.getElementById('active-effects-list');
+      
+      if (effects.length === 0) {
+        listEl.style.display = 'none';
+        return;
+      }
+      
+      listEl.style.display = 'block';
+      container.innerHTML = effects.map(effect => {
+        const card = effect.card || {};
+        const timeLeft = effect.expires_at > 0 ? Math.max(0, Math.ceil(effect.expires_at - Date.now()/1000)) : 0;
+        return `<div class="effect-pill effect-${card.color || 'black'}">
+          ${card.name || effect.type} ${timeLeft > 0 ? `(${timeLeft}s)` : ''}
+        </div>`;
+      }).join('');
+    }
+    
+    // Card Game Event Handlers
+    document.getElementById('start-cardgame').onclick = async () => {
+      try {
+        const res = await fetch('/api/cardgame/start', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          appendFeed('info', 'CARD GAME', 'Challenge started! First card in 30s.');
+        }
+      } catch (err) {
+        appendFeed('err', 'CARD GAME', 'Failed to start');
+      }
+    };
+    
+    document.getElementById('stop-cardgame').onclick = async () => {
+      try {
+        const res = await fetch('/api/cardgame/stop', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          appendFeed('info', 'CARD GAME', `Challenge ended. Final score: ${data.final_score}`);
+        }
+      } catch (err) {
+        appendFeed('err', 'CARD GAME', 'Failed to stop');
+      }
+    };
+    
+    document.getElementById('draw-card').onclick = async () => {
+      try {
+        const res = await fetch('/api/cardgame/draw', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showCard(data.card);
+          appendFeed('info', 'CARD GAME', `Manual draw: ${data.card.name}`);
+        }
+      } catch (err) {
+        appendFeed('err', 'CARD GAME', 'Failed to draw card');
+      }
+    };
+    
+    // Initialize card game status (check if enabled first)
+    fetch('/api/cardgame/enabled').then(r => r.json()).then(data => {
+      if (data.enabled) {
+        fetch('/api/cardgame/status').then(r => r.json()).then(updateCardGameUI).catch(() => {});
+      } else {
+        // Hide card game panel if not enabled
+        document.getElementById('cardgame-panel').style.display = 'none';
+      }
+    }).catch(() => {
+      // Hide card game panel if endpoint doesn't exist
+      document.getElementById('cardgame-panel').style.display = 'none';
+    });
+
+
+    
+    // Initialize the new DLQ Management System
+    setTimeout(() => {
+      initializeDLQManagement();
+      // Start real-time RabbitMQ quest state updates
+      startRabbitMQQuestUpdates();
+    }, 1000);
+  </script>
+</body>
+</html>

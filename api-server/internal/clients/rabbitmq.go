@@ -53,7 +53,21 @@ func (c *RabbitMQClient) connect() error {
 		return fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	// Declare the main exchange
+	// Declare alternate exchange for unroutable messages first
+	err = c.channel.ExchangeDeclare(
+		"game.unroutable",
+		"fanout",
+		true,  // durable
+		false, // auto-delete
+		false, // internal
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return fmt.Errorf("failed to declare unroutable exchange: %w", err)
+	}
+
+	// Declare the main exchange with alternate exchange for unroutable messages
 	err = c.channel.ExchangeDeclare(
 		"game.skill",
 		"topic",
@@ -61,7 +75,9 @@ func (c *RabbitMQClient) connect() error {
 		false, // auto-delete
 		false, // internal
 		false, // no-wait
-		nil,   // arguments
+		amqp.Table{
+			"alternate-exchange": "game.unroutable",
+		}, // arguments - route unroutable messages to alternate exchange
 	)
 	if err != nil {
 		return fmt.Errorf("failed to declare exchange: %w", err)
@@ -138,6 +154,22 @@ func (c *RabbitMQClient) PublishMessage(routingKey string, payload map[string]in
 		return fmt.Errorf("failed to marshal message: %w", err)
 	}
 
+	// Extract correlation_id and other metadata from payload for headers
+	headers := amqp.Table{}
+	if payload != nil {
+		if correlationId, ok := payload["correlation_id"].(string); ok {
+			headers["correlation_id"] = correlationId
+		}
+		if publishedAt, ok := payload["published_at"].(int64); ok {
+			headers["published_at"] = publishedAt
+		}
+		if publishedBy, ok := payload["published_by"].(string); ok {
+			headers["published_by"] = publishedBy
+		}
+		// Add original routing key for traceability in unroutable messages
+		headers["original_routing_key"] = routingKey
+	}
+
 	err = c.channel.Publish(
 		"game.skill", // exchange (game-specific)
 		routingKey,   // routing key
@@ -147,6 +179,7 @@ func (c *RabbitMQClient) PublishMessage(routingKey string, payload map[string]in
 			ContentType:  "application/json",
 			Body:         body,
 			DeliveryMode: amqp.Persistent, // make message persistent
+			Headers:      headers,         // add metadata headers for traceability
 		},
 	)
 
@@ -167,6 +200,7 @@ func (c *RabbitMQClient) PublishMessage(routingKey string, payload map[string]in
 				ContentType:  "application/json",
 				Body:         body,
 				DeliveryMode: amqp.Persistent, // make message persistent
+				Headers:      headers,         // add metadata headers for traceability
 			},
 		)
 

@@ -477,6 +477,19 @@ This is an educational project. Contributions should maintain the **RabbitMQ-dir
 4. **Clear attribution** - Mark data sources in API responses
 5. **Test Coverage** - New features should include appropriate tests using the shared framework
 
+## 📚 Documentation
+
+### Core Concepts
+- **[Alternate Exchange Configuration](./ALTERNATE_EXCHANGE.md)** - Comprehensive guide to RabbitMQ alternate exchanges and unroutable message handling
+- **[Development Workflow](./DEV_WORKFLOW.md)** - Development scripts and testing procedures
+- **[Test Framework](./api-server/tests/README.md)** - Organized testing structure and best practices
+
+### RabbitMQ Features Demonstrated
+- **Dead Letter Queues (DLQ)** - Systematic failure handling and message categorization
+- **Alternate Exchanges** - Unroutable message capture and routing
+- **Topic Exchanges** - Skill-based message routing patterns
+- **Management API** - Direct broker integration without abstraction layers
+
 ## 📄 License
 
 Educational use. See LICENSE file for details.

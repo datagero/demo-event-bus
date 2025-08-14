@@ -50,7 +50,7 @@ func NewClient(rabbitURL string) (*Client, error) {
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	// Declare the exchange
+	// Declare the exchange with alternate exchange for unroutable messages
 	err = ch.ExchangeDeclare(
 		ExchangeName, // name
 		ExchangeType, // type
@@ -58,7 +58,9 @@ func NewClient(rabbitURL string) (*Client, error) {
 		false,        // auto-deleted
 		false,        // internal
 		false,        // no-wait
-		nil,          // arguments
+		amqp.Table{
+			"alternate-exchange": "game.unroutable",
+		}, // arguments - route unroutable messages to alternate exchange
 	)
 	if err != nil {
 		ch.Close()

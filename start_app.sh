@@ -361,19 +361,42 @@ echo -e "${CYAN}📋 Live Logs (API Server + Workers):${NC}"
 echo -e "${MUTED}Tip: Use Ctrl+C to stop all services${NC}"
 echo -e "${PURPLE}================================================================================================${NC}"
 
-# Follow both log files in real-time with labeled output and noise filtering
+# Follow both log files in real-time with source prefixes and enhanced filtering
 tail -f api-server.log workers.log | while IFS= read -r line; do
-    # Detect which log file the line came from and add colored prefix
+    current_source=""
+    
+    # Detect which log file the line came from
     if [[ "$line" == "==> api-server.log <==" ]]; then
-        echo -e "${BLUE}🔧 [API SERVER]${NC}"
+        current_source="API_SERVER"
+        continue
     elif [[ "$line" == "==> workers.log <==" ]]; then
-        echo -e "${GREEN}⚡ [WORKERS]${NC}"
+        current_source="WORKERS"
+        continue
     elif [[ "$line" != "" && "$line" != "==> "* ]]; then
-        # Filter out noisy periodic API calls
-        if [[ "$line" =~ (GET.*derived/metrics|GET.*derived/scoreboard|GET.*dlq/list|📊.*Derived\ metrics) ]]; then
-            continue # Skip repetitive API calls
+        # Enhanced filtering - skip noisy/refresh logs but keep relevant ones
+        if [[ "$line" =~ (GET.*derived/metrics|GET.*derived/scoreboard|GET.*"/"|GET.*"/"$|📊.*Derived\ metrics|📋.*\[DLQ\].*attempting\ to\ peek|📋.*\[DLQ\].*retrieved.*messages) ]]; then
+            continue # Skip refresh/home page requests, repetitive metrics, and DLQ polling logs
         fi
-        # Add timestamp and output the actual log line
-        echo -e "${MUTED}$(date '+%H:%M:%S')${NC} $line"
+        
+        # Keep relevant API server logs: DLQ operations (setup/reissue), publishing, worker management, etc.
+        if [[ "$line" =~ (correlation_id|POST.*publish|POST.*workers|📤.*Published|⚰️.*DLQ|🔄.*DLQ.*setup|❌.*DLQ|✅.*DLQ.*setup|DLQ.*reissue) ]]; then
+            echo -e "${MUTED}$(date '+%H:%M:%S')${NC} ${BLUE}[API_SERVER]${NC} $line"
+        # Keep worker logs: worker lifecycle, message processing, etc.
+        elif [[ "$line" =~ (⚡.*\[WORKERS\]|Worker.*started|Worker.*stopped|Processing.*message|🔧.*Worker) ]]; then
+            echo -e "${MUTED}$(date '+%H:%M:%S')${NC} ${GREEN}[WORKERS]${NC} $line"
+        # Keep GIN logs that are not refresh requests (POST, PUT, DELETE, non-root GET)
+        elif [[ "$line" =~ \[GIN\] && ! "$line" =~ (GET.*"/"$|GET.*derived) ]]; then
+            echo -e "${MUTED}$(date '+%H:%M:%S')${NC} ${BLUE}[API_SERVER]${NC} $line"
+        # Keep other significant logs (errors, startup, etc.)
+        elif [[ "$line" =~ (ERROR|WARN|Starting|Stopping|Failed|Success|✅|❌|🚀|🛑) ]]; then
+            # Determine source based on context
+            if [[ "$line" =~ (api-server|API|gin|GIN|Port.*9000) ]]; then
+                echo -e "${MUTED}$(date '+%H:%M:%S')${NC} ${BLUE}[API_SERVER]${NC} $line"
+            elif [[ "$line" =~ (workers|worker|Worker|Port.*8001) ]]; then
+                echo -e "${MUTED}$(date '+%H:%M:%S')${NC} ${GREEN}[WORKERS]${NC} $line"
+            else
+                echo -e "${MUTED}$(date '+%H:%M:%S')${NC} ${PURPLE}[SYSTEM]${NC} $line"
+            fi
+        fi
     fi
 done

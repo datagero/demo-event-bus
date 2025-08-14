@@ -37,9 +37,9 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config, wsHub *websocket.Hub) {
 	router.GET("/api/health", h.Health)
 
 	// Static files (serve the frontend)
-	router.Static("/static", "../legacy/python/app/web_static")
+	router.Static("/static", "../frontend/static")
 	router.GET("/", func(c *gin.Context) {
-		c.File("../legacy/python/app/web_static/index.html")
+		c.File("../frontend/static/index.html")
 	})
 
 	// Workers webhook endpoint (needs to be before API group)
