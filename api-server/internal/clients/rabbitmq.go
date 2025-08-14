@@ -71,12 +71,57 @@ func (c *RabbitMQClient) connect() error {
 	return nil
 }
 
+// ensureConnection checks if connection and channel are healthy, reconnects if needed
+func (c *RabbitMQClient) ensureConnection() error {
+	// Check if we need to establish initial connection
+	if c.connection == nil || c.channel == nil {
+		return c.connect()
+	}
+
+	// Check if connection is still alive
+	if c.connection.IsClosed() {
+		log.Printf("🔄 [RabbitMQ] Connection is closed, reconnecting...")
+		return c.reconnect()
+	}
+
+	// Check if channel is still usable by trying a simple operation
+	if err := c.channel.ExchangeDeclarePassive(
+		"game.skill",
+		"topic",
+		true,  // durable
+		false, // auto-delete
+		false, // internal
+		false, // no-wait
+		nil,   // arguments
+	); err != nil {
+		log.Printf("🔄 [RabbitMQ] Channel appears unhealthy, reconnecting: %v", err)
+		return c.reconnect()
+	}
+
+	return nil
+}
+
+// reconnect closes existing connections and establishes new ones
+func (c *RabbitMQClient) reconnect() error {
+	// Close existing connections gracefully
+	if c.channel != nil {
+		c.channel.Close()
+		c.channel = nil
+	}
+	if c.connection != nil {
+		c.connection.Close()
+		c.connection = nil
+	}
+
+	// Establish new connection
+	return c.connect()
+}
+
 // PublishMessage publishes a single message
 func (c *RabbitMQClient) PublishMessage(routingKey string, payload map[string]interface{}) error {
-	if c.channel == nil {
-		if err := c.connect(); err != nil {
-			return err
-		}
+	// Ensure we have a healthy connection and channel
+	if err := c.ensureConnection(); err != nil {
+		return fmt.Errorf("failed to ensure connection: %w", err)
 	}
 
 	// Build message with timestamp and ID
@@ -106,7 +151,28 @@ func (c *RabbitMQClient) PublishMessage(routingKey string, payload map[string]in
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to publish message: %w", err)
+		// If publish fails, try to reconnect once and retry
+		log.Printf("⚠️ [RabbitMQ] Publish failed, attempting reconnection: %v", err)
+		if reconnectErr := c.reconnect(); reconnectErr != nil {
+			return fmt.Errorf("failed to publish message (reconnect failed): %w", err)
+		}
+
+		// Retry publish after reconnection
+		err = c.channel.Publish(
+			"game.skill", // exchange (game-specific)
+			routingKey,   // routing key
+			false,        // mandatory
+			false,        // immediate
+			amqp.Publishing{
+				ContentType:  "application/json",
+				Body:         body,
+				DeliveryMode: amqp.Persistent, // make message persistent
+			},
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to publish message after reconnect: %w", err)
+		}
 	}
 
 	log.Printf("📨 [RabbitMQ] Published message to %s: %s", routingKey, message["id"])
@@ -136,10 +202,8 @@ func (c *RabbitMQClient) PublishWave(routingKey string, count int, delay time.Du
 
 // GetQueueInfo retrieves information about a queue
 func (c *RabbitMQClient) GetQueueInfo(queueName string) (map[string]interface{}, error) {
-	if c.channel == nil {
-		if err := c.connect(); err != nil {
-			return nil, err
-		}
+	if err := c.ensureConnection(); err != nil {
+		return nil, fmt.Errorf("failed to ensure connection: %w", err)
 	}
 
 	queue, err := c.channel.QueueInspect(queueName)
@@ -191,6 +255,183 @@ func (c *RabbitMQClient) getPointsForType(messageType string) int {
 		return points
 	}
 	return 5 // default points
+}
+
+// PurgeQueue removes all messages from a queue
+func (c *RabbitMQClient) PurgeQueue(queueName string) error {
+	if err := c.ensureConnection(); err != nil {
+		return fmt.Errorf("failed to ensure connection: %w", err)
+	}
+
+	messageCount, err := c.channel.QueuePurge(queueName, false)
+	if err != nil {
+		return fmt.Errorf("failed to purge queue %s: %w", queueName, err)
+	}
+
+	log.Printf("🧹 [RabbitMQ] Purged %d messages from queue %s", messageCount, queueName)
+	return nil
+}
+
+// DeleteQueue completely deletes a queue from RabbitMQ
+func (c *RabbitMQClient) DeleteQueue(queueName string) error {
+	// URL-encode the queue name for the Management API
+	encodedQueueName := url.QueryEscape(queueName)
+	endpoint := fmt.Sprintf("/queues/%%2F/%s", encodedQueueName)
+	apiURL := fmt.Sprintf("%s%s", c.managementURL, endpoint)
+
+	req, err := http.NewRequest("DELETE", apiURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create delete request: %w", err)
+	}
+
+	// Add basic auth
+	auth := base64.StdEncoding.EncodeToString([]byte(c.username + ":" + c.password))
+	req.Header.Add("Authorization", "Basic "+auth)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to make delete request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		// Queue doesn't exist, which is fine for our purposes
+		log.Printf("🗑️ [RabbitMQ] Queue %s already doesn't exist", queueName)
+		return nil
+	}
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to delete queue %s: status %d, body: %s", queueName, resp.StatusCode, string(body))
+	}
+
+	log.Printf("🗑️ [RabbitMQ] Successfully deleted queue %s", queueName)
+	return nil
+}
+
+// CreateExchange creates an exchange via RabbitMQ Management API
+func (c *RabbitMQClient) CreateExchange(exchangeName string, exchangeType string, durable bool, autoDelete bool, internal bool, arguments map[string]interface{}) error {
+	encodedExchangeName := url.QueryEscape(exchangeName)
+	endpoint := fmt.Sprintf("/exchanges/%%2F/%s", encodedExchangeName)
+	apiURL := fmt.Sprintf("%s%s", c.managementURL, endpoint)
+
+	exchangeData := map[string]interface{}{
+		"type":        exchangeType,
+		"durable":     durable,
+		"auto_delete": autoDelete,
+		"internal":    internal,
+		"arguments":   arguments,
+	}
+
+	jsonData, err := json.Marshal(exchangeData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal exchange data: %w", err)
+	}
+
+	req, err := http.NewRequest("PUT", apiURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	auth := base64.StdEncoding.EncodeToString([]byte(c.username + ":" + c.password))
+	req.Header.Add("Authorization", "Basic "+auth)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to create exchange: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 && resp.StatusCode != 204 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to create exchange %s: status %d, body: %s", exchangeName, resp.StatusCode, body)
+	}
+
+	log.Printf("🔄 [RabbitMQ] Successfully created exchange %s (%s)", exchangeName, exchangeType)
+	return nil
+}
+
+// CreateQueue creates a queue via RabbitMQ Management API
+func (c *RabbitMQClient) CreateQueue(queueName string, durable bool, autoDelete bool, arguments map[string]interface{}) error {
+	encodedQueueName := url.QueryEscape(queueName)
+	endpoint := fmt.Sprintf("/queues/%%2F/%s", encodedQueueName)
+	apiURL := fmt.Sprintf("%s%s", c.managementURL, endpoint)
+
+	queueData := map[string]interface{}{
+		"durable":     durable,
+		"auto_delete": autoDelete,
+		"arguments":   arguments,
+	}
+
+	jsonData, err := json.Marshal(queueData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal queue data: %w", err)
+	}
+
+	req, err := http.NewRequest("PUT", apiURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	auth := base64.StdEncoding.EncodeToString([]byte(c.username + ":" + c.password))
+	req.Header.Add("Authorization", "Basic "+auth)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to create queue: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 && resp.StatusCode != 204 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to create queue %s: status %d, body: %s", queueName, resp.StatusCode, body)
+	}
+
+	log.Printf("📦 [RabbitMQ] Successfully created queue %s", queueName)
+	return nil
+}
+
+// BindQueue creates a binding between a queue and exchange via RabbitMQ Management API
+func (c *RabbitMQClient) BindQueue(queueName string, exchangeName string, routingKey string, arguments map[string]interface{}) error {
+	encodedQueueName := url.QueryEscape(queueName)
+	encodedExchangeName := url.QueryEscape(exchangeName)
+	endpoint := fmt.Sprintf("/bindings/%%2F/e/%s/q/%s", encodedExchangeName, encodedQueueName)
+	apiURL := fmt.Sprintf("%s%s", c.managementURL, endpoint)
+
+	bindingData := map[string]interface{}{
+		"routing_key": routingKey,
+		"arguments":   arguments,
+	}
+
+	jsonData, err := json.Marshal(bindingData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal binding data: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	auth := base64.StdEncoding.EncodeToString([]byte(c.username + ":" + c.password))
+	req.Header.Add("Authorization", "Basic "+auth)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to bind queue: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 && resp.StatusCode != 204 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to bind queue %s to exchange %s: status %d, body: %s", queueName, exchangeName, resp.StatusCode, body)
+	}
+
+	log.Printf("🔗 [RabbitMQ] Successfully bound queue %s to exchange %s with routing key %s", queueName, exchangeName, routingKey)
+	return nil
 }
 
 // Close closes the RabbitMQ connection
@@ -305,7 +546,7 @@ func (c *RabbitMQClient) PeekQueueMessages(queueName string, count int) ([]map[s
 
 	requestBody := map[string]interface{}{
 		"count":    count,
-		"requeue":  true,
+		"ackmode":  "ack_requeue_true",
 		"encoding": "auto",
 		"truncate": 50000,
 	}
@@ -457,4 +698,109 @@ func (c *RabbitMQClient) getIntField(data map[string]interface{}, field string) 
 		}
 	}
 	return 0
+}
+
+// DeleteExchange deletes an exchange using the RabbitMQ Management API
+func (c *RabbitMQClient) DeleteExchange(exchangeName string) error {
+	// URL-encode the exchange name for the Management API
+	encodedExchangeName := url.QueryEscape(exchangeName)
+	endpoint := fmt.Sprintf("/exchanges/%%2F/%s", encodedExchangeName)
+	apiURL := fmt.Sprintf("%s%s", c.managementURL, endpoint)
+
+	req, err := http.NewRequest("DELETE", apiURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create delete exchange request: %w", err)
+	}
+
+	// Add basic auth (consistent with other methods)
+	auth := base64.StdEncoding.EncodeToString([]byte(c.username + ":" + c.password))
+	req.Header.Add("Authorization", "Basic "+auth)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to execute delete exchange request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		// Exchange doesn't exist, which is fine for our purposes
+		log.Printf("🗑️ [RabbitMQ] Exchange %s already doesn't exist", exchangeName)
+		return nil
+	}
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("delete exchange failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	log.Printf("🗑️ [RabbitMQ] Successfully deleted exchange %s", exchangeName)
+	return nil
+}
+
+// GetConnectionsFromAPI gets all RabbitMQ connections
+func (c *RabbitMQClient) GetConnectionsFromAPI() ([]map[string]interface{}, error) {
+	apiURL := fmt.Sprintf("%s/connections", c.managementURL)
+
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create get connections request: %w", err)
+	}
+
+	req.SetBasicAuth(c.username, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute get connections request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("get connections failed with status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read connections response body: %w", err)
+	}
+
+	var connections []map[string]interface{}
+	if err := json.Unmarshal(body, &connections); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal connections response: %w", err)
+	}
+
+	return connections, nil
+}
+
+// CloseConnection closes a specific RabbitMQ connection
+func (c *RabbitMQClient) CloseConnection(connectionName string) error {
+	// URL encode the connection name
+	encodedName := url.QueryEscape(connectionName)
+	apiURL := fmt.Sprintf("%s/connections/%s", c.managementURL, encodedName)
+
+	req, err := http.NewRequest("DELETE", apiURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create close connection request: %w", err)
+	}
+
+	req.SetBasicAuth(c.username, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to execute close connection request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		// Connection doesn't exist, which is fine for our purposes
+		log.Printf("🔌 [RabbitMQ] Connection %s already doesn't exist", connectionName)
+		return nil
+	}
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("close connection failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	log.Printf("🔌 [RabbitMQ] Successfully closed connection %s", connectionName)
+	return nil
 }

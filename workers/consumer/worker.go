@@ -165,22 +165,36 @@ func (w *Worker) workerLoop(queueName string, workerID int, skill string) {
 	log.Printf("🏃 [Go Worker] %s-worker-%d started on queue %s",
 		w.config.PlayerName, workerID, queueName)
 
-	// Message handler
+	// Message handler with enhanced DLQ support
 	handler := func(delivery amqp.Delivery) bool {
 		// Check if we should stop
 		select {
 		case <-w.ctx.Done():
-			return false // Nack and requeue
+			log.Printf("🛑 [Go Worker] %s stopping, requeuing message", w.config.PlayerName)
+			delivery.Nack(false, true) // NACK with requeue for infrastructure issues
+			return true                // We handled the NACK manually
 		default:
 		}
 
 		// Check if paused
 		if w.isPaused() {
 			log.Printf("⏸️ [Go Worker] %s paused, requeuing message", w.config.PlayerName)
-			return false // Nack and requeue
+			delivery.Nack(false, true) // NACK with requeue for infrastructure issues
+			return true                // We handled the NACK manually
 		}
 
-		return w.processMessage(delivery)
+		// Process the message and handle ACK/NACK based on the type of failure
+		success := w.processMessage(delivery)
+
+		if success {
+			delivery.Ack(false) // ACK successful processing
+		} else {
+			// Message processing failed - send to DLQ (no requeue)
+			log.Printf("💀 [Go Worker] %s: Message processing failed, sending to DLQ", w.config.PlayerName)
+			delivery.Nack(false, false) // NACK without requeue -> DLQ
+		}
+
+		return true // We handled ACK/NACK manually
 	}
 
 	// Create a unique consumer tag that includes skill to avoid conflicts
@@ -191,9 +205,9 @@ func (w *Worker) workerLoop(queueName string, workerID int, skill string) {
 		consumerTag = fmt.Sprintf("%s-worker-%d", w.config.PlayerName, workerID)
 	}
 
-	// Start consuming (this blocks)
-	err := w.client.ConsumeWithTag(queueName, consumerTag, handler)
-	if err != nil {
+	// Start consuming (this blocks until context is cancelled)
+	err := w.client.ConsumeWithTagAndContext(w.ctx, queueName, consumerTag, handler)
+	if err != nil && err != context.Canceled {
 		log.Printf("❌ [Go Worker] Consumer error for %s: %v", w.config.PlayerName, err)
 	}
 }
@@ -247,21 +261,12 @@ func (w *Worker) processMessage(delivery amqp.Delivery) bool {
 	// Determine outcome based on fail percentage
 	success := rand.Float64() >= w.config.FailPct
 
-	// Create result message
-	var resultMsg broker.Message
-	if success {
-		resultMsg = broker.Message{
-			CaseID:     msg.CaseID,
-			EventStage: "QUEST_COMPLETED",
-			Status:     "SUCCESS",
-			Source:     fmt.Sprintf("go-worker:%s", w.config.PlayerName),
-			QuestType:  msg.QuestType,
-			Difficulty: msg.Difficulty,
-			Points:     msg.Points,
-			Player:     w.config.PlayerName,
-		}
-	} else {
-		resultMsg = broker.Message{
+	// For quest failures, we want to send them to DLQ instead of requeuing
+	if !success {
+		log.Printf("💀 [Go Worker] %s quest %s failed - sending to DLQ", w.config.PlayerName, msg.CaseID)
+
+		// Create failed result message
+		failedMsg := broker.Message{
 			CaseID:     msg.CaseID,
 			EventStage: "QUEST_FAILED",
 			Status:     "FAILED",
@@ -271,11 +276,36 @@ func (w *Worker) processMessage(delivery amqp.Delivery) bool {
 			Points:     0,
 			Player:     w.config.PlayerName,
 		}
+
+		// Publish failed result
+		failedRoutingKey := fmt.Sprintf("game.quest.%s.fail", msg.QuestType)
+		err = w.client.Publish(w.ctx, failedRoutingKey, failedMsg)
+		if err != nil {
+			log.Printf("❌ [Go Worker] Failed to publish failed result: %v", err)
+			return false // Nack to retry
+		}
+
+		// Notify Python server about failure
+		w.notifyMessageEvent("failed", failedMsg)
+
+		// Return a special value to indicate DLQ (we'll modify the handler)
+		return false // This will be handled as DLQ in our modified handler
+	}
+
+	// Create success result message
+	resultMsg := broker.Message{
+		CaseID:     msg.CaseID,
+		EventStage: "QUEST_COMPLETED",
+		Status:     "SUCCESS",
+		Source:     fmt.Sprintf("go-worker:%s", w.config.PlayerName),
+		QuestType:  msg.QuestType,
+		Difficulty: msg.Difficulty,
+		Points:     msg.Points,
+		Player:     w.config.PlayerName,
 	}
 
 	// Publish result
-	routingKey := fmt.Sprintf("game.quest.%s.%s", msg.QuestType,
-		map[bool]string{true: "done", false: "fail"}[success])
+	routingKey := fmt.Sprintf("game.quest.%s.done", msg.QuestType)
 
 	err = w.client.Publish(w.ctx, routingKey, resultMsg)
 	if err != nil {
@@ -283,13 +313,12 @@ func (w *Worker) processMessage(delivery amqp.Delivery) bool {
 		return false // Nack to retry
 	}
 
-	status := map[bool]string{true: "completed", false: "failed"}[success]
 	// Reduced logging: only log for debugging
-	// log.Printf("✅ [Go Worker] %s %s %s (+%d pts)",
-	//	w.config.PlayerName, status, msg.CaseID, resultMsg.Points)
+	// log.Printf("✅ [Go Worker] %s completed %s (+%d pts)",
+	//	w.config.PlayerName, msg.CaseID, resultMsg.Points)
 
 	// Notify Python server about completion
-	w.notifyMessageEvent(status, resultMsg)
+	w.notifyMessageEvent("completed", resultMsg)
 
 	return true // Ack the message
 }

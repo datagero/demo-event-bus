@@ -3,8 +3,10 @@ package handlers
 import (
 	"demo-event-bus-api/internal/models"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,15 +28,308 @@ func (h *Handlers) GetGameState(c *gin.Context) {
 	})
 }
 
-// ResetGame resets the game state
+// ResetGame resets the game state completely
 func (h *Handlers) ResetGame(c *gin.Context) {
-	// For now, delegate to Python service
-	// In future phases, this could be handled by Go API server
-	c.JSON(http.StatusNotImplemented, models.APIResponse{
-		Success: false,
-		Error:   "Reset functionality not yet migrated to Go API",
-		Message: "Use Python API /api/reset for now",
+	log.Printf("🔄 [ResetGame] Starting comprehensive reset...")
+
+	// 0. Set reset flag to prevent ticker from repopulating roster during reset
+	h.resetMu.Lock()
+	h.isResetting = true
+	h.resetMu.Unlock()
+	defer func() {
+		h.resetMu.Lock()
+		h.isResetting = false
+		h.resetMu.Unlock()
+		log.Printf("📡 [ResetGame] Reset flag cleared - normal ticker resumed")
+	}()
+
+	var resetErrors []string
+	workersStoppedCount := 0
+	workersServiceAvailable := false
+
+	// 1. Stop all Go workers with proper error handling
+	workersStatus, err := h.WorkersClient.GetStatus()
+	if err != nil {
+		log.Printf("⚠️ [ResetGame] Workers service not accessible: %v", err)
+		resetErrors = append(resetErrors, fmt.Sprintf("Workers service unavailable: %v", err))
+
+		// Try to force close any lingering RabbitMQ connections
+		log.Printf("🔌 [ResetGame] Attempting to close RabbitMQ connections as fallback...")
+		h.forceCloseGameConnections()
+	} else {
+		workersServiceAvailable = true
+		if workers, ok := workersStatus["workers"].([]interface{}); ok {
+			for _, worker := range workers {
+				if workerName, ok := worker.(string); ok {
+					log.Printf("🛑 [ResetGame] Stopping worker: %s", workerName)
+					if err := h.WorkersClient.StopWorker(workerName); err != nil {
+						log.Printf("⚠️ [ResetGame] Failed to stop worker %s: %v", workerName, err)
+						resetErrors = append(resetErrors, fmt.Sprintf("Failed to stop worker %s: %v", workerName, err))
+					} else {
+						workersStoppedCount++
+						log.Printf("✅ [ResetGame] Successfully stopped worker: %s", workerName)
+					}
+				}
+			}
+		}
+	}
+
+	// 2. Delete all game-related queues and exchanges from RabbitMQ
+	var deletedQueues []string
+	var deletedExchanges []string
+
+	// First get all existing queues to see what actually needs to be deleted
+	existingQueues, err := h.RabbitMQClient.GetQueuesFromAPI()
+	if err != nil {
+		log.Printf("⚠️ [ResetGame] Warning: Could not get queue list: %v", err)
+		resetErrors = append(resetErrors, fmt.Sprintf("Could not list queues: %v", err))
+
+		// Fall back to trying to delete known game queues
+		gameQueues := []string{
+			"game.skill.gather.q", "game.skill.slay.q", "game.skill.escort.q",
+			"game.quest.gather.q", "game.quest.slay.q", "game.quest.escort.q",
+			"game.quest.gather.done.q", "game.quest.slay.done.q", "game.quest.escort.done.q",
+			"game.quest.gather.fail.q", "game.quest.slay.fail.q", "game.quest.escort.fail.q",
+			"game.dlq.failed.q", "game.dlq.unroutable.q", "game.dlq.expired.q", "game.dlq.retry.q",
+		}
+		for _, queueName := range gameQueues {
+			if err := h.RabbitMQClient.DeleteQueue(queueName); err != nil {
+				log.Printf("⚠️ [ResetGame] Could not delete queue %s: %v", queueName, err)
+			} else {
+				log.Printf("🗑️ [ResetGame] Deleted queue: %s", queueName)
+				deletedQueues = append(deletedQueues, queueName)
+			}
+		}
+	} else {
+		// Delete all game-related queues that actually exist
+		for _, queue := range existingQueues {
+			queueName, ok := queue["name"].(string)
+			if !ok {
+				continue
+			}
+
+			// Delete any queue that starts with "game."
+			if strings.HasPrefix(queueName, "game.") {
+				if err := h.RabbitMQClient.DeleteQueue(queueName); err != nil {
+					log.Printf("⚠️ [ResetGame] Could not delete queue %s: %v", queueName, err)
+					resetErrors = append(resetErrors, fmt.Sprintf("Failed to delete queue %s: %v", queueName, err))
+				} else {
+					log.Printf("🗑️ [ResetGame] Deleted queue: %s", queueName)
+					deletedQueues = append(deletedQueues, queueName)
+				}
+			}
+		}
+	}
+
+	// 2b. Delete all game-related exchanges dynamically
+	existingExchanges, err := h.RabbitMQClient.GetExchangesFromAPI()
+	if err != nil {
+		log.Printf("⚠️ [ResetGame] Warning: Could not get exchange list: %v", err)
+		resetErrors = append(resetErrors, fmt.Sprintf("Could not list exchanges: %v", err))
+
+		// Fall back to trying to delete known game exchanges
+		gameExchanges := []string{"game.skill", "game.dlx", "game.unroutable"}
+		for _, exchangeName := range gameExchanges {
+			if err := h.RabbitMQClient.DeleteExchange(exchangeName); err != nil {
+				log.Printf("⚠️ [ResetGame] Could not delete exchange %s: %v", exchangeName, err)
+				// Exchange deletion failures are common (405 errors) so don't treat as critical errors
+			} else {
+				log.Printf("🗑️ [ResetGame] Deleted exchange: %s", exchangeName)
+				deletedExchanges = append(deletedExchanges, exchangeName)
+			}
+		}
+	} else {
+		// Delete all game-related exchanges that actually exist
+		for _, exchange := range existingExchanges {
+			exchangeName, ok := exchange["name"].(string)
+			if !ok {
+				continue
+			}
+
+			// Delete any exchange that starts with "game." or is game-related
+			if strings.HasPrefix(exchangeName, "game.") {
+				if err := h.RabbitMQClient.DeleteExchange(exchangeName); err != nil {
+					log.Printf("⚠️ [ResetGame] Could not delete exchange %s: %v", exchangeName, err)
+					// Exchange deletion often fails with 405 Method Not Allowed for built-in exchanges
+					// This is normal RabbitMQ behavior, so we log but don't treat as critical error
+				} else {
+					log.Printf("🗑️ [ResetGame] Deleted exchange: %s", exchangeName)
+					deletedExchanges = append(deletedExchanges, exchangeName)
+				}
+			}
+		}
+	}
+
+	// 2c. Close all game-related RabbitMQ connections and channels
+	var connectionsClosedCount int
+	connections, err := h.RabbitMQClient.GetConnectionsFromAPI()
+	if err != nil {
+		log.Printf("⚠️ [ResetGame] Warning: Could not get connections list: %v", err)
+		resetErrors = append(resetErrors, fmt.Sprintf("Could not list connections: %v", err))
+	} else {
+		for _, conn := range connections {
+			connName, ok := conn["name"].(string)
+			if !ok {
+				continue
+			}
+
+			// Close connections that appear to be game-related
+			// This includes golang workers and any connections with game-related client properties
+			shouldClose := false
+
+			if clientProps, ok := conn["client_properties"].(map[string]interface{}); ok {
+				// Check platform (golang workers)
+				if platform, ok := clientProps["platform"].(string); ok && platform == "golang" {
+					shouldClose = true
+				}
+				// Could also check for other client properties if needed
+			}
+
+			// Also close connections with specific naming patterns
+			if strings.Contains(connName, "worker") || strings.Contains(connName, "game") {
+				shouldClose = true
+			}
+
+			if shouldClose {
+				if err := h.RabbitMQClient.CloseConnection(connName); err != nil {
+					log.Printf("⚠️ [ResetGame] Could not close connection %s: %v", connName, err)
+					resetErrors = append(resetErrors, fmt.Sprintf("Failed to close connection %s: %v", connName, err))
+				} else {
+					log.Printf("🔌 [ResetGame] Closed connection: %s", connName)
+					connectionsClosedCount++
+				}
+			}
+		}
+	}
+
+	log.Printf("🔌 [ResetGame] Closed %d RabbitMQ connections", connectionsClosedCount)
+
+	// 3. Clear all player stats
+	h.statsMu.Lock()
+	h.playerStats = make(map[string]map[string]int)
+	h.statsMu.Unlock()
+	log.Printf("📊 [ResetGame] Cleared player stats")
+
+	// 4. Broadcast hard reset to UI with comprehensive details
+	workersStoppedStatus := "none"
+	if workersServiceAvailable {
+		if workersStoppedCount > 0 {
+			workersStoppedStatus = fmt.Sprintf("%d", workersStoppedCount)
+		} else {
+			workersStoppedStatus = "0"
+		}
+	} else {
+		workersStoppedStatus = "service_unavailable"
+	}
+
+	h.broadcastMessage("reset", map[string]interface{}{
+		"soft_reset":         true, // Changed from hard_reset to avoid page reload
+		"timestamp":          time.Now().Unix(),
+		"source":             "go_api_server",
+		"queues_deleted":     deletedQueues,
+		"exchanges_deleted":  deletedExchanges,
+		"connections_closed": connectionsClosedCount,
+		"workers_stopped":    workersStoppedStatus,
+		"workers_service":    workersServiceAvailable,
+		"consumers_cleared":  true,
+		"errors":             resetErrors,
 	})
+	log.Printf("📡 [ResetGame] Broadcast reset message to UI")
+
+	// 5. Clear roster completely by broadcasting empty roster
+	h.WSHub.BroadcastMessage(&models.WebSocketMessage{
+		Type:    "roster",
+		Payload: map[string]interface{}{},
+		Roster:  map[string]interface{}{}, // Empty roster to clear UI
+	})
+	log.Printf("📡 [ResetGame] Broadcast empty roster to clear UI consumers")
+
+	// 6. Wait for cleanup to propagate and settle
+	time.Sleep(1000 * time.Millisecond) // Increased wait time
+
+	// 6.5. Broadcast final empty roster to ensure UI is cleared (don't query RabbitMQ immediately)
+	h.WSHub.BroadcastMessage(&models.WebSocketMessage{
+		Type:    "roster",
+		Payload: map[string]interface{}{},
+		Roster:  map[string]interface{}{}, // Force empty roster
+	})
+	log.Printf("📡 [ResetGame] Final empty roster broadcast after cleanup")
+
+	// 6.6. Wait a bit more for UI to update before allowing normal ticker to resume
+	time.Sleep(500 * time.Millisecond)
+
+	// 7. Determine overall success status
+	hasErrors := len(resetErrors) > 0
+	successMessage := fmt.Sprintf("Reset completed - %s workers stopped, %d queues deleted, %d exchanges deleted, %d connections closed, state cleared",
+		workersStoppedStatus, len(deletedQueues), len(deletedExchanges), connectionsClosedCount)
+
+	if hasErrors {
+		successMessage += fmt.Sprintf(" (with %d warnings)", len(resetErrors))
+		log.Printf("⚠️ [ResetGame] Reset completed with warnings: %v", resetErrors)
+	} else {
+		log.Printf("✅ [ResetGame] Reset completed successfully")
+	}
+
+	httpStatus := http.StatusOK
+	if hasErrors && !workersServiceAvailable {
+		// If workers service is completely unavailable, that's more serious
+		httpStatus = http.StatusPartialContent // 206 - partial success
+	}
+
+	c.JSON(httpStatus, models.APIResponse{
+		Success: true, // Still successful even with warnings
+		Message: successMessage,
+		Data: map[string]interface{}{
+			"workers_stopped":           workersStoppedStatus,
+			"workers_stopped_count":     workersStoppedCount,
+			"workers_service_available": workersServiceAvailable,
+			"queues_deleted":            deletedQueues,
+			"queues_count":              len(deletedQueues),
+			"exchanges_deleted":         deletedExchanges,
+			"exchanges_count":           len(deletedExchanges),
+			"connections_closed":        connectionsClosedCount,
+			"stats_cleared":             true,
+			"ui_reset":                  true,
+			"errors":                    resetErrors,
+			"has_errors":                hasErrors,
+		},
+	})
+}
+
+// forceCloseGameConnections attempts to close RabbitMQ connections when workers service is unavailable
+// This is now a fallback function - the main reset logic handles connection closing comprehensively
+func (h *Handlers) forceCloseGameConnections() {
+	log.Printf("🔌 [forceCloseGameConnections] Using fallback connection cleanup...")
+
+	// Get all RabbitMQ connections
+	connections, err := h.RabbitMQClient.GetConnectionsFromAPI()
+	if err != nil {
+		log.Printf("⚠️ [forceCloseGameConnections] Could not get connections: %v", err)
+		return
+	}
+
+	connectionsClosedCount := 0
+	for _, conn := range connections {
+		connName, ok := conn["name"].(string)
+		if !ok {
+			continue
+		}
+
+		// Check if this looks like a worker connection (golang platform)
+		if clientProps, ok := conn["client_properties"].(map[string]interface{}); ok {
+			if platform, ok := clientProps["platform"].(string); ok && platform == "golang" {
+				// Close this connection
+				if err := h.RabbitMQClient.CloseConnection(connName); err != nil {
+					log.Printf("⚠️ [forceCloseGameConnections] Could not close connection %s: %v", connName, err)
+				} else {
+					log.Printf("🔌 [forceCloseGameConnections] Force closed connection: %s", connName)
+					connectionsClosedCount++
+				}
+			}
+		}
+	}
+
+	log.Printf("🔌 [forceCloseGameConnections] Closed %d connections", connectionsClosedCount)
 }
 
 // QuickstartPlayers creates default players with Go workers
@@ -261,8 +556,8 @@ func (h *Handlers) DeletePlayer(c *gin.Context) {
 		"source": "go-api",
 	})
 
-	// Additionally broadcast a generic roster update signal
-	h.broadcastMessage("roster", map[string]interface{}{})
+	// Additionally broadcast an immediate roster update with current data
+	h.broadcastRosterUpdate()
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
@@ -294,8 +589,8 @@ func (h *Handlers) ControlPlayer(c *gin.Context) {
 		return
 	}
 
-	// Broadcast roster update
-	h.broadcastMessage("roster", map[string]interface{}{})
+	// Broadcast immediate roster update with current data
+	h.broadcastRosterUpdate()
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,

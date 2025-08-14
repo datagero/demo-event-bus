@@ -50,6 +50,7 @@ git clone <repository>
 cd demo-event-bus
 
 # Start everything (RabbitMQ + Go API + Go Workers)
+# This will show live logs from both services with colored prefixes
 ./start_app.sh
 ```
 
@@ -64,6 +65,24 @@ cd demo-event-bus
 ```bash
 ./stop_app.sh
 ```
+
+### 🔄 Development Quick Reference
+
+When modifying code during development:
+```bash
+# Restart just the API server after changes
+./restart_api.sh
+
+# Restart just the workers after changes  
+./restart_workers.sh
+
+# Restart both services
+./restart_both.sh
+
+# Check status of all services
+./check_status.sh
+```
+> **💡 Tip**: Keep `./start_app.sh` running in your main terminal and use restart scripts in separate terminals for the best development experience.
 
 ## 🎮 Quick Educational Examples
 
@@ -282,6 +301,49 @@ air
 cd workers  
 go run main.go --port 8001 --webhook "http://localhost:9000/api/go-workers/webhook/events"
 ```
+
+### Development Workflow
+
+For the best development experience, keep the main application running in one terminal and use these scripts for individual service restarts:
+
+#### 🎯 Recommended Workflow
+
+1. **Start the main application** (keep this running):
+   ```bash
+   ./start_app.sh
+   ```
+
+2. **When you modify API server code**, restart just the API server:
+   ```bash
+   ./restart_api.sh
+   ```
+
+3. **When you modify workers code**, restart just the workers:
+   ```bash
+   ./restart_workers.sh
+   ```
+
+4. **To restart both services at once**:
+   ```bash
+   ./restart_both.sh
+   ```
+
+#### 📝 Development Script Features
+
+- **🔄 Quick restarts**: Only rebuild and restart the changed service
+- **📊 Health checks**: Automatic verification that services are responding
+- **📋 Unified logging**: All logs continue to flow to api-server.log and workers.log
+- **🎯 Clear feedback**: Color-coded output showing restart progress
+- **⚡ Fast iteration**: No need to restart RabbitMQ or other services
+
+#### 💡 Development Tips
+
+- **Keep start_app.sh running** in your main terminal - it shows **filtered live logs from both API server and workers**
+- **Use restart scripts** in separate terminals for quick iteration
+- **Watch the combined logs** in start_app.sh terminal with colored prefixes:
+  - 🔧 [API SERVER] - API server logs with timestamps (periodic API calls filtered)
+  - ⚡ [WORKERS] - Workers service logs with timestamps (all worker actions shown)
+- **Check health** at http://localhost:9000/health after restarts
 
 ### Environment Variables
 

@@ -38,6 +38,8 @@ func setupTestHandlers() *TestHandlers {
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
 	rabbitMQClient := clients.NewRabbitMQClient(cfg.RabbitMQURL)
 	wsHub := websocket.NewHub()
+	// Start the hub in a goroutine to prevent WebSocket channel blocking in tests
+	go wsHub.Run()
 
 	// Create handlers
 	h := &Handlers{
@@ -91,7 +93,8 @@ func TestHealthEndpoint(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	response := parseResponse(t, w)
-	assert.Equal(t, "healthy", response["status"])
+	// Health status can be "healthy" or "degraded" depending on service availability
+	assert.Contains(t, []string{"healthy", "degraded"}, response["status"])
 	assert.Contains(t, response, "timestamp")
 	assert.Contains(t, response, "services")
 }
@@ -115,14 +118,34 @@ func TestGameStateEndpoints(t *testing.T) {
 	})
 
 	t.Run("ResetGame", func(t *testing.T) {
+		// First, create some test players to reset
+		th.handlers.ensurePlayer("test-player-1")
+		th.handlers.ensurePlayer("test-player-2")
+
+		// Verify we have some player stats before reset
+		stats := th.handlers.getPlayerStatsSnapshot()
+		assert.NotEmpty(t, stats, "Should have player stats before reset")
+
+		// Perform the reset
 		w := th.makeRequest("POST", "/api/reset", nil)
 
-		// Should return not implemented
-		assert.Equal(t, http.StatusNotImplemented, w.Code)
+		// Should now succeed
+		assert.Equal(t, http.StatusOK, w.Code)
 
 		response := parseResponse(t, w)
-		assert.Equal(t, false, response["ok"])
-		assert.Contains(t, response["error"].(string), "not yet migrated")
+		assert.Equal(t, true, response["ok"])
+		assert.Contains(t, response["message"].(string), "Hard reset completed")
+
+		// Verify the response contains expected data
+		data, ok := response["data"].(map[string]interface{})
+		assert.True(t, ok, "Response should contain data map")
+		assert.Equal(t, "all", data["workers_stopped"])
+		assert.True(t, data["stats_cleared"].(bool))
+		assert.True(t, data["ui_reset"].(bool))
+
+		// Verify player stats are cleared
+		statsAfter := th.handlers.getPlayerStatsSnapshot()
+		assert.Empty(t, statsAfter, "Player stats should be empty after reset")
 	})
 }
 

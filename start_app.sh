@@ -21,6 +21,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
+MUTED='\033[0;37m'  # Light gray for timestamps
 NC='\033[0m' # No Color
 
 # Configuration
@@ -29,13 +30,66 @@ RABBITMQ_MGMT_PORT=${RABBITMQ_MGMT_PORT:-15672}
 GO_API_PORT=${GO_API_PORT:-9000}
 GO_WORKERS_PORT=${GO_WORKERS_PORT:-8001}
 
+# Parse command line arguments
+WATCH_MODE=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --watch|-w)
+            WATCH_MODE=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [OPTIONS]"
+            echo "Options:"
+            echo "  --watch, -w    Enable file watching and auto-restart on Go code changes"
+            echo "  --help, -h     Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Check for required tools if watch mode is enabled
+if [ "$WATCH_MODE" = true ]; then
+    echo -e "${BLUE}🔍 Checking for required tools for watch mode...${NC}"
+    
+    if ! command -v air >/dev/null 2>&1; then
+        echo -e "${YELLOW}⚠️  Air (Go live reload) not found. Installing...${NC}"
+        if ! command -v go >/dev/null 2>&1; then
+            echo -e "${RED}❌ Go not found. Please install Go first.${NC}"
+            exit 1
+        fi
+        go install github.com/air-verse/air@latest
+        
+        # Add GOPATH/bin to PATH if not already there
+        if [[ ":$PATH:" != *":$(go env GOPATH)/bin:"* ]]; then
+            export PATH="$(go env GOPATH)/bin:$PATH"
+        fi
+    fi
+    
+    echo -e "${GREEN}✅ Air (Go live reload) ready${NC}"
+fi
+
 echo -e "${PURPLE}================================================================================================${NC}"
 echo -e "${PURPLE}🚀 Starting Demo Event Bus - Complete Go Migration${NC}"
+if [ "$WATCH_MODE" = true ]; then
+    echo -e "${YELLOW}📁 Watch Mode: ENABLED - Auto-restart on Go code changes${NC}"
+fi
 echo -e "${PURPLE}================================================================================================${NC}"
 echo -e "${CYAN}📊 Configuration:${NC}"
-echo -e "   🐰 RabbitMQ: localhost:${RABBITMQ_PORT} (Management: ${RABBITMQ_MGMT_PORT})"
+echo -e "   🐰 RabbitMQ: localhost:${RABBITMQ_PORT} (Management: ${RABBITMQ_MGMT_PORT}) - External"
 echo -e "   🏗️  Go API Server: localhost:${GO_API_PORT}"
 echo -e "   ⚡ Go Workers: localhost:${GO_WORKERS_PORT}"
+if [ "$WATCH_MODE" = true ]; then
+    echo -e "   👁️  File Watching: ENABLED"
+fi
+echo -e "${PURPLE}================================================================================================${NC}"
+echo -e "${YELLOW}ℹ️  Note: RabbitMQ must be started manually before running this script${NC}"
+echo -e "${YELLOW}   Run: docker-compose up -d${NC}"
 echo -e "${PURPLE}================================================================================================${NC}"
 
 # Function to check if a port is in use
@@ -89,65 +143,26 @@ test_endpoint() {
     fi
 }
 
+
+
 # ==============================================================================
-# Step 1: Start RabbitMQ
+# Step 1: Build and Start Go API Server
 # ==============================================================================
 
-echo -e "\n${PURPLE}📋 Step 1: Starting RabbitMQ${NC}"
+echo -e "\n${PURPLE}📋 Step 1: Building and Starting Go API Server${NC}"
 
-# Force a clean stop and removal of the container first
-echo -e "${BLUE}🔄 Ensuring RabbitMQ container is stopped and removed...${NC}"
-docker-compose down --volumes
-
-if check_port $RABBITMQ_PORT "RabbitMQ AMQP"; then
-    echo -e "${GREEN}✅ RabbitMQ AMQP already running${NC}"
+# Check RabbitMQ availability (but don't manage it)
+echo -e "${BLUE}🔍 Checking RabbitMQ availability...${NC}"
+if ! nc -z localhost $RABBITMQ_PORT 2>/dev/null; then
+    echo -e "${YELLOW}⚠️  RabbitMQ AMQP port $RABBITMQ_PORT not accessible${NC}"
+    echo -e "${YELLOW}   Please start RabbitMQ manually: docker-compose up -d${NC}"
+    echo -e "${YELLOW}   Continuing anyway - services will retry connections...${NC}"
 else
-    echo -e "${BLUE}🚀 Starting RabbitMQ via Docker Compose...${NC}"
-    docker-compose up -d
-    wait_for_service $RABBITMQ_PORT "RabbitMQ AMQP"
+    echo -e "${GREEN}✅ RabbitMQ AMQP port $RABBITMQ_PORT is accessible${NC}"
 fi
-
-if check_port $RABBITMQ_MGMT_PORT "RabbitMQ Management"; then
-    echo -e "${GREEN}✅ RabbitMQ Management already running${NC}"
-else
-    wait_for_service $RABBITMQ_MGMT_PORT "RabbitMQ Management"
-fi
-
-# Test RabbitMQ Management API with retry
-echo -e "${BLUE}🧪 Testing RabbitMQ Management API...${NC}"
-max_retries=15
-retry_interval=2
-for ((i=1; i<=max_retries; i++)); do
-    if curl -s -u guest:guest "http://127.0.0.1:${RABBITMQ_MGMT_PORT}/api/overview" > /dev/null; then
-        echo -e "${GREEN}✅ RabbitMQ Management API is responding${NC}"
-        break
-    else
-        if [ $i -eq $max_retries ]; then
-            echo -e "${RED}❌ RabbitMQ Management API test failed after ${max_retries} attempts${NC}"
-            exit 1
-        fi
-        echo -e "${YELLOW}   Waiting for RabbitMQ Management API (attempt ${i}/${max_retries})...${NC}"
-        sleep $retry_interval
-    fi
-done
-
-# ==============================================================================
-# Step 2: Build and Start Go API Server
-# ==============================================================================
-
-echo -e "\n${PURPLE}📋 Step 2: Building and Starting Go API Server${NC}"
 
 cd api-server
 
-echo -e "${BLUE}🔨 Building Go API Server...${NC}"
-if go build -o api-server-complete ./main.go; then
-    echo -e "${GREEN}✅ Go API Server built successfully${NC}"
-else
-    echo -e "${RED}❌ Go API Server build failed${NC}"
-    exit 1
-fi
-
-echo -e "${BLUE}🚀 Starting Go API Server on port ${GO_API_PORT}...${NC}"
 # Set environment variables for Go API server
 export RABBITMQ_URL="amqp://guest:guest@localhost:5672/"
 export RABBITMQ_API_URL="http://localhost:15672/api"
@@ -156,10 +171,26 @@ export RABBITMQ_PASS="guest"
 export WORKERS_URL="http://localhost:${GO_WORKERS_PORT}"
 export PYTHON_URL="http://localhost:8080"  # Legacy fallback (not used)
 
-# Start Go API server in background, redirecting output to a log file
-./api-server-complete > ../api-server.log 2>&1 &
-GO_API_PID=$!
-echo -e "${GREEN}✅ Go API Server started (PID: ${GO_API_PID}), logging to api-server.log${NC}"
+if [ "$WATCH_MODE" = true ]; then
+    echo -e "${BLUE}🚀 Starting Go API Server with Air (live reload) on port ${GO_API_PORT}...${NC}"
+    mkdir -p tmp
+    air > ../api-server.log 2>&1 &
+    GO_API_PID=$!
+    echo -e "${GREEN}✅ Go API Server started with Air (PID: ${GO_API_PID}), logging to api-server.log${NC}"
+else
+    echo -e "${BLUE}🔨 Building Go API Server...${NC}"
+    if go build -o api-server-complete ./main.go; then
+        echo -e "${GREEN}✅ Go API Server built successfully${NC}"
+    else
+        echo -e "${RED}❌ Go API Server build failed${NC}"
+        exit 1
+    fi
+
+    echo -e "${BLUE}🚀 Starting Go API Server on port ${GO_API_PORT}...${NC}"
+    ./api-server-complete > ../api-server.log 2>&1 &
+    GO_API_PID=$!
+    echo -e "${GREEN}✅ Go API Server started (PID: ${GO_API_PID}), logging to api-server.log${NC}"
+fi
 
 wait_for_service $GO_API_PORT "Go API Server"
 test_endpoint "http://localhost:${GO_API_PORT}/health" "Go API Server Health"
@@ -167,26 +198,33 @@ test_endpoint "http://localhost:${GO_API_PORT}/health" "Go API Server Health"
 cd ..
 
 # ==============================================================================
-# Step 3: Build and Start Go Workers
+# Step 2: Build and Start Go Workers
 # ==============================================================================
 
-echo -e "\n${PURPLE}📋 Step 3: Building and Starting Go Workers${NC}"
+echo -e "\n${PURPLE}📋 Step 2: Building and Starting Go Workers${NC}"
 
 cd workers
 
-echo -e "${BLUE}🔨 Building Go Workers...${NC}"
-if go build -o workers-complete ./main.go; then
-    echo -e "${GREEN}✅ Go Workers built successfully${NC}"
+if [ "$WATCH_MODE" = true ]; then
+    echo -e "${BLUE}🚀 Starting Go Workers with Air (live reload) on port ${GO_WORKERS_PORT}...${NC}"
+    mkdir -p tmp
+    air > ../workers.log 2>&1 &
+    GO_WORKERS_PID=$!
+    echo -e "${GREEN}✅ Go Workers started with Air (PID: ${GO_WORKERS_PID}), logging to workers.log${NC}"
 else
-    echo -e "${RED}❌ Go Workers build failed${NC}"
-    exit 1
-fi
+    echo -e "${BLUE}🔨 Building Go Workers...${NC}"
+    if go build -o workers-complete ./main.go; then
+        echo -e "${GREEN}✅ Go Workers built successfully${NC}"
+    else
+        echo -e "${RED}❌ Go Workers build failed${NC}"
+        exit 1
+    fi
 
-echo -e "${BLUE}🚀 Starting Go Workers on port ${GO_WORKERS_PORT}...${NC}"
-# Start Go workers with webhook pointing to Go API server
-./workers-complete --port ${GO_WORKERS_PORT} --webhook "http://localhost:${GO_API_PORT}/api/go-workers/webhook/events" > ../workers.log 2>&1 &
-GO_WORKERS_PID=$!
-echo -e "${GREEN}✅ Go Workers started (PID: ${GO_WORKERS_PID}), logging to workers.log${NC}"
+    echo -e "${BLUE}🚀 Starting Go Workers on port ${GO_WORKERS_PORT}...${NC}"
+    ./workers-complete --port ${GO_WORKERS_PORT} --webhook "http://localhost:${GO_API_PORT}/api/go-workers/webhook/events" > ../workers.log 2>&1 &
+    GO_WORKERS_PID=$!
+    echo -e "${GREEN}✅ Go Workers started (PID: ${GO_WORKERS_PID}), logging to workers.log${NC}"
+fi
 
 wait_for_service $GO_WORKERS_PORT "Go Workers"
 test_endpoint "http://localhost:${GO_WORKERS_PORT}/health" "Go Workers Health"
@@ -194,10 +232,10 @@ test_endpoint "http://localhost:${GO_WORKERS_PORT}/health" "Go Workers Health"
 cd ..
 
 # ==============================================================================
-# Step 4: Test Complete System Integration
+# Step 3: Test Complete System Integration
 # ==============================================================================
 
-echo -e "\n${PURPLE}📋 Step 4: Testing Complete System Integration${NC}"
+echo -e "\n${PURPLE}📋 Step 3: Testing Complete System Integration${NC}"
 
 echo -e "${BLUE}🧪 Testing Go API Server endpoints...${NC}"
 
@@ -228,10 +266,10 @@ else
 fi
 
 # ==============================================================================
-# Step 5: Display System Information
+# Step 4: Display System Information
 # ==============================================================================
 
-echo -e "\n${PURPLE}📋 Step 5: System Information${NC}"
+echo -e "\n${PURPLE}📋 Step 4: System Information${NC}"
 
 echo -e "\n${CYAN}🌐 Service URLs:${NC}"
 echo -e "   🏠 Frontend:              http://localhost:${GO_API_PORT}/"
@@ -268,6 +306,14 @@ echo -e ""
 echo -e "   # Trigger chaos (purge queue)"
 echo -e "   curl -X POST http://localhost:${GO_API_PORT}/api/chaos/arm -H 'Content-Type: application/json' -d '{\"action\":\"rmq_purge_queue\",\"target_queue\":\"game.skill.gather.q\"}'"
 
+if [ "$WATCH_MODE" = true ]; then
+    echo -e ""
+    echo -e "${CYAN}👁️  Development Mode:${NC}"
+    echo -e "   📁 Air live reload is ENABLED"
+    echo -e "   🔄 Go files will auto-rebuild and restart on changes"
+    echo -e "   📝 Edit files in api-server/ or workers/ to see instant updates"
+fi
+
 # ==============================================================================
 # Cleanup Function
 # ==============================================================================
@@ -285,9 +331,6 @@ cleanup() {
         kill $GO_API_PID 2>/dev/null || true
     fi
     
-    echo -e "${BLUE}Stopping RabbitMQ...${NC}"
-    docker-compose down
-    
     echo -e "${GREEN}✅ All services stopped${NC}"
 }
 
@@ -301,11 +344,36 @@ trap cleanup EXIT
 echo -e "\n${PURPLE}================================================================================================${NC}"
 echo -e "${GREEN}🎉 Demo Event Bus - Complete Go Migration is running!${NC}"
 echo -e "${PURPLE}================================================================================================${NC}"
-echo -e "${CYAN}📊 Architecture: RabbitMQ + Go API Server + Go Workers${NC}"
-echo -e "${CYAN}🎯 Educational Focus: Direct RabbitMQ integration with zero abstraction${NC}"
+echo -e "${CYAN}📊 Architecture: RabbitMQ (External) + Go API Server + Go Workers${NC}"
+echo -e "${CYAN}🎯 Educational Focus: Direct RabbitMQ integration with minimal abstraction${NC}"
 echo -e "${CYAN}🌐 Frontend: http://localhost:${GO_API_PORT}/${NC}"
+echo -e "${YELLOW}ℹ️  RabbitMQ managed separately via: docker-compose up -d${NC}"
 echo -e "${PURPLE}================================================================================================${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop all services${NC}"
 
-# Wait for interrupt
-wait
+# Keep running until manually stopped - show logs from both services
+echo -e "\n${BLUE}🔄 Monitoring services... (Check status with: ./check_status.sh)${NC}"
+echo -e "${BLUE}🔄 To restart individual services during development:${NC}"
+echo -e "${BLUE}   ./restart_api.sh     - Restart API server${NC}"
+echo -e "${BLUE}   ./restart_workers.sh - Restart workers${NC}"
+echo -e "${PURPLE}================================================================================================${NC}"
+echo -e "${CYAN}📋 Live Logs (API Server + Workers):${NC}"
+echo -e "${MUTED}Tip: Use Ctrl+C to stop all services${NC}"
+echo -e "${PURPLE}================================================================================================${NC}"
+
+# Follow both log files in real-time with labeled output and noise filtering
+tail -f api-server.log workers.log | while IFS= read -r line; do
+    # Detect which log file the line came from and add colored prefix
+    if [[ "$line" == "==> api-server.log <==" ]]; then
+        echo -e "${BLUE}🔧 [API SERVER]${NC}"
+    elif [[ "$line" == "==> workers.log <==" ]]; then
+        echo -e "${GREEN}⚡ [WORKERS]${NC}"
+    elif [[ "$line" != "" && "$line" != "==> "* ]]; then
+        # Filter out noisy periodic API calls
+        if [[ "$line" =~ (GET.*derived/metrics|GET.*derived/scoreboard|GET.*dlq/list|📊.*Derived\ metrics) ]]; then
+            continue # Skip repetitive API calls
+        fi
+        # Add timestamp and output the actual log line
+        echo -e "${MUTED}$(date '+%H:%M:%S')${NC} $line"
+    fi
+done

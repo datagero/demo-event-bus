@@ -1,12 +1,12 @@
-2025/08/11 11:27:25 🚀 [API Server] Starting on port 9000
-2025/08/11 11:27:25 🐍 [API Server] Python service: http://localhost:8080
-2025/08/11 11:27:25 ⚡ [API Server] Workers service: http://localhost:8001
-2025/08/11 11:27:25 🐰 [API Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+2025/08/14 19:21:43 🚀 [API Server] Starting on port 9000
+2025/08/14 19:21:43 🐍 [API Server] Python service: http://localhost:8080
+2025/08/14 19:21:43 ⚡ [API Server] Workers service: http://localhost:8001
+2025/08/14 19:21:43 🐰 [API Server] RabbitMQ: amqp://guest:guest@localhost:5672/
 [GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
  - using env:	export GIN_MODE=release
  - using code:	gin.SetMode(gin.ReleaseMode)
 
-2025/08/11 11:27:25 🐰 [RabbitMQ] Connected and exchange declared
+2025/08/14 19:21:43 🐰 [RabbitMQ] Connected and exchange declared
 [GIN-debug] GET    /ws                       --> demo-event-bus-api/internal/api.SetupRoutes.HandleWebSocket.func4 (4 handlers)
 [GIN-debug] GET    /health                   --> demo-event-bus-api/internal/api/handlers.(*Handlers).Health-fm (4 handlers)
 [GIN-debug] GET    /api/health               --> demo-event-bus-api/internal/api/handlers.(*Handlers).Health-fm (4 handlers)
@@ -66,580 +66,1113 @@
 [GIN-debug] GET    /api/rabbitmq/derived/scoreboard --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetRabbitMQScoreboard-fm (4 handlers)
 [GIN-debug] GET    /api/dlq/inspect          --> demo-event-bus-api/internal/api/handlers.(*Handlers).InspectDLQ-fm (4 handlers)
 [GIN-debug] GET    /ws/rabbitmq              --> demo-event-bus-api/internal/api.SetupRoutes.func2 (4 handlers)
-2025/08/11 11:27:25 ✅ [API Server] Server ready on http://localhost:9000
-2025/08/11 11:27:26 📊 [RabbitMQ-Go] Derived metrics: 0 queues, 0 total pending, 0 consumers
-[GIN] 2025/08/11 - 11:27:26 | 200 |    3.887458ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:26 | 200 |    1.010916ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:27:27 | 200 |     652.292µs |             ::1 | GET      "/health"
-[GIN] 2025/08/11 - 11:27:27 | 304 |       76.75µs |             ::1 | GET      "/"
-[GIN] 2025/08/11 - 11:27:27 | 200 |      41.625µs |             ::1 | GET      "/ws"
-2025/08/11 11:27:27 🔗 [WebSocket] Client connected (total: 1)
-[GIN] 2025/08/11 - 11:27:27 | 501 |      38.792µs |             ::1 | GET      "/api/broker/routes"
-[GIN] 2025/08/11 - 11:27:27 | 200 |      36.958µs |             ::1 | GET      "/api/chaos/status"
-[GIN] 2025/08/11 - 11:27:27 | 200 |      12.792µs |             ::1 | GET      "/api/cardgame/enabled"
-[GIN] 2025/08/11 - 11:27:27 | 200 |    1.149208ms |             ::1 | GET      "/api/pending/list"
-[GIN] 2025/08/11 - 11:27:27 | 200 |      25.416µs |             ::1 | GET      "/ws/rabbitmq"
-2025/08/11 11:27:27 📊 [RabbitMQ-Go] Derived metrics: 0 queues, 0 total pending, 0 consumers
-2025/08/11 11:27:28 ⚠️  [WebSocket] Broadcast channel full, dropping message
-[GIN] 2025/08/11 - 11:27:28 | 200 |      48.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:28 ⚠️  [WebSocket] Broadcast channel full, dropping message
-[GIN] 2025/08/11 - 11:27:28 | 200 |   41.850708ms |             ::1 | POST     "/api/players/quickstart"
-[GIN] 2025/08/11 - 11:27:28 | 200 |      38.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:29 | 200 |    5.454125ms |             ::1 | GET      "/api/dlq/inspect"
-2025/08/11 11:27:29 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 0 consumers
-[GIN] 2025/08/11 - 11:27:29 | 200 |    8.771041ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:29 | 200 |     1.47125ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:29 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 0 consumers
-[GIN] 2025/08/11 - 11:27:29 | 200 |    2.327666ms |             ::1 | GET      "/api/rabbitmq/metrics"
-[GIN] 2025/08/11 - 11:27:29 | 200 |      37.708µs |             ::1 | GET      "/api/chaos/status"
-2025/08/11 11:27:29 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904449-413203000
-[GIN] 2025/08/11 - 11:27:29 | 200 |     109.292µs |             ::1 | POST     "/api/publish"
-2025/08/11 11:27:29 ⚠️  [WebSocket] Broadcast channel full, dropping message
-[GIN] 2025/08/11 - 11:27:29 | 200 |      42.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:29 | 200 |      30.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:29 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 0 consumers
-2025/08/11 11:27:31 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:31 | 200 |     3.17125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:31 | 200 |    1.283666ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:31 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:33 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:33 | 200 |    3.373584ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:33 | 200 |    1.330416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:33 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:35 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:35 | 200 |     4.50325ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:35 | 200 |    1.022959ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:35 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:37 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:37 | 200 |    2.251417ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:37 | 200 |     717.417µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:37 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:39 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:39 | 200 |    6.120833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:39 | 200 |    1.729083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:39 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:39 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904459-863194000
-[GIN] 2025/08/11 - 11:27:39 | 200 |     122.292µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:39 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904459-964530000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-65800000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-167441000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-269453000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-370612000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-471773000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-573115000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-673755000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-774356000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-875605000
-2025/08/11 11:27:40 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904460-977372000
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-79152000
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-180643000
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-283872000
-2025/08/11 11:27:41 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:41 | 200 |    3.841208ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:41 | 200 |    1.571916ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-386586000
-2025/08/11 11:27:41 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-487436000
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-588555000
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-689847000
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904461-791311000
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904461-792088000
-[GIN] 2025/08/11 - 11:27:41 | 200 |     111.459µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:41 | 200 |     125.791µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:41 | 200 |      97.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904461-894190000
-[GIN] 2025/08/11 - 11:27:41 | 200 |      68.584µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:41 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904461-995727000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-97409000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-198370000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-299386000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-400895000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-501620000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-603760000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-705729000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-807338000
-2025/08/11 11:27:42 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904462-908880000
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-9867000
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-111272000
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-212721000
-[GIN] 2025/08/11 - 11:27:43 | 200 |      115.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:43 | 200 |      82.459µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-314299000
-2025/08/11 11:27:43 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:43 | 200 |    4.488667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:43 | 200 |    1.365042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-415184000
-2025/08/11 11:27:43 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-516641000
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-617907000
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.slay: q-1754904463-719320000
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904463-719550000
-[GIN] 2025/08/11 - 11:27:43 | 200 |     102.166µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:43 | 200 |     161.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:43 | 200 |      66.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904463-820419000
-[GIN] 2025/08/11 - 11:27:43 | 200 |     111.791µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:43 | 200 |      51.084µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:43 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904463-921772000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-22841000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-123892000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-225324000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-327104000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-427826000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-529439000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-630936000
-[GIN] 2025/08/11 - 11:27:44 | 200 |     112.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:44 | 200 |      67.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-731912000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-832722000
-2025/08/11 11:27:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904464-934210000
-2025/08/11 11:27:45 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904465-36163000
-[GIN] 2025/08/11 - 11:27:45 | 200 |    1.165375ms |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:45 | 200 |      96.584µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:45 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904465-137726000
-2025/08/11 11:27:45 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904465-238271000
-2025/08/11 11:27:45 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:45 | 200 |    2.150375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-2025/08/11 11:27:45 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904465-338481000
-[GIN] 2025/08/11 - 11:27:45 | 200 |       808.5µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:45 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904465-439557000
-2025/08/11 11:27:45 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:27:45 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904465-539995000
-2025/08/11 11:27:45 📨 [RabbitMQ] Published message to game.quest.escort: q-1754904465-640615000
-2025/08/11 11:27:45 ⚠️  [WebSocket] Broadcast channel full, dropping message
-[GIN] 2025/08/11 - 11:27:45 | 200 |  5.777836416s |             ::1 | POST     "/api/master/start"
-[GIN] 2025/08/11 - 11:27:45 | 200 |       119.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:45 | 200 |      79.959µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:45 | 200 |       72.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:45 | 200 |          46µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:46 | 200 |      80.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:46 | 200 |      78.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:46 | 200 |     231.209µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:46 | 200 |      88.959µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:47 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 17 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:47 | 200 |       5.516ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:47 | 200 |      1.6165ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:47 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 17 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:47 | 200 |      69.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:47 | 200 |      47.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:47 | 200 |     153.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:47 | 200 |       91.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:47 | 200 |     161.791µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:47 | 200 |      80.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:47 | 200 |     103.334µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:47 | 200 |       50.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:48 | 200 |     218.916µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:48 | 200 |     138.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:49 | 200 |     136.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:49 | 200 |      92.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:49 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 17 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:49 | 200 |    5.191583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:49 | 200 |    1.809833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:49 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 17 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:49 | 200 |     170.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:49 | 200 |      74.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:49 | 200 |     167.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:49 | 200 |      46.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:50 | 200 |      148.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:50 | 200 |      76.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:50 | 200 |      75.917µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:50 | 200 |      56.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:51 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 46 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:51 | 200 |    5.580125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:51 | 200 |      1.2715ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:51 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 46 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:51 | 200 |     152.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:51 | 200 |      87.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:51 | 200 |     138.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:51 | 200 |      85.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:51 | 200 |      75.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:51 | 200 |      74.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:52 | 200 |     152.917µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:52 | 200 |      89.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:53 | 200 |     126.958µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:53 | 200 |     988.166µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:53 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 46 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:53 | 200 |    3.253959ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:53 | 200 |    1.102416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:53 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 46 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:53 | 200 |     102.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:53 | 200 |      90.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:53 | 200 |     179.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:53 | 200 |      67.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:53 | 200 |      96.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:53 | 200 |      64.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:54 | 200 |      163.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:54 | 200 |      94.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:54 | 200 |     163.541µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:54 | 200 |      75.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:55 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 46 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:55 | 200 |    5.768042ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:55 | 200 |    1.709416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:55 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 46 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:55 | 200 |     117.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:55 | 200 |      63.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:55 | 200 |        78.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:55 | 200 |       47.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:55 | 200 |     138.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:55 | 200 |      93.959µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:56 | 200 |      141.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:56 | 200 |      84.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:57 | 200 |         313µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:57 | 200 |      74.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:57 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 32 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:57 | 200 |    7.708208ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:27:57 | 200 |    3.276833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:27:57 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 32 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:57 | 200 |     116.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:57 | 200 |      60.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:57 | 200 |     123.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:57 | 200 |       121.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:57 | 200 |      62.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:58 | 304 |     279.917µs |             ::1 | GET      "/"
-2025/08/11 11:27:58 🔌 [WebSocket] Client disconnected (total: 0)
-[GIN] 2025/08/11 - 11:27:58 | 200 |      79.583µs |             ::1 | GET      "/ws"
-[GIN] 2025/08/11 - 11:27:58 | 501 |      15.917µs |             ::1 | GET      "/api/broker/routes"
-2025/08/11 11:27:58 🔗 [WebSocket] Client connected (total: 1)
-[GIN] 2025/08/11 - 11:27:58 | 200 |       9.875µs |             ::1 | GET      "/api/cardgame/enabled"
-[GIN] 2025/08/11 - 11:27:58 | 200 |      15.958µs |             ::1 | GET      "/api/chaos/status"
-[GIN] 2025/08/11 - 11:27:58 | 200 |    8.275875ms |             ::1 | GET      "/api/pending/list"
-[GIN] 2025/08/11 - 11:27:58 | 200 |      27.041µs |             ::1 | GET      "/ws/rabbitmq"
-[GIN] 2025/08/11 - 11:27:58 | 200 |       183.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:59 | 200 |     224.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:59 | 200 |      84.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:27:59 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 32 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:27:59 | 200 |     180.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:27:59 | 200 |      67.959µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:00 | 200 |    2.766542ms |             ::1 | GET      "/api/dlq/inspect"
-2025/08/11 11:28:00 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 32 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:00 | 200 |    5.705375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:00 | 200 |    1.133833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:00 | 200 |     138.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:00 | 200 |      80.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:01 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 19 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:01 | 200 |     114.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:01 | 200 |      66.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:01 | 200 |     124.541µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:01 | 200 |      75.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:02 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 19 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:02 | 200 |    3.282708ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:02 | 200 |     860.625µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:03 | 200 |     329.459µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:03 | 200 |     168.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:03 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 19 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:03 | 200 |     165.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:03 | 200 |      88.917µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:04 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 19 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:04 | 200 |       3.413ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:04 | 200 |      1.0375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:04 | 200 |     149.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:04 | 200 |     150.709µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:05 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 19 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:05 | 200 |       64.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:05 | 200 |      40.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:06 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 12 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:06 | 200 |    5.734417ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:06 | 200 |    1.262416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:06 | 200 |          95µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:06 | 200 |          84µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:07 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 12 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:07 | 200 |     152.916µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:07 | 200 |          77µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:07 | 200 |     108.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:07 | 200 |      30.916µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:08 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 12 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:08 | 200 |    2.513292ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:08 | 200 |     807.041µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:08 | 200 |     168.166µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:08 | 200 |          99µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:09 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 12 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:09 | 200 |     106.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:09 | 200 |      51.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:10 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 12 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:10 | 200 |    3.471584ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:10 | 200 |      765.75µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:10 | 200 |     159.916µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:10 | 200 |      91.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:11 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 9 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:11 | 200 |      168.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:11 | 200 |     128.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:11 | 200 |      78.292µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:12 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 9 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:12 | 200 |    3.322708ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:12 | 200 |    1.195875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:13 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 9 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:13 | 200 |       225.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:13 | 200 |      90.292µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:14 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 9 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:14 | 200 |    3.286167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:14 | 200 |    1.135625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:15 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 9 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:15 | 200 |     169.958µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:15 | 200 |      69.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:16 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:16 | 200 |    4.326625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:16 | 200 |    1.315459ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:17 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:17 | 200 |     177.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
-[GIN] 2025/08/11 - 11:28:17 | 200 |      81.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:18 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:18 | 200 |        3.23ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:18 | 200 |     799.875µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:19 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:19 | 200 |      151.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:20 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:20 | 200 |    2.526708ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:20 | 200 |     910.375µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:21 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-2025/08/11 11:28:22 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:22 | 200 |    6.080459ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:22 | 200 |    1.219542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:23 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-2025/08/11 11:28:24 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:24 | 200 |    3.175625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:24 | 200 |         848µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:25 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 2 total pending, 4 consumers
-2025/08/11 11:28:26 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:26 | 200 |    2.613833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:26 | 200 |     672.917µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:27 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:28 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:28 | 200 |    3.433583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:28 | 200 |     966.917µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:29 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:29 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904509-989651000
-[GIN] 2025/08/11 - 11:28:29 | 200 |     276.334µs |             ::1 | POST     "/api/master/one"
-[GIN] 2025/08/11 - 11:28:29 | 200 |     116.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:30 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:30 | 200 |    3.265542ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:30 | 200 |    1.165375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:31 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:31 | 200 |         161µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:32 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:32 | 200 |    2.956916ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:32 | 200 |     870.875µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:33 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:34 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:34 | 200 |    4.366333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:34 | 200 |     905.084µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:35 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:36 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:36 | 200 |     3.40725ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:36 | 200 |    1.150084ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:37 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:38 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:38 | 200 |     3.93475ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:38 | 200 |     956.958µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:38 📨 [RabbitMQ] Published message to game.quest.gather: q-1754904518-88488000
-[GIN] 2025/08/11 - 11:28:38 | 200 |     632.958µs |             ::1 | POST     "/api/master/one"
-[GIN] 2025/08/11 - 11:28:38 | 200 |     361.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:39 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:40 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:40 | 200 |    5.000834ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:40 | 200 |    1.115083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:40 | 200 |      95.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:28:41 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:42 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:42 | 200 |       3.731ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:42 | 200 |    1.284917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:43 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:44 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:44 | 200 |    3.865208ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:44 | 200 |    1.140542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:45 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:46 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:46 | 200 |    2.853375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:46 | 200 |     929.875µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:47 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:48 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:48 | 200 |    2.983417ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:48 | 200 |    1.138583ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:49 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:50 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:50 | 200 |    5.285958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:50 | 200 |     1.04475ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:50 | 501 |     216.791µs |             ::1 | POST     "/api/chaos/arm"
-2025/08/11 11:28:51 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:52 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:52 | 200 |     3.41575ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:52 | 200 |    1.038459ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:53 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:54 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:54 | 200 |     2.50225ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:54 | 200 |     756.417µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:55 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:56 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:56 | 200 |       3.534ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:56 | 200 |    1.050834ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:28:57 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:28:58 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:28:58 | 200 |      3.5365ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:28:58 | 200 |     965.875µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-[GIN] 2025/08/11 - 11:28:58 | 400 |     135.875µs |             ::1 | POST     "/api/scenario/run"
-2025/08/11 11:28:59 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:00 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:00 | 200 |    3.146417ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:00 | 200 |    1.016167ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:01 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:02 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:02 | 200 |    4.003291ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:02 | 200 |    1.493625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:03 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:04 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:04 | 200 |     2.81925ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:04 | 200 |    1.132125ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:05 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:06 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:06 | 200 |      3.3655ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:06 | 200 |     889.708µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:07 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:08 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:08 | 200 |    3.785667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:08 | 200 |    1.358291ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:09 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:10 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:10 | 200 |    3.611416ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:10 | 200 |      841.25µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:11 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:12 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:12 | 200 |    3.737833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:12 | 200 |    1.070375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:13 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:14 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:14 | 200 |    3.248291ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:14 | 200 |    1.326041ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:15 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:16 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:16 | 200 |    3.085209ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:16 | 200 |    1.199291ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:17 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:18 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:18 | 200 |    3.272333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:18 | 200 |    1.397958ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:19 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:20 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:20 | 200 |    3.397375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:20 | 200 |     967.875µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:21 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:22 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:22 | 200 |    4.133166ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:22 | 200 |     974.792µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:23 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:24 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:24 | 200 |      5.6785ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:24 | 200 |    1.120584ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:25 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:26 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:26 | 200 |    4.715541ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:26 | 200 |    1.312709ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:27 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:28 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:28 | 200 |       3.071ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:28 | 200 |     971.875µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:29 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:30 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:30 | 200 |     4.26275ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:30 | 200 |    1.060791ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:31 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:32 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:32 | 200 |    3.030292ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:32 | 200 |       760.5µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:33 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:34 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:34 | 200 |    4.452959ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:34 | 200 |    1.230666ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:35 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:36 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:36 | 200 |    3.711042ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:36 | 200 |     851.625µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:37 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:38 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:38 | 200 |    3.540583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:38 | 200 |    1.043709ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:39 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:40 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:40 | 200 |    3.037583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:40 | 200 |    1.132125ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:41 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:42 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:42 | 200 |    3.018167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:42 | 200 |     876.167µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:43 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:44 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:44 | 200 |       4.248ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:44 | 200 |     1.22775ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:45 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:46 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:46 | 200 |    3.249375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:46 | 200 |    1.212792ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:47 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:48 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:48 | 200 |    4.311167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:48 | 200 |    1.625417ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:49 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:50 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:50 | 200 |    5.024416ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:50 | 200 |    1.826833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:51 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:52 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:52 | 200 |    4.468291ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:52 | 200 |    2.252917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:53 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:54 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-[GIN] 2025/08/11 - 11:29:54 | 200 |    5.322458ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:54 | 200 |    1.261375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:55 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 4 consumers
-2025/08/11 11:29:55 ⚠️  [WebSocket] Broadcast channel full, dropping message
-[GIN] 2025/08/11 - 11:29:55 | 200 |    8.387292ms |             ::1 | POST     "/api/players/quickstart"
-[GIN] 2025/08/11 - 11:29:55 | 200 |      58.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:29:56 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 5 consumers
-[GIN] 2025/08/11 - 11:29:56 | 200 |    2.710833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:56 | 200 |       770.5µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:57 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 5 consumers
-2025/08/11 11:29:58 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 5 consumers
-[GIN] 2025/08/11 - 11:29:58 | 200 |    4.974875ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:29:58 | 200 |       1.091ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:29:59 ⚠️  [WebSocket] Broadcast channel full, dropping message
-[GIN] 2025/08/11 - 11:29:59 | 200 |   20.953209ms |             ::1 | POST     "/api/players/quickstart"
-[GIN] 2025/08/11 - 11:29:59 | 200 |      40.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
-2025/08/11 11:29:59 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 5 consumers
-2025/08/11 11:30:00 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 5 consumers
-[GIN] 2025/08/11 - 11:30:00 | 200 |     2.80125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:00 | 200 |     1.38775ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:01 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:02 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:02 | 200 |    3.808625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:02 | 200 |    1.119875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:03 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:04 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:04 | 200 |    4.414083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:04 | 200 |    1.230833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:05 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:06 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:06 | 200 |    4.106459ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:06 | 200 |    1.361166ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:07 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:08 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:08 | 200 |    6.152459ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:08 | 200 |    1.072541ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:09 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:10 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:10 | 200 |    4.891542ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:10 | 200 |    1.759208ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:11 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:12 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:12 | 200 |    4.585084ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:12 | 200 |      992.75µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:13 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:14 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:14 | 200 |       2.843ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:14 | 200 |    1.079167ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:15 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:16 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:16 | 200 |    2.788583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:16 | 200 |     864.667µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:17 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-2025/08/11 11:30:18 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
-[GIN] 2025/08/11 - 11:30:18 | 200 |    3.693583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
-[GIN] 2025/08/11 - 11:30:18 | 200 |    2.109166ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
-2025/08/11 11:30:19 📊 [RabbitMQ-Go] Derived metrics: 3 queues, 0 total pending, 9 consumers
+2025/08/14 19:21:43 ✅ [API Server] Server ready on http://localhost:9000
+2025/08/14 19:21:43 📋 [DLQ] No DLQ queues found, auto-setting up DLQ topology...
+2025/08/14 19:21:43 📊 [RabbitMQ-Go] Derived metrics: 0 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:43 | 200 |    4.616167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+2025/08/14 19:21:43 🔄 [RabbitMQ] Successfully created exchange game.dlx (topic)
+[GIN] 2025/08/14 - 19:21:43 | 200 |    1.004167ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:21:43 🔄 [RabbitMQ] Successfully created exchange game.unroutable (fanout)
+2025/08/14 19:21:44 📦 [RabbitMQ] Successfully created queue game.dlq.failed.q
+2025/08/14 19:21:44 🔗 [RabbitMQ] Successfully bound queue game.dlq.failed.q to exchange game.dlx with routing key dlq.failed
+2025/08/14 19:21:44 📦 [RabbitMQ] Successfully created queue game.dlq.unroutable.q
+2025/08/14 19:21:44 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.dlx with routing key dlq.unroutable
+2025/08/14 19:21:44 📦 [RabbitMQ] Successfully created queue game.dlq.expired.q
+2025/08/14 19:21:44 🔗 [RabbitMQ] Successfully bound queue game.dlq.expired.q to exchange game.dlx with routing key dlq.expired
+2025/08/14 19:21:44 📦 [RabbitMQ] Successfully created queue game.dlq.retry.q
+2025/08/14 19:21:44 🔗 [RabbitMQ] Successfully bound queue game.dlq.retry.q to exchange game.dlx with routing key dlq.retry
+2025/08/14 19:21:44 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.unroutable with routing key 
+2025/08/14 19:21:44 ✅ [DLQ] Auto-setup completed successfully
+[GIN] 2025/08/14 - 19:21:44 | 200 |   32.458625ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/14 - 19:21:45 | 200 |         642µs |             ::1 | GET      "/health"
+2025/08/14 19:21:45 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:45 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:45 | 200 |    3.862334ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:45 | 200 |    1.170208ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:21:47 | 200 |    18.12675ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:21:47 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:47 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:47 | 200 |    1.697041ms |             ::1 | GET      "/api/rabbitmq/metrics"
+[GIN] 2025/08/14 - 19:21:47 | 200 |      21.208µs |             ::1 | GET      "/api/chaos/status"
+2025/08/14 19:21:47 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192107-392632000
+2025/08/14 19:21:47 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:21:47 | 200 |     883.292µs |             ::1 | POST     "/api/publish"
+2025/08/14 19:21:47 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:47 | 200 |    4.946167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:47 | 200 |    1.039083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:21:49 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:49 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:49 | 200 |    5.767625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:50 | 200 |    1.133042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:21:50 | 200 |   16.966875ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:21:51 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:51 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:51 | 200 |    2.570459ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:51 | 200 |         473µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:21:53 | 200 |   17.368375ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:21:53 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:53 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:53 | 200 |    2.301458ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:53 | 200 |     506.084µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:21:55 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:55 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:55 | 200 |       5.402ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:55 | 200 |    1.049042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:21:56 | 200 |   15.958792ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:21:57 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:57 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:57 | 200 |    5.082833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:57 | 200 |     1.03775ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:21:58 | 200 |   10.032417ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:21:59 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:21:59 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:21:59 | 200 |    2.542375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:21:59 | 200 |      935.75µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:01 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:22:01 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:22:01 | 200 |    4.884834ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:01 | 200 |      1.1025ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:02 | 200 |   12.553875ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/14 - 19:22:03 | 304 |     658.541µs |             ::1 | GET      "/"
+[GIN] 2025/08/14 - 19:22:03 | 200 |      99.958µs |             ::1 | GET      "/ws"
+2025/08/14 19:22:03 🔗 [WebSocket] Client connected (total: 1)
+[GIN] 2025/08/14 - 19:22:03 | 501 |      11.333µs |             ::1 | GET      "/api/broker/routes"
+[GIN] 2025/08/14 - 19:22:03 | 200 |      34.959µs |             ::1 | GET      "/api/cardgame/enabled"
+[GIN] 2025/08/14 - 19:22:03 | 200 |          13µs |             ::1 | GET      "/api/chaos/status"
+[GIN] 2025/08/14 - 19:22:03 | 200 |      18.458µs |             ::1 | GET      "/ws/rabbitmq"
+[GIN] 2025/08/14 - 19:22:03 | 200 |   10.722209ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:03 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:22:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192124-500591000
+2025/08/14 19:22:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:22:04 | 200 |    2.527708ms |             ::1 | POST     "/api/master/one"
+[GIN] 2025/08/14 - 19:22:05 | 200 |    5.083875ms |             ::1 | GET      "/api/dlq/inspect"
+2025/08/14 19:22:05 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:22:05 | 200 |    6.643875ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:05 | 200 |    2.076875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:05 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:22:06 | 200 |   17.609667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:07 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:22:07 | 200 |   10.589167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:07 | 200 |       3.059ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:07 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:22:07 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192127-467044000
+2025/08/14 19:22:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:22:07 | 200 |    1.503917ms |             ::1 | POST     "/api/master/one"
+2025/08/14 19:22:07 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192127-622761000
+2025/08/14 19:22:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:22:07 | 200 |    1.209417ms |             ::1 | POST     "/api/master/one"
+2025/08/14 19:22:09 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:22:09 | 200 |    4.087334ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:09 | 200 |    1.089833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:09 | 200 |   14.719833ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:09 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/14 19:22:11 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:22:11 | 200 |   26.339667ms |             ::1 | POST     "/api/players/quickstart"
+[GIN] 2025/08/14 - 19:22:11 | 200 |      42.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:22:11 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:22:11 | 200 |    2.620583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:11 | 200 |     685.208µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:11 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:22:12 | 200 |   12.247834ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:13 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:13 | 200 |    5.059541ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:13 | 200 |    1.147917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:13 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:15 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:15 | 200 |    2.502833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:15 | 200 |      844.75µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:15 | 200 |    9.117667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:15 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:17 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:17 | 200 |    3.376166ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:17 | 200 |     811.375µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:17 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:18 | 200 |   19.244917ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:19 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:19 | 200 |    3.022583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:19 | 200 |    1.505917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:19 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:21 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:21 | 200 |    3.877333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:21 | 200 |    1.081959ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:21 | 200 |   11.864041ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:21 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:23 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:23 | 200 |    5.650084ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:23 | 200 |    1.793375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:23 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:24 | 200 |   12.862541ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:25 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:25 | 200 |    5.632875ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:25 | 200 |    1.635917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:25 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:27 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:27 | 200 |    5.252083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:27 | 200 |    1.435416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:27 | 200 |   14.295125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:27 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:29 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:29 | 200 |    4.462625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:29 | 200 |    1.517208ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:29 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:30 | 200 |   17.256459ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:31 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:31 | 200 |    3.911542ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:31 | 200 |    1.172209ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:31 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:33 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:33 | 200 |    5.778834ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:33 | 200 |    1.289042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:33 | 200 |   16.788125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:33 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:35 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:35 | 200 |    5.760666ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:35 | 200 |    2.480333ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:35 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:36 | 200 |   16.979792ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:37 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:37 | 200 |    5.334583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:37 | 200 |    1.562625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:37 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:39 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:39 | 200 |      6.7415ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:39 | 200 |    1.812416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:39 | 200 |    16.66925ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:39 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:41 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:41 | 200 |    4.890583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:41 | 200 |    1.833625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:41 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:42 | 200 |   12.407583ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:43 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:43 | 200 |    5.746208ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:43 | 200 |    1.790667ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:43 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:45 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:45 | 200 |    5.799709ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:45 | 200 |    1.849208ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:45 | 200 |   16.136583ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:45 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:47 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:47 | 200 |    5.299541ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:47 | 200 |    1.400875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:47 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:48 | 200 |   11.640125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:49 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:49 | 200 |    5.294916ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:49 | 200 |    1.417416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:49 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:51 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:51 | 200 |    5.025458ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:51 | 200 |    1.161958ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:51 | 200 |   13.143167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:51 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:53 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:53 | 200 |    5.487334ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:53 | 200 |    2.462875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:53 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:54 | 200 |   10.461042ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/14 - 19:22:54 | 400 |     136.167µs |             ::1 | POST     "/api/scenario/run"
+2025/08/14 19:22:55 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:55 | 200 |    5.489459ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:55 | 200 |     1.74475ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:55 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:57 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:57 | 200 |    5.098958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:57 | 200 |    1.158416ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:22:57 | 200 |   13.597583ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:22:57 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:22:59 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:22:59 | 200 |    5.045417ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:22:59 | 200 |      1.3935ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:22:59 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:23:00 | 200 |   17.255125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:01 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:23:01 | 200 |    4.352792ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:01 | 200 |    1.319083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:01 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+2025/08/14 19:23:03 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:23:03 | 200 |    5.592541ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:03 | 200 |    1.687042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:03 | 200 |   16.073166ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:03 📊 [RabbitMQ-Go] Derived metrics: 6 queues, 0 total pending, 2 consumers
+[GIN] 2025/08/14 - 19:23:03 | 200 |      48.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:03 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:03 | 200 |      24.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:03 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:03 | 200 |   27.305167ms |             ::1 | POST     "/api/players/quickstart"
+[GIN] 2025/08/14 - 19:23:03 | 200 |      25.791µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:03 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192183-613851000
+2025/08/14 19:23:03 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:03 | 200 |      33.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:03 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192183-715733000
+2025/08/14 19:23:03 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:03 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192183-817648000
+2025/08/14 19:23:03 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:03 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192183-919876000
+2025/08/14 19:23:03 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-23127000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-125947000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-228906000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-331797000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-434770000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-538110000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-640093000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-741953000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-844342000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:04 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192184-947518000
+2025/08/14 19:23:04 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192185-50579000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192185-152909000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192185-254845000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/14 - 19:23:05 | 200 |    6.127709ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:05 | 200 |    1.376708ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 0 consumers
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192185-356758000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192185-459309000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.gather: q-1755192185-562004000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192185-563210000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:05 | 200 |     104.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:05 | 200 |      54.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:05 | 200 |      38.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192185-665655000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:05 | 200 |      45.584µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192185-767910000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192185-870370000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:05 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192185-973307000
+2025/08/14 19:23:05 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-76023000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-178631000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:06 | 200 |      7.3475ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-280299000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-384652000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-487768000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-591381000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-694176000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-797213000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:06 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192186-899595000
+2025/08/14 19:23:06 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192187-2670000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:07 | 200 |      76.041µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:07 | 200 |      47.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192187-105129000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192187-207889000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:07 | 200 |     3.97675ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:07 | 200 |    1.101917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192187-310313000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 4 consumers
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192187-411894000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.slay: q-1755192187-513979000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192187-514817000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:07 | 200 |     121.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:07 | 200 |      50.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:07 | 200 |      28.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192187-616678000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:07 | 200 |      44.791µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:07 | 200 |      31.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192187-718989000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192187-822252000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:07 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192187-926160000
+2025/08/14 19:23:07 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-29814000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-135310000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-237065000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-339562000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-442674000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:08 | 200 |      72.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:08 | 200 |      52.209µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-544090000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-646080000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-747681000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-848786000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:08 | 200 |      83.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:08 | 200 |      47.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:08 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192188-950542000
+2025/08/14 19:23:08 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:09 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192189-53259000
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:09 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192189-156076000
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:09 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192189-258148000
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:09 | 200 |    6.530667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:09 | 200 |     1.59725ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:09 | 200 |   16.923541ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 4 consumers
+2025/08/14 19:23:09 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192189-360277000
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:09 📨 [RabbitMQ] Published message to game.quest.escort: q-1755192189-462632000
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:09 | 200 |  5.849601541s |             ::1 | POST     "/api/master/start"
+[GIN] 2025/08/14 - 19:23:09 | 200 |     120.916µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:09 | 200 |      86.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:09 | 200 |      54.041µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:09 | 200 |      37.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:09 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:09 | 200 |     101.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:09 | 200 |         170µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:10 | 200 |     140.791µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:10 | 200 |      76.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:11 | 200 |    5.773667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:11 | 200 |    1.426625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:11 | 200 |      88.459µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:11 | 200 |          57µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 0 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:11 | 200 |       124.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:11 | 200 |      96.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:11 | 200 |      62.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:11 | 200 |      39.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:11 | 200 |      77.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:11 | 200 |      36.666µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:12 | 200 |   15.984625ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/14 - 19:23:12 | 200 |     104.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:12 | 200 |      58.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:13 | 200 |     265.958µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:13 | 200 |      72.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 32 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:13 | 200 |    4.947208ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:13 | 200 |     1.30975ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 32 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:13 | 200 |     134.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:13 | 200 |     103.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:13 | 200 |      57.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:13 | 200 |      37.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:14 | 200 |     172.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:14 | 200 |      91.709µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:14 | 200 |     410.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:14 | 200 |      84.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 32 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:15 | 200 |     5.57675ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:15 | 200 |     1.01825ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:15 | 200 |   13.569458ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 32 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:15 | 200 |     122.292µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:15 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/14 - 19:23:15 | 200 |     370.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:15 | 200 |     224.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:15 | 200 |      24.541µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:15 | 200 |       44.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:15 | 200 |      25.666µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:15 | 200 |     111.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:15 | 200 |      48.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:16 | 200 |     247.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:16 | 200 |      94.084µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 38 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:17 | 200 |    6.071292ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:17 | 200 |    1.603917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 38 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:17 | 200 |     152.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:17 | 200 |      79.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:17 | 200 |     129.209µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:17 | 200 |      58.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:17 | 200 |      60.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:17 | 200 |      38.292µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:18 | 200 |   11.414209ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/14 - 19:23:18 | 200 |      126.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:18 | 200 |      66.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:18 | 200 |     105.416µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:18 | 200 |      84.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 38 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:19 | 200 |    4.453209ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:19 | 200 |    1.119125ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 38 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:19 | 200 |     179.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:19 | 200 |      88.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:19 | 200 |      52.416µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:19 | 200 |      28.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:19 | 200 |      44.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:19 | 200 |      26.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:20 | 200 |     157.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:20 | 200 |      95.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:21 | 200 |      358.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:21 | 200 |      89.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 38 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:21 | 200 |    5.968542ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:21 | 200 |       1.089ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:21 | 200 |   14.720084ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 38 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:21 | 200 |     496.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:21 | 200 |      73.917µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:21 | 200 |      62.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:21 | 200 |      78.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:21 | 200 |      54.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:22 | 200 |     125.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:22 | 200 |     193.584µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:22 | 200 |      93.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 35 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:23 | 200 |    6.481375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:23 | 200 |    1.991917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 35 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:23 | 200 |      180.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:23 | 200 |      96.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:24 | 200 |   21.438708ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/14 - 19:23:24 | 200 |         158µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:24 | 200 |      65.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 35 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:25 | 200 |   12.155708ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:25 | 200 |    1.853625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 35 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:25 | 200 |         102µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:25 | 200 |       60.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:25 | 200 |         136µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:25 | 200 |      61.084µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:27 | 200 |     209.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:27 | 200 |       92.75µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 24 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:27 | 200 |    4.081167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:27 | 200 |    1.640417ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:27 | 200 |   14.546333ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 24 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:27 | 200 |     170.917µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:27 | 200 |     106.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:28 | 200 |      197.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:28 | 200 |      83.459µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 24 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:29 | 200 |    2.287958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:29 | 200 |     749.791µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 24 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:29 | 200 |      46.041µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:29 | 200 |      22.666µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:29 | 200 |     204.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:29 | 200 |     117.334µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:30 | 200 |   14.572458ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 24 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:31 | 200 |    5.938041ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:31 | 200 |    1.614542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 24 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:31 | 200 |      72.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:31 | 200 |      74.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:31 | 200 |     130.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:31 | 200 |      88.709µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:32 | 200 |      96.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:32 | 200 |       54.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 20 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:33 | 200 |    6.556541ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:33 | 200 |    1.637208ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:33 | 200 |   16.180583ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 20 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:33 | 200 |         140µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:33 | 200 |      61.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:34 | 200 |     158.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:34 | 200 |      83.333µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 20 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:35 | 200 |    5.626125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:35 | 200 |     846.708µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 20 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:35 | 200 |     160.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:35 | 200 |      53.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:35 | 200 |      39.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:36 | 200 |   15.762834ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 14 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:37 | 200 |     7.69525ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:37 | 200 |    1.566333ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 14 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:37 | 200 |     120.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:37 | 200 |      63.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 14 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:39 | 200 |    6.204917ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:39 | 200 |    1.197333ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:39 | 200 |   15.897666ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 14 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:39 | 200 |      59.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:39 | 200 |      39.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 14 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:41 | 200 |    4.768833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:41 | 200 |    1.660417ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 14 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:41 | 200 |     167.083µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:41 | 200 |      89.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[GIN] 2025/08/14 - 19:23:42 | 200 |   18.409584ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:43 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 11 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:43 | 200 |    6.848625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:43 | 200 |    1.884542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:43 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 11 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:43 | 200 |      89.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
+2025/08/14 19:23:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 11 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:45 | 200 |       6.873ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:45 | 200 |    2.428084ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:45 | 200 |   19.400416ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 11 total pending, 4 consumers
+2025/08/14 19:23:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:47 | 200 |    6.546958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:47 | 200 |    1.754958ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:48 | 200 |   16.980125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:49 | 200 |    4.114583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:49 | 200 |    1.583125ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:23:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:51 | 200 |    5.067167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:51 | 200 |    1.256542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:51 | 200 |   14.297916ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:23:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:53 | 200 |    5.732125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:53 | 200 |      1.6245ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:54 | 200 |   16.780041ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:55 | 200 |    6.507792ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:55 | 200 |    1.943292ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:23:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:57 | 200 |    5.008584ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:57 | 200 |     990.375µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:23:57 | 200 |     13.9355ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:23:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:23:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:23:59 | 200 |    5.810083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:23:59 | 200 |    1.687291ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:23:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:00 | 200 |   24.448541ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:01 | 200 |    2.645333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:01 | 200 |     706.916µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:03 | 200 |    4.210875ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:03 | 200 |    1.383083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:03 | 200 |   10.445292ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:05 | 200 |    7.515667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:05 | 200 |    4.604958ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:06 | 200 |   16.411833ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:07 | 200 |    2.341333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:07 | 200 |     609.625µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:09 | 200 |    4.807959ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:09 | 200 |    1.557542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:09 | 200 |       14.46ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:11 | 200 |    5.178708ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:11 | 200 |    1.390417ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:12 | 200 |   18.415834ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:13 | 200 |    6.444083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:13 | 200 |    1.448625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:14 | 404 |      40.416µs |             ::1 | POST     "/api/dlq/replay"
+2025/08/14 19:24:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:15 | 200 |    6.496667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:15 | 200 |    1.704958ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:15 | 200 |   20.256709ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:17 | 200 |    5.613375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:17 | 200 |    1.149792ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:18 | 200 |   14.390375ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:19 | 200 |    5.291833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:19 | 200 |    1.460167ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:21 | 200 |   12.535792ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:21 | 200 |    1.806125ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:21 | 200 |      24.853ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:23 | 200 |    5.899583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:23 | 200 |    1.769459ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:24 | 200 |   13.341042ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:25 | 200 |    5.030083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:25 | 200 |    1.148833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:27 | 200 |    5.942834ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:27 | 200 |    1.770041ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:27 | 200 |   18.756208ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:29 | 200 |    2.881875ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:29 | 200 |     827.333µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:30 | 200 |   17.048708ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:31 | 200 |    6.830667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:31 | 200 |     802.542µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:33 | 200 |    4.768959ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:33 | 200 |     1.37175ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:33 | 200 |   14.442709ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:35 | 200 |     7.26175ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:35 | 200 |    2.014083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:36 | 200 |     11.0055ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:37 | 200 |    9.103958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:37 | 200 |    1.731167ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:39 | 200 |       9.886ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:39 | 200 |    1.538041ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:39 | 200 |     22.4085ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:41 | 200 |   11.363291ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:41 | 200 |     1.89725ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:42 | 200 |   18.358167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:43 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:44 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:44 | 200 |    4.838125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:44 | 200 |      1.2645ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:45 | 200 |    7.080292ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:45 | 200 |    1.393875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:45 | 200 |    16.75475ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:47 | 404 |      36.917µs |             ::1 | POST     "/api/dlq/purge"
+2025/08/14 19:24:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:47 | 200 |   12.115334ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:47 | 200 |    1.576334ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:48 | 200 |      14.565ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:49 | 200 |    5.838083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:49 | 200 |    1.232667ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:51 | 200 |    9.270416ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:51 | 200 |     1.49725ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:51 | 200 |   20.663833ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:53 | 200 |       9.752ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:53 | 200 |    1.858333ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:54 | 200 |   17.200708ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:55 | 200 |   12.808958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:55 | 200 |    1.886042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:57 | 200 |    7.667125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:57 | 200 |    1.346916ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:24:57 | 200 |   18.069208ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:24:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:24:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:24:59 | 200 |    6.427458ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:24:59 | 200 |     1.34475ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:24:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:00 | 200 |    17.39425ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:01 | 200 |       4.833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:01 | 200 |    1.112958ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:03 | 200 |    6.678833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:03 | 200 |    1.178875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:03 | 200 |   17.988792ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:05 | 200 |    8.240333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:05 | 200 |    1.928625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:06 | 200 |   18.911792ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:07 | 200 |    7.244209ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:07 | 200 |     1.43825ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:09 | 200 |    5.723666ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:09 | 200 |    1.462458ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:09 | 200 |   14.777417ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:11 | 200 |    7.386042ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:11 | 200 |    1.747292ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:12 | 200 |   16.573625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:13 | 200 |     7.01925ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:13 | 200 |    1.454334ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:15 | 200 |    6.056375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:15 | 200 |    1.750042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:15 | 200 |   15.609125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:17 | 200 |    6.669791ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:17 | 200 |    1.074916ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:18 | 200 |   20.963292ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:19 | 200 |    6.653709ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:19 | 200 |    1.803292ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:21 | 200 |    3.476042ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:21 | 200 |     739.708µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:21 | 200 |      9.9005ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:23 | 200 |    6.213125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:23 | 200 |     1.43675ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:24 | 200 |   14.696084ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:25 | 200 |    7.563375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:25 | 200 |    1.683625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:27 | 200 |    6.900792ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:27 | 200 |    3.407042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:27 | 200 |   20.503834ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:29 | 200 |    3.300708ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:29 | 200 |     925.042µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:30 | 200 |    22.73875ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:31 | 200 |    4.879916ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:31 | 200 |    1.185375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:33 | 200 |       6.948ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:33 | 200 |    1.674208ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:33 | 200 |   17.544541ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:35 | 200 |      8.1295ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:35 | 200 |    1.436541ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:36 | 200 |   18.790083ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:37 | 200 |    9.756417ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:37 | 200 |    2.563625ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:39 | 200 |    6.734167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:39 | 200 |    2.227959ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:39 | 200 |   16.916166ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:41 | 200 |   10.019333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:41 | 200 |    1.722541ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:42 | 200 |   21.182416ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:43 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:43 | 200 |    4.147625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:43 | 200 |       923.5µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:43 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:45 | 200 |       5.469ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:45 | 200 |     702.708µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:45 | 200 |   11.929167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:47 | 200 |    5.765209ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:47 | 200 |    1.217084ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:48 | 200 |     17.8775ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:49 | 200 |    5.817834ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:49 | 200 |      1.3545ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:51 | 200 |    6.846083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:51 | 200 |    1.017083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:51 | 200 |    14.96925ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:53 | 200 |    7.192334ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:53 | 200 |    1.574375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:54 | 200 |   20.811458ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:55 | 200 |    7.214958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:55 | 200 |    1.725375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:57 | 200 |    7.083667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:57 | 200 |    2.825458ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:25:57 | 200 |   18.154708ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:25:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:25:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:25:59 | 200 |    7.235292ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:25:59 | 200 |    1.985542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:25:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:00 | 200 |   18.386208ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:01 | 200 |    6.560083ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:01 | 200 |    1.797083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:03 | 200 |    6.489958ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:03 | 200 |    1.667875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:03 | 200 |   17.320625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:05 | 200 |     6.50925ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:05 | 200 |    1.342291ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:06 | 200 |   15.619167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:07 | 200 |    9.450791ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:07 | 200 |    1.920666ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:09 | 200 |    5.843875ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:09 | 200 |    2.205792ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:09 | 200 |     13.7675ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:11 | 200 |    4.859834ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:11 | 200 |    1.186958ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:12 | 200 |   14.831209ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:13 | 200 |    5.874791ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:13 | 200 |        1.65ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:15 | 200 |    5.961584ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:15 | 200 |    1.025042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:15 | 200 |   14.069625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:17 | 200 |    5.968209ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:17 | 200 |    1.548833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:18 | 200 |   15.917958ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:19 | 200 |    7.616167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:19 | 200 |    1.341709ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:21 | 200 |       6.377ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:21 | 200 |    1.514833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:21 | 200 |   16.579041ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:23 | 200 |    4.615125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:23 | 200 |    1.307875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:24 | 200 |   17.999167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:25 | 200 |    5.789875ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:25 | 200 |     850.958µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:27 | 200 |    6.325584ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:27 | 200 |    1.758875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:27 | 200 |   18.397167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:29 | 200 |    5.829041ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:29 | 200 |    1.339792ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:30 | 200 |   17.231834ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:31 | 200 |    5.643416ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:31 | 200 |     1.37475ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:33 | 200 |    5.243375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:33 | 200 |    2.931833ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:33 | 200 |   14.960583ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:33 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:35 | 200 |       8.056ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:35 | 200 |    2.714667ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:35 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:36 | 200 |   18.205833ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:37 | 200 |    7.036209ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:37 | 200 |    1.676292ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:37 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:39 | 200 |     4.77525ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:39 | 200 |     883.958µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:39 | 200 |   13.847375ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:39 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:41 | 200 |    7.131375ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:41 | 200 |    1.826333ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:41 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:42 | 200 |   18.810292ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:43 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:43 | 200 |    7.811583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:43 | 200 |    1.789417ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:43 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:45 | 200 |    9.053417ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:45 | 200 |    3.228875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:45 | 200 |   23.055125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:45 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:47 | 200 |    6.252167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:47 | 200 |    2.407875ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:47 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:48 | 200 |   21.628291ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:49 | 200 |    6.060833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:49 | 200 |     1.40325ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:49 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:51 | 200 |    6.492917ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:51 | 200 |    1.232792ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:51 | 200 |   16.784958ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:51 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:53 | 200 |    7.564333ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:53 | 200 |    2.180917ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:53 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:54 | 200 |   19.550416ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:55 | 200 |    7.720125ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:55 | 200 |    1.977125ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:55 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:57 | 200 |   12.102792ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:57 | 200 |    1.639542ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:26:57 | 200 |   25.393625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:26:57 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:26:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:26:59 | 200 |    5.782583ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:26:59 | 200 |    1.241041ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:26:59 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:00 | 200 |   20.209833ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:01 | 200 |    6.424459ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:01 | 200 |    1.998333ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:01 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:03 | 200 |    10.68425ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:03 | 200 |    2.578916ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:27:03 | 200 |   23.555042ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:03 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:05 | 200 |    9.446833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:05 | 200 |    1.428167ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:05 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:06 | 200 |   15.418083ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:07 | 200 |    9.031625ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:07 | 200 |    1.738709ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:07 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:09 | 200 |    6.139708ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:09 | 200 |    1.799208ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:27:09 | 200 |   13.980458ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:09 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:11 | 200 |    6.340834ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:11 | 200 |       1.503ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:11 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:12 | 200 |    17.52025ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:13 | 200 |    9.888167ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:13 | 200 |         934µs |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:13 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:15 | 200 |   13.734833ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:15 | 200 |    1.481083ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:27:15 | 200 |   25.747708ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:15 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:17 | 200 |    5.731166ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:17 | 200 |    1.652167ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:17 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:18 | 200 |   22.262958ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:19 | 200 |    5.168209ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:19 | 200 |    1.232458ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:19 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:21 | 200 |    8.857584ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:21 | 200 |      2.7915ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:27:21 | 200 |   19.597667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:21 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:23 | 200 |    6.771292ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:23 | 200 |    1.305209ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:23 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:24 | 200 |   18.258541ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:25 | 200 |    9.951916ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:25 | 200 |    1.727042ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:25 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:27 | 200 |      7.6135ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:27 | 200 |    1.634375ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+[GIN] 2025/08/14 - 19:27:27 | 200 |   19.666167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:27 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:29 | 200 |    5.849667ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:29 | 200 |    1.007666ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:29 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:30 | 200 |   20.052041ms |             ::1 | GET      "/api/dlq/list"
+2025/08/14 19:27:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+[GIN] 2025/08/14 - 19:27:31 | 200 |    5.325334ms |             ::1 | GET      "/api/rabbitmq/derived/metrics"
+[GIN] 2025/08/14 - 19:27:31 | 200 |    1.310583ms |             ::1 | GET      "/api/rabbitmq/derived/scoreboard"
+2025/08/14 19:27:31 📊 [RabbitMQ-Go] Derived metrics: 7 queues, 9 total pending, 4 consumers
+2025/08/14 19:27:32 🛑 [API Server] Shutting down...
+2025/08/14 19:27:32 ✅ [API Server] Graceful shutdown completed

@@ -152,7 +152,7 @@ func (h *Handlers) GetRabbitMQScoreboard(c *gin.Context) {
 		c.JSON(http.StatusOK, models.APIResponse{
 			Success: true,
 			Data: map[string]interface{}{
-				"scoreboard":       map[string]interface{}{},
+				"scoreboard":       []map[string]interface{}{}, // Empty array, not map
 				"roster":           roster,
 				"total_players":    len(roster),
 				"source":           "fallback",
@@ -204,9 +204,27 @@ func (h *Handlers) GetRabbitMQScoreboard(c *gin.Context) {
 	}
 
 	for player, queues := range playerQueues {
+		// Extract skills from queue names (game.skill.SKILL.q -> SKILL)
+		skillsSet := make(map[string]bool)
+		for _, queue := range queues {
+			if strings.HasPrefix(queue, "game.skill.") && strings.HasSuffix(queue, ".q") {
+				skill := strings.TrimSuffix(strings.TrimPrefix(queue, "game.skill."), ".q")
+				skillsSet[skill] = true
+			}
+		}
+
+		// Convert skills set to array
+		skills := make([]string, 0, len(skillsSet))
+		for skill := range skillsSet {
+			skills = append(skills, skill)
+		}
+
 		roster[player] = map[string]interface{}{
 			"queues":         queues,
 			"consumer_count": playerConsumerCounts[player],
+			"skills":         skills,
+			"status":         "online",
+			"type":           "go",
 		}
 	}
 

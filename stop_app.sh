@@ -71,15 +71,15 @@ stop_processes "start_app.sh" "Legacy Startup Scripts"
 # Stop RabbitMQ
 # ==============================================================================
 
-echo -e "\n${PURPLE}📋 Stopping RabbitMQ${NC}"
+# echo -e "\n${PURPLE}📋 Stopping RabbitMQ${NC}"
 
-if command -v docker-compose &> /dev/null; then
-    echo -e "${BLUE}🔄 Stopping RabbitMQ via Docker Compose...${NC}"
-    docker-compose down 2>/dev/null || true
-    echo -e "${GREEN}✅ RabbitMQ stopped${NC}"
-else
-    echo -e "${YELLOW}⚠️  Docker Compose not found, skipping RabbitMQ stop${NC}"
-fi
+# if command -v docker-compose &> /dev/null; then
+#     echo -e "${BLUE}🔄 Stopping RabbitMQ via Docker Compose...${NC}"
+#     docker-compose down 2>/dev/null || true
+#     echo -e "${GREEN}✅ RabbitMQ stopped${NC}"
+# else
+#     echo -e "${YELLOW}⚠️  Docker Compose not found, skipping RabbitMQ stop${NC}"
+# fi
 
 # ==============================================================================
 # Clean Up Temporary Files

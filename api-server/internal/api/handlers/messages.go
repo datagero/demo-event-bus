@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,21 +26,14 @@ func (h *Handlers) PublishMessage(c *gin.Context) {
 		return
 	}
 
-	// Use native Go RabbitMQ client for direct publishing
-	if err := h.RabbitMQClient.PublishMessage(req.RoutingKey, req.Payload); err != nil {
+	// Use the unified publish and broadcast helper
+	if err := h.publishAndBroadcast(req.RoutingKey, req.Payload, "api_endpoint"); err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse{
 			Success: false,
-			Error:   "Failed to publish message: " + err.Error(),
+			Error:   err.Error(),
 		})
 		return
 	}
-
-	// Broadcast message creation for UI updates
-	h.broadcastMessage("message_published", map[string]interface{}{
-		"routing_key": req.RoutingKey,
-		"payload":     req.Payload,
-		"source":      "go_api_server",
-	})
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
@@ -72,17 +66,31 @@ func (h *Handlers) PublishWave(c *gin.Context) {
 		return
 	}
 
-	// Use native Go RabbitMQ client with wave publishing
+	// Publish individual messages for consistent UI broadcasting
 	delay := time.Duration(req.Delay) * time.Millisecond
-	if err := h.RabbitMQClient.PublishWave(req.RoutingKey, req.Count, delay); err != nil {
-		c.JSON(http.StatusInternalServerError, models.APIResponse{
-			Success: false,
-			Error:   "Failed to publish wave: " + err.Error(),
-		})
-		return
+	for i := 0; i < req.Count; i++ {
+		payload := map[string]interface{}{
+			"wave_index": i + 1,
+			"wave_total": req.Count,
+			"case_id":    fmt.Sprintf("wave-%d-%d", time.Now().UnixNano(), i),
+			"source":     "api_wave",
+		}
+
+		if err := h.publishAndBroadcast(req.RoutingKey, payload, "api_wave"); err != nil {
+			c.JSON(http.StatusInternalServerError, models.APIResponse{
+				Success: false,
+				Error:   fmt.Sprintf("Failed to publish wave message %d: %v", i+1, err),
+			})
+			return
+		}
+
+		// Apply delay between messages
+		if delay > 0 && i < req.Count-1 {
+			time.Sleep(delay)
+		}
 	}
 
-	// Broadcast wave creation
+	// Broadcast wave completion
 	h.broadcastMessage("wave_published", map[string]interface{}{
 		"routing_key": req.RoutingKey,
 		"count":       req.Count,
@@ -140,17 +148,14 @@ func (h *Handlers) StartMaster(c *gin.Context) {
 				"source":     "quest_wave",
 			}
 
-			err := h.RabbitMQClient.PublishMessage(routingKey, payload)
-			if err != nil {
+			// Use the unified publish and broadcast helper
+			if err := h.publishAndBroadcast(routingKey, payload, "quest_wave"); err != nil {
 				c.JSON(http.StatusInternalServerError, models.APIResponse{
 					Success: false,
 					Error:   fmt.Sprintf("Failed to publish %s message %d: %v", questType, i+1, err),
 				})
 				return
 			}
-
-			// Broadcast quest_issued event for each message
-			h.broadcastMessage("quest_issued", payload)
 
 			// Apply delay between messages
 			if req.Delay > 0 && i < req.Count-1 {
@@ -167,6 +172,13 @@ func (h *Handlers) StartMaster(c *gin.Context) {
 		"delay":            req.Delay,
 		"total_messages":   totalMessages,
 		"educational_note": "Quest wave published using Go RabbitMQ client",
+	})
+
+	// Also broadcast a dedicated quest log entry for better visibility
+	h.broadcastMessage("quest_log_entry", map[string]interface{}{
+		"tag_class": "info",
+		"title":     "QUEST WAVE",
+		"body":      fmt.Sprintf("Started wave: %d each of %s (total: %d quests, %gs delay)", req.Count, strings.Join(questTypes, ", "), totalMessages, req.Delay),
 	})
 
 	c.JSON(http.StatusOK, models.APIResponse{
@@ -217,18 +229,14 @@ func (h *Handlers) SendOne(c *gin.Context) {
 		"source":     "frontend_send_one",
 	}
 
-	// Publish the message
-	err := h.RabbitMQClient.PublishMessage(routingKey, payload)
-	if err != nil {
+	// Use the unified publish and broadcast helper
+	if err := h.publishAndBroadcast(routingKey, payload, "frontend_send_one"); err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse{
 			Success: false,
-			Error:   fmt.Sprintf("Failed to publish message: %v", err),
+			Error:   err.Error(),
 		})
 		return
 	}
-
-	// Broadcast quest_issued event for frontend quest board
-	h.broadcastMessage("quest_issued", payload)
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,

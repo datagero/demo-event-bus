@@ -82,6 +82,9 @@ func (h *Handlers) StartWorker(c *gin.Context) {
 		"workers":          req.Workers,
 	})
 
+	// Also broadcast immediate roster update
+	h.broadcastRosterUpdate()
+
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
 		Message: "Worker started successfully",
@@ -115,6 +118,9 @@ func (h *Handlers) StopWorker(c *gin.Context) {
 		"name": req.Player,
 		"type": "go",
 	})
+
+	// Also broadcast immediate roster update
+	h.broadcastRosterUpdate()
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,

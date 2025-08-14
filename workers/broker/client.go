@@ -89,15 +89,21 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// DeclareQueue creates and binds a queue
+// DeclareQueue creates and binds a queue with dead letter exchange configuration
 func (c *Client) DeclareQueue(queueName, routingKey string) error {
+	// Configure dead letter exchange for failed messages
+	args := amqp.Table{
+		"x-dead-letter-exchange":    "game.dlx",   // Dead letter exchange
+		"x-dead-letter-routing-key": "dlq.failed", // Route failed messages to "dlq.failed"
+	}
+
 	_, err := c.channel.QueueDeclare(
 		queueName, // name
 		true,      // durable (survives broker restart)
 		false,     // auto-delete
 		false,     // exclusive
 		false,     // no-wait
-		nil,       // arguments
+		args,      // arguments (with DLX configuration)
 	)
 	if err != nil {
 		return fmt.Errorf("failed to declare queue %s: %w", queueName, err)
@@ -151,6 +157,11 @@ func (c *Client) Consume(queueName string, handler func(amqp.Delivery) bool) err
 
 // ConsumeWithTag starts consuming messages from a queue with a specific consumer tag
 func (c *Client) ConsumeWithTag(queueName string, consumerTag string, handler func(amqp.Delivery) bool) error {
+	return c.ConsumeWithTagAndContext(context.Background(), queueName, consumerTag, handler)
+}
+
+// ConsumeWithTagAndContext starts consuming messages from a queue with a specific consumer tag and respects context cancellation
+func (c *Client) ConsumeWithTagAndContext(ctx context.Context, queueName string, consumerTag string, handler func(amqp.Delivery) bool) error {
 	deliveries, err := c.channel.Consume(
 		queueName,   // queue
 		consumerTag, // consumer tag
@@ -166,24 +177,28 @@ func (c *Client) ConsumeWithTag(queueName string, consumerTag string, handler fu
 
 	log.Printf("🔄 [Go Consumer] Waiting for messages on queue: %s", queueName)
 
-	// Use a channel to signal completion, though we run forever
-	forever := make(chan bool)
-
-	go func() {
-		for delivery := range deliveries {
-			// Call handler, if it returns true, ack the message
-			if handler(delivery) {
-				delivery.Ack(false)
-			} else {
-				// Handler wants to nack/requeue
+	// Process messages until context is cancelled
+	for {
+		select {
+		case <-ctx.Done():
+			log.Printf("🛑 [Go Consumer] Context cancelled, stopping consumer for queue: %s", queueName)
+			// Cancel the consumer
+			c.channel.Cancel(consumerTag, false)
+			return ctx.Err()
+		case delivery, ok := <-deliveries:
+			if !ok {
+				log.Printf("🔚 [Go Consumer] Delivery channel closed for queue: %s", queueName)
+				return nil
+			}
+			// Call handler - it now handles ACK/NACK manually
+			// We only fall back to auto-handling if handler returns false
+			if !handler(delivery) {
+				// Handler wants to nack/requeue (fallback for legacy behavior)
 				delivery.Nack(false, true)
 			}
+			// If handler returns true, it has handled ACK/NACK manually
 		}
-	}()
-
-	<-forever // Block forever
-
-	return nil
+	}
 }
 
 // ParseMessage parses a delivery into a Message struct.

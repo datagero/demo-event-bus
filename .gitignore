@@ -11,3 +11,8 @@ __pycache__/
 # Node/Web (if added later)
 node_modules/
 dist/
+# Air live reload temp files
+api-server/tmp/
+workers/tmp/
+api-server/build-errors.log
+workers/build-errors.log
