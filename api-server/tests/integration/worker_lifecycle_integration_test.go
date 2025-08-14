@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"demo-event-bus-api/internal/api/handlers"
 	"demo-event-bus-api/internal/clients"
 	"demo-event-bus-api/internal/config"
 	"demo-event-bus-api/internal/models"
@@ -36,7 +37,7 @@ func TestWorkerLifecycleIntegration(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,
@@ -236,7 +237,7 @@ func TestWorkerStuckStateDetection(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,
@@ -348,7 +349,7 @@ func TestRabbitMQConnectivityRecovery(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,
@@ -415,7 +416,7 @@ func TestWorkerAPIValidation(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,

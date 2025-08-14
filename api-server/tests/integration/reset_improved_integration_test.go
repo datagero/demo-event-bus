@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"demo-event-bus-api/internal/api/handlers"
 	"demo-event-bus-api/internal/clients"
 	"demo-event-bus-api/internal/config"
 	"demo-event-bus-api/internal/models"
@@ -32,7 +33,7 @@ func TestImprovedResetFunctionality(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,
@@ -138,7 +139,7 @@ func TestImprovedResetFunctionality(t *testing.T) {
 		hasErrors, exists := resetData["has_errors"]
 		assert.True(t, exists, "Should indicate if there were errors")
 
-				t.Logf("Reset had errors: %v", hasErrors)
+		t.Logf("Reset had errors: %v", hasErrors)
 		// Some exchange deletion errors are expected (405 Method Not Allowed)
 		// but the overall operation should still be successful
 
@@ -178,7 +179,7 @@ func TestImprovedResetFunctionality(t *testing.T) {
 			WorkersURL:  "http://localhost:9999", // Non-existent port
 		}
 
-		badHandler := &Handlers{
+		badHandler := &handlers.Handlers{
 			WorkersClient:  clients.NewWorkersClient(badCfg.WorkersURL),
 			WSHub:          wsHub,
 			Config:         badCfg,

@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"demo-event-bus-api/internal/api/handlers"
 	"demo-event-bus-api/internal/clients"
 	"demo-event-bus-api/internal/config"
 	"demo-event-bus-api/internal/models"
@@ -32,7 +33,7 @@ func TestMessageProcessingFlow(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,
@@ -222,7 +223,7 @@ func TestMessageFailureScenarios(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,
@@ -323,7 +324,7 @@ func TestQueueManagement(t *testing.T) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		WorkersClient:  clients.NewWorkersClient(cfg.WorkersURL),
 		WSHub:          wsHub,
 		Config:         cfg,

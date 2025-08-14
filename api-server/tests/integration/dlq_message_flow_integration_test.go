@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"demo-event-bus-api/internal/api/handlers"
 	"demo-event-bus-api/internal/clients"
 	"demo-event-bus-api/internal/config"
 	"demo-event-bus-api/internal/models"
@@ -36,7 +37,7 @@ func TestDLQMessageFlowEndToEnd(t *testing.T) {
 	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 	go hub.Run()
-	h := &Handlers{
+	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
 		PythonClient:   pythonClient,
@@ -287,7 +288,7 @@ func TestDLQMessageReissue(t *testing.T) {
 	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 	go hub.Run()
-	h := &Handlers{
+	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
 		PythonClient:   pythonClient,

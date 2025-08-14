@@ -438,6 +438,35 @@ curl http://localhost:8001/health      # Go Workers
 curl http://localhost:15672/api/overview # RabbitMQ
 ```
 
+## 📊 Testing
+
+The project includes a comprehensive testing framework with organized test suites for reliable validation of complex distributed systems scenarios.
+
+### Quick Testing
+
+```bash
+# Fast unit tests (recommended during development)
+./tests/run_unit_tests.sh
+
+# All tests with service checking
+./tests/run_all_tests.sh
+
+# Specific test categories
+./tests/run_all_tests.sh unit           # Unit tests only
+./tests/run_all_tests.sh integration    # Integration tests
+./tests/run_all_tests.sh api-server     # All API server tests
+```
+
+### Test Framework Features
+
+- **Organized Structure**: Tests categorized by type (unit/integration/scenarios)
+- **Test Isolation**: Independent tests with automatic cleanup
+- **Service Dependencies**: Automatic service health checking
+- **Common Utilities**: Shared helpers for consistent testing patterns
+- **Multiple Execution Options**: From fast feedback to comprehensive validation
+
+For comprehensive testing documentation, see [Testing Framework Guide](tests/README.md).
+
 ## 🤝 Contributing
 
 This is an educational project. Contributions should maintain the **RabbitMQ-direct** philosophy:
@@ -446,6 +475,7 @@ This is an educational project. Contributions should maintain the **RabbitMQ-dir
 2. **Educational transparency** - Clearly show RabbitMQ operations
 3. **Direct integration** - Use Management API for real broker data
 4. **Clear attribution** - Mark data sources in API responses
+5. **Test Coverage** - New features should include appropriate tests using the shared framework
 
 ## 📄 License
 

@@ -39,7 +39,7 @@ func (h *Handlers) RunScenario(c *gin.Context) {
 
 	switch req.Scenario {
 	case "late-bind-escort":
-		result, err = h.runLateBendEscortScenario(req.Params)
+		result, err = h.RunLateBendEscortScenario(req.Params)
 	case "quest-wave":
 		result, err = h.runQuestWaveScenario(req.Params)
 	case "chaos-test":
@@ -137,7 +137,7 @@ func (h *Handlers) resetApplicationState() error {
 
 // Scenario implementations
 
-func (h *Handlers) runLateBendEscortScenario(params map[string]interface{}) (map[string]interface{}, error) {
+func (h *Handlers) RunLateBendEscortScenario(params map[string]interface{}) (map[string]interface{}, error) {
 	// Late-bind escort (backlog handoff) scenario:
 	// This scenario demonstrates what happens when messages are published before a queue exists,
 	// and how a shared skill queue enables handoff between workers.

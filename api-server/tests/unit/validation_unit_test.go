@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+
 	"demo-event-bus-api/internal/models"
 	"encoding/json"
 	"net/http"

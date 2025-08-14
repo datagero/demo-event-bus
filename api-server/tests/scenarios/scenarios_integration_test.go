@@ -1,6 +1,7 @@
-package handlers
+package handlers_test
 
 import (
+	"demo-event-bus-api/internal/api/handlers"
 	"demo-event-bus-api/internal/clients"
 	"demo-event-bus-api/internal/config"
 	"demo-event-bus-api/internal/websocket"
@@ -29,7 +30,7 @@ func getIntFromInterface(val interface{}) int {
 }
 
 // Test setup helper for integration tests with real clients
-func setupRealScenarioTestHandler() (*Handlers, error) {
+func setupRealScenarioTestHandler() (*handlers.Handlers, error) {
 	gin.SetMode(gin.TestMode)
 
 	// Use environment variables or defaults for test services
@@ -71,7 +72,7 @@ func setupRealScenarioTestHandler() (*Handlers, error) {
 	wsHub := websocket.NewHub()
 	go wsHub.Run() // Start hub to prevent blocking
 
-	handlers := &Handlers{
+	handlers := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
 		PythonClient:   pythonClient,
@@ -110,7 +111,7 @@ func checkTestDependencies() error {
 }
 
 // Helper to clean up test queues and workers
-func cleanupTestResources(handlers *Handlers, testPrefix string) {
+func cleanupTestResources(handlers *handlers.Handlers, testPrefix string) {
 	// Clean up any test workers
 	testWorkers := []string{
 		testPrefix + "-escort-worker",
@@ -175,7 +176,7 @@ func TestLateBendEscortScenario_Integration(t *testing.T) {
 		"worker_prefix":    testPrefix,
 	}
 
-	result, err := handlers.runLateBendEscortScenario(scenarioParams)
+	result, err := handlers.RunLateBendEscortScenario(scenarioParams)
 	require.NoError(t, err, "Scenario should execute without errors")
 	require.NotNil(t, result, "Should return scenario result")
 

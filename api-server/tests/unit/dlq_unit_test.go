@@ -1,6 +1,7 @@
-package handlers
+package handlers_test
 
 import (
+	"demo-event-bus-api/internal/api/handlers"
 	"demo-event-bus-api/internal/clients"
 	"demo-event-bus-api/internal/config"
 	"demo-event-bus-api/internal/websocket"
@@ -25,7 +26,7 @@ func TestDLQHelperFunctions(t *testing.T) {
 	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
 		PythonClient:   pythonClient,
@@ -54,7 +55,7 @@ func TestDLQHelperFunctions(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result := h.isDLQQueue(tc.queueName)
+			result := h.IsDLQQueue(tc.queueName)
 			assert.Equal(t, tc.expected, result, "Queue '%s': %s", tc.queueName, tc.reason)
 		}
 	})
@@ -142,7 +143,7 @@ func TestDLQHelperFunctions(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result := h.categorizeDLQMessage(tc.message)
+			result := h.CategorizeDLQMessage(tc.message)
 			assert.Equal(t, tc.expected, result, "Categorization: %s", tc.reason)
 		}
 	})
@@ -202,7 +203,7 @@ func TestDLQHelperFunctions(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			result := h.extractDeathInfo(tc.message)
+			result := h.ExtractDeathInfo(tc.message)
 
 			// Check that all expected keys exist and have correct values
 			for key, expectedValue := range tc.expected {
@@ -224,7 +225,7 @@ func TestDLQHelperFunctions(t *testing.T) {
 		}
 
 		for _, queueName := range expectedDLQQueues {
-			assert.True(t, h.isDLQQueue(queueName), "Queue '%s' should be recognized as DLQ queue", queueName)
+			assert.True(t, h.IsDLQQueue(queueName), "Queue '%s' should be recognized as DLQ queue", queueName)
 		}
 
 		// Test that regular game queues are not recognized as DLQ
@@ -238,7 +239,7 @@ func TestDLQHelperFunctions(t *testing.T) {
 		}
 
 		for _, queueName := range regularQueues {
-			assert.False(t, h.isDLQQueue(queueName), "Queue '%s' should NOT be recognized as DLQ queue", queueName)
+			assert.False(t, h.IsDLQQueue(queueName), "Queue '%s' should NOT be recognized as DLQ queue", queueName)
 		}
 	})
 }
@@ -258,7 +259,7 @@ func TestDLQTopologyValidation(t *testing.T) {
 	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 
-	h := &Handlers{
+	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
 		PythonClient:   pythonClient,
@@ -288,7 +289,7 @@ func TestDLQTopologyValidation(t *testing.T) {
 		for _, tc := range testCases {
 			// We expect this to fail due to no real RabbitMQ connection in unit test
 			// but we're testing that the function handles parameters correctly
-			result, err := h.setupDLQTopology(tc.replayExchange, tc.retryTTL, tc.maxRetries, tc.backoffMultiplier)
+			result, err := h.SetupDLQTopology(tc.replayExchange, tc.retryTTL, tc.maxRetries, tc.backoffMultiplier)
 
 			if tc.expectError {
 				assert.Error(t, err, "Should error for: %s", tc.reason)

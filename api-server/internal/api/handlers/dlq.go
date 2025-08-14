@@ -33,7 +33,7 @@ func (h *Handlers) SetupDLQ(c *gin.Context) {
 	}
 
 	// Setup DLQ topology via RabbitMQ Management API
-	result, err := h.setupDLQTopology(req.ReplayExchange, req.RetryQueueTTL, req.MaxRetries, req.BackoffMultiplier)
+	result, err := h.SetupDLQTopology(req.ReplayExchange, req.RetryQueueTTL, req.MaxRetries, req.BackoffMultiplier)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse{
 			Success: false,
@@ -80,7 +80,7 @@ func (h *Handlers) ListDLQMessages(c *gin.Context) {
 
 	for _, queue := range queues {
 		queueName, ok := queue["name"].(string)
-		if !ok || !h.isDLQQueue(queueName) {
+		if !ok || !h.IsDLQQueue(queueName) {
 			continue
 		}
 
@@ -96,7 +96,7 @@ func (h *Handlers) ListDLQMessages(c *gin.Context) {
 
 		for _, msg := range dlqMessages {
 			// Categorize DLQ message by death reason
-			category := h.categorizeDLQMessage(msg)
+			category := h.CategorizeDLQMessage(msg)
 			dlqCategories[category]++
 
 			// Transform to app format
@@ -106,7 +106,7 @@ func (h *Handlers) ListDLQMessages(c *gin.Context) {
 				"routing_key":      msg["routing_key"],
 				"payload":          msg["payload"],
 				"properties":       msg["properties"],
-				"death_info":       h.extractDeathInfo(msg),
+				"death_info":       h.ExtractDeathInfo(msg),
 				"source":           "direct_rabbitmq_go_client",
 				"educational_note": "DLQ message retrieved directly from RabbitMQ",
 			}
@@ -118,7 +118,7 @@ func (h *Handlers) ListDLQMessages(c *gin.Context) {
 	// Auto-setup DLQ topology if no DLQ queues found
 	if len(dlqQueues) == 0 {
 		log.Printf("📋 [DLQ] No DLQ queues found, auto-setting up DLQ topology...")
-		_, err := h.setupDLQTopology("game.dlq.replay", 5000, 3, 2.0)
+		_, err := h.SetupDLQTopology("game.dlq.replay", 5000, 3, 2.0)
 		if err != nil {
 			log.Printf("⚠️ [DLQ] Auto-setup failed: %v", err)
 		} else {
@@ -134,7 +134,7 @@ func (h *Handlers) ListDLQMessages(c *gin.Context) {
 				// Re-scan for DLQ queues after auto-setup
 				for _, queue := range queues {
 					queueName, ok := queue["name"].(string)
-					if ok && h.isDLQQueue(queueName) {
+					if ok && h.IsDLQQueue(queueName) {
 						dlqQueues = append(dlqQueues, queueName)
 					}
 				}
@@ -249,7 +249,7 @@ func (h *Handlers) ReissueAllDLQMessages(c *gin.Context) {
 	totalReissued := 0
 	for _, queue := range queues {
 		queueName, ok := queue["name"].(string)
-		if !ok || !h.isDLQQueue(queueName) {
+		if !ok || !h.IsDLQQueue(queueName) {
 			continue
 		}
 
@@ -276,7 +276,7 @@ func (h *Handlers) ReissueAllDLQMessages(c *gin.Context) {
 
 // Helper functions for DLQ management
 
-func (h *Handlers) setupDLQTopology(replayExchange string, retryTTL int, maxRetries int, backoffMultiplier float64) (map[string]interface{}, error) {
+func (h *Handlers) SetupDLQTopology(replayExchange string, retryTTL int, maxRetries int, backoffMultiplier float64) (map[string]interface{}, error) {
 	// Actually create DLQ infrastructure using RabbitMQ Management API
 
 	// 1. Create dead letter exchange for failed messages
@@ -369,7 +369,7 @@ func (h *Handlers) setupDLQTopology(replayExchange string, retryTTL int, maxRetr
 	return result, nil
 }
 
-func (h *Handlers) isDLQQueue(queueName string) bool {
+func (h *Handlers) IsDLQQueue(queueName string) bool {
 	// More comprehensive DLQ detection
 	dlqIndicators := []string{
 		"dlq", "dead", "failed", "retry", "unroutable", "quarantine", "poison",
@@ -386,7 +386,7 @@ func (h *Handlers) isDLQQueue(queueName string) bool {
 	return false
 }
 
-func (h *Handlers) categorizeDLQMessage(msg map[string]interface{}) string {
+func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
 	// Check properties for death reason first (most reliable)
 	if props, ok := msg["properties"].(map[string]interface{}); ok {
 		if headers, ok := props["headers"].(map[string]interface{}); ok {
@@ -464,7 +464,7 @@ func (h *Handlers) categorizeDLQMessage(msg map[string]interface{}) string {
 	return "failed" // Default fallback
 }
 
-func (h *Handlers) extractDeathInfo(msg map[string]interface{}) map[string]interface{} {
+func (h *Handlers) ExtractDeathInfo(msg map[string]interface{}) map[string]interface{} {
 	deathInfo := map[string]interface{}{
 		"count":  0,
 		"reason": "unknown",

@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"demo-event-bus-api/internal/api/handlers"
 	"demo-event-bus-api/internal/clients"
 	"demo-event-bus-api/internal/config"
 	"demo-event-bus-api/internal/models"
@@ -40,7 +41,7 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 	go hub.Run() // Start hub to prevent blocking
 
 	// Create handlers
-	h := &Handlers{
+	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
 		PythonClient:   pythonClient,
@@ -78,7 +79,7 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 		dlqCount := 0
 		for _, queue := range queues {
 			if queueName, ok := queue["name"].(string); ok {
-				if h.isDLQQueue(queueName) {
+				if h.IsDLQQueue(queueName) {
 					dlqCount++
 				}
 			}
@@ -113,7 +114,7 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 		dlqQueueNames := []string{}
 		for _, queue := range queues {
 			if queueName, ok := queue["name"].(string); ok {
-				if h.isDLQQueue(queueName) {
+				if h.IsDLQQueue(queueName) {
 					dlqQueueNames = append(dlqQueueNames, queueName)
 				}
 			}
@@ -147,7 +148,7 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 		initialDLQCount := 0
 		for _, queue := range queues {
 			if queueName, ok := queue["name"].(string); ok {
-				if h.isDLQQueue(queueName) {
+				if h.IsDLQQueue(queueName) {
 					initialDLQCount++
 				}
 			}
@@ -167,7 +168,7 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 		finalDLQCount := 0
 		for _, queue := range queues {
 			if queueName, ok := queue["name"].(string); ok {
-				if h.isDLQQueue(queueName) {
+				if h.IsDLQQueue(queueName) {
 					finalDLQCount++
 				}
 			}
@@ -196,7 +197,7 @@ func TestDLQResilienceAfterReset(t *testing.T) {
 	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 	go hub.Run()
-	h := &Handlers{
+	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
 		PythonClient:   pythonClient,
