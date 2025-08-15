@@ -1147,7 +1147,12 @@
       (questsByType[p.quest_type] || questsByType['gather']).prepend(el);
       el.addEventListener('click', ()=>openQuestModal(id, p.quest_type));
       const obj = { el, start: Date.now(), dur: Math.max(500, Math.round((p.work_sec||1)*1000)) };
-      quests[id] = obj; return obj;
+      quests[id] = obj; 
+      
+      // Restore cached timeline entries for this quest
+      setTimeout(() => restoreTimelineForQuest(id, el), 10);
+      
+      return obj;
     }
 
     function tick() {
@@ -1204,7 +1209,36 @@
     }
 
     function setStatus(el, label, cls){ const st=el.querySelector('.status'); if(st){ st.textContent=label; st.className = `status tag ${cls}`; } }
-    function addTL(el, type, text){ const tl = el && el.querySelector('.tl'); if (!tl) return; const li = document.createElement('li'); const tag = document.createElement('span'); tag.className = `tag ${type}`; tag.textContent = type.toUpperCase(); const span = document.createElement('span'); span.textContent = ' ' + text; li.appendChild(tag); li.appendChild(span); tl.appendChild(li); }
+    function addTL(el, type, text){ 
+      const tl = el && el.querySelector('.tl'); 
+      if (!tl) return; 
+      
+      const li = document.createElement('li'); 
+      const tag = document.createElement('span'); 
+      tag.className = `tag ${type}`; 
+      tag.textContent = type.toUpperCase(); 
+      const span = document.createElement('span'); 
+      span.textContent = ' ' + text; 
+      li.appendChild(tag); 
+      li.appendChild(span); 
+      tl.appendChild(li); 
+      
+      // Cache this timeline entry for persistence
+      const questId = el.getAttribute('data-quest-id');
+      if (questId) {
+        const timestamp = Date.now();
+        const entryId = `regular-${type}-${timestamp}`;
+        const cacheEntry = {
+          id: entryId,
+          category: `regular_${type}`,
+          text: li.innerHTML, // Save the full HTML including tag and span
+          color: type === 'ok' ? '#22c55e' : type === 'warn' ? '#f59e0b' : type === 'err' ? '#ef4444' : '#6b7280',
+          timestamp: timestamp,
+          isRegular: true
+        };
+        saveTimelineEntry(questId, cacheEntry);
+      }
+    }
     function addHist(id, ts, type, text){ historyByQuest[id] = historyByQuest[id]||[]; historyByQuest[id].push({ts,type,text}); }
     
     function addChaosTimelineEvent(player, eventType, description) {
@@ -1398,7 +1432,28 @@
         appendFeed('info', 'QUEST', `${p.quest_type} (${p.difficulty}) worth ${p.points} pts${p.reissue_of? ' (reissue)': ''}${p.unroutable?' · UNROUTABLE':''}`);
         addHist(id, msg.ts, p.unroutable ? 'err' : 'info', p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued'));
         const tl = qc.el && qc.el.querySelector('.tl');
-        if (tl){ const li = document.createElement('li'); li.textContent = p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued'); tl.appendChild(li); }
+        if (tl){ 
+          const li = document.createElement('li'); 
+          const entryText = p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued');
+          li.textContent = entryText; 
+          tl.appendChild(li); 
+          
+          // Cache this simple timeline entry
+          const questIdValue = questId(p);
+          if (questIdValue) {
+            const timestamp = Date.now();
+            const entryId = `simple-${entryText}-${timestamp}`;
+            const cacheEntry = {
+              id: entryId,
+              category: `simple_${entryText}`,
+              text: entryText,
+              color: p.unroutable ? '#ef4444' : p.reissue_of ? '#f59e0b' : '#6b7280',
+              timestamp: timestamp,
+              isSimple: true
+            };
+            saveTimelineEntry(questIdValue, cacheEntry);
+          }
+        }
         if (qc.el){
           // Only reset if not already completed (preserve completed state)
           if (!qc.el.classList.contains('done')) {
@@ -1528,7 +1583,17 @@
           'reissued': '↻'
         };
         const emoji = categoryEmoji[category] || '⚰️';
-        appendFeed('warn', 'DLQ', `${emoji} ${questId} (${questType}) → ${category.toUpperCase()}`);
+        // Fix misleading messaging
+        let displayMessage;
+        if (category === 'retry') {
+          displayMessage = `${emoji} ${questId} (${questType}) → RETRY queue (delayed)`;
+        } else if (category === 'reissued') {
+          displayMessage = `${emoji} ${questId} (${questType}) → Reissued to original queue`;
+        } else {
+          displayMessage = `${emoji} ${questId} (${questType}) → ${category.toUpperCase()} DLQ`;
+        }
+        
+        appendFeed('warn', 'DLQ', displayMessage);
         
         // Add timeline entry to quest card
         addQuestCardDLQEntry(questId, category);
@@ -1899,6 +1964,89 @@
       previousDLQMessages = currentDLQMessageIds;
     }
     
+    // Timeline cache management
+    function saveTimelineEntry(questId, entry) {
+      const cacheKey = 'quest_timelines';
+      let timelines = {};
+      try {
+        timelines = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+      } catch (e) {
+        console.warn('Failed to parse timeline cache:', e);
+        timelines = {};
+      }
+      
+      if (!timelines[questId]) {
+        timelines[questId] = [];
+      }
+      
+      // Avoid duplicates
+      const entryId = entry.id || `${entry.category}-${entry.timestamp}`;
+      const existingIndex = timelines[questId].findIndex(e => e.id === entryId);
+      if (existingIndex >= 0) {
+        timelines[questId][existingIndex] = entry; // Update existing
+      } else {
+        timelines[questId].push(entry); // Add new
+      }
+      
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(timelines));
+        console.log(`💾 [Timeline Cache] Saved entry for ${questId}:`, entry.category);
+      } catch (e) {
+        console.warn('Failed to save timeline cache:', e);
+      }
+    }
+    
+    function getTimelineEntries(questId) {
+      const cacheKey = 'quest_timelines';
+      try {
+        const timelines = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+        return timelines[questId] || [];
+      } catch (e) {
+        console.warn('Failed to get timeline cache:', e);
+        return [];
+      }
+    }
+    
+    function restoreTimelineForQuest(questId, questCard) {
+      const cachedEntries = getTimelineEntries(questId);
+      const timeline = questCard.querySelector('.tl');
+      
+      if (timeline && cachedEntries.length > 0) {
+        console.log(`🔄 [Timeline Cache] Restoring ${cachedEntries.length} entries for ${questId}`);
+        
+        // Sort entries by timestamp to maintain chronological order
+        cachedEntries.sort((a, b) => a.timestamp - b.timestamp);
+        
+        cachedEntries.forEach(entry => {
+          const existingEntry = timeline.querySelector(`[data-timeline-entry="${entry.id}"]`);
+          if (!existingEntry) {
+            const timelineEntry = document.createElement('li');
+            
+            if (entry.isRegular) {
+              // Regular timeline entry with tag + text format
+              timelineEntry.innerHTML = entry.text; // Already formatted with tag HTML
+            } else if (entry.isSimple) {
+              // Simple timeline entry - just text
+              timelineEntry.textContent = entry.text;
+              timelineEntry.style.cssText = `color:${entry.color};`;
+            } else {
+              // DLQ timeline entry
+              timelineEntry.style.cssText = `font-size:10px; color:${entry.color}; margin:2px 0;`;
+              timelineEntry.textContent = entry.text;
+            }
+            
+            timelineEntry.setAttribute('data-timeline-entry', entry.id);
+            // Also set data-dlq-entry for backwards compatibility
+            if (!entry.isRegular && !entry.isSimple) {
+              timelineEntry.setAttribute('data-dlq-entry', entry.id);
+            }
+            
+            timeline.appendChild(timelineEntry);
+          }
+        });
+      }
+    }
+
     // Add DLQ entry to quest card timeline
     function addQuestCardDLQEntry(questId, category) {
       const questCard = document.querySelector(`[data-quest-id="${questId}"]`);
@@ -1925,12 +2073,33 @@
           
           const timelineEntry = document.createElement('li');
           // Use different colors for different DLQ types
-          const entryColor = category === 'reissued' ? '#f39c12' : '#e74c3c'; // Yellow for reissued, red for others
+          const entryColor = category === 'reissued' || category === 'retry' ? '#f39c12' : '#e74c3c'; // Yellow for reissued/retry, red for others
           timelineEntry.style.cssText = `font-size:10px; color:${entryColor}; margin:2px 0;`;
-          timelineEntry.textContent = `${timestamp}: ${emoji} Sent to ${category.toUpperCase()} DLQ`;
+          
+          // Fix timeline entry messaging
+          let timelineText;
+          if (category === 'retry') {
+            timelineText = `${timestamp}: ${emoji} Sent to RETRY queue`;
+          } else if (category === 'reissued') {
+            timelineText = `${timestamp}: ${emoji} Reissued to original queue`;
+          } else {
+            timelineText = `${timestamp}: ${emoji} Sent to ${category.toUpperCase()} DLQ`;
+          }
+          
+          timelineEntry.textContent = timelineText;
           timelineEntry.setAttribute('data-dlq-entry', dlqEntryId); // Add unique identifier
           
           timeline.appendChild(timelineEntry);
+          
+          // Save to cache for persistence across UI refreshes
+          const cacheEntry = {
+            id: dlqEntryId,
+            category: category,
+            text: timelineText,
+            color: entryColor,
+            timestamp: Date.now()
+          };
+          saveTimelineEntry(questId, cacheEntry);
           
           console.log(`🎯 [Quest Card] Added DLQ timeline entry to ${questId}: ${category}`);
         }
@@ -2714,10 +2883,11 @@
             refreshBtn.title = 'Reissue from DLQ';
             questCard.querySelector('.title').appendChild(refreshBtn);
             
-            // Capture queue and status for closure (fix scoping issue)
+            // Capture queue, status, and message data for closure (fix scoping issue)
             const capturedQueue = state.data?.queue;
             const capturedStatus = state.status;
             const capturedQuestId = questId;
+            const capturedMessageData = state.data; // Full DLQ message data for targeting
             
             // Add click handler for DLQ reissue
             refreshBtn.onclick = async (e) => {
@@ -2745,7 +2915,12 @@
                 const response = await fetch('/api/dlq/reissue', {
                   method: 'POST',
                   headers: {'Content-Type': 'application/json'},
-                  body: JSON.stringify({queue: queue, count: 1})
+                  body: JSON.stringify({
+                    queue: queue, 
+                    count: 1,
+                    target_quest_id: capturedQuestId, // Specify which quest to reissue
+                    message_data: capturedMessageData // Include full message data for matching
+                  })
                 });
                 
                 const result = await response.json();
@@ -2801,6 +2976,12 @@
           } else {
             setStatus(questCard, 'Pending', 'warn');
           }
+        }
+        
+        // Restore cached timeline entries for existing quest cards after processing
+        if (questCard && !questCard.classList.contains('timeline-restored')) {
+          restoreTimelineForQuest(questId, questCard);
+          questCard.classList.add('timeline-restored'); // Mark as restored to avoid duplicates
         }
       });
     }

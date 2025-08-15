@@ -178,10 +178,12 @@ func (h *Handlers) ListDLQMessages(c *gin.Context) {
 // ReissueDLQMessages reissues DLQ messages back to main queues
 func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 	var req struct {
-		Queue      string   `json:"queue"`
-		Count      int      `json:"count"`
-		Category   string   `json:"category"`
-		MessageIDs []string `json:"message_ids"`
+		Queue         string                 `json:"queue"`
+		Count         int                    `json:"count"`
+		Category      string                 `json:"category"`
+		MessageIDs    []string               `json:"message_ids"`
+		TargetQuestID string                 `json:"target_quest_id"` // Specific quest to reissue
+		MessageData   map[string]interface{} `json:"message_data"`    // Full message data for matching
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -193,7 +195,11 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 		return
 	}
 
-	log.Printf("🔍 [DLQ Reissue] Request received: queue='%s', count=%d", req.Queue, req.Count)
+	if req.TargetQuestID != "" {
+		log.Printf("🔍 [DLQ Reissue] Request received: queue='%s', count=%d, target_quest_id='%s'", req.Queue, req.Count, req.TargetQuestID)
+	} else {
+		log.Printf("🔍 [DLQ Reissue] Request received: queue='%s', count=%d", req.Queue, req.Count)
+	}
 
 	// For educational purposes, we'll use a simplified reissue mechanism
 	// In production, this would involve more sophisticated message manipulation
@@ -229,6 +235,16 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 						corePayload = payload
 					}
 
+					// If targeting a specific quest, check if this message matches
+					if req.TargetQuestID != "" {
+						messageCaseID, _ := corePayload["case_id"].(string)
+						if messageCaseID != req.TargetQuestID {
+							log.Printf("🔍 [DLQ Reissue] Skipping message %s (looking for %s)", messageCaseID, req.TargetQuestID)
+							continue // Skip this message, looking for specific quest
+						}
+						log.Printf("✅ [DLQ Reissue] Found target message %s", messageCaseID)
+					}
+
 					// Extract quest_type for routing
 					questType, hasQuestType := corePayload["quest_type"].(string)
 					if !hasQuestType {
@@ -241,15 +257,16 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 					var reissueCategory string
 
 					if strings.Contains(req.Queue, "failed") {
-						// For failed messages: use retry queue with delay mechanism
-						targetRoutingKey = "dlq.retry"
+						// For failed messages: send directly back to original queue with retry tracking
+						// The retry queue mechanism wasn't working because it dead-letters to wrong routing key
+						targetRoutingKey = fmt.Sprintf("game.quest.%s", questType)
 						reissueCategory = "retry"
-						log.Printf("🔄 [DLQ Reissue] Using retry queue for failed message %s", corePayload["case_id"])
+						log.Printf("🔄 [DLQ Reissue] Retrying failed message %s to original queue %s", corePayload["case_id"], targetRoutingKey)
 					} else {
 						// For unroutable/expired: send back to original queue
 						targetRoutingKey = fmt.Sprintf("game.quest.%s", questType)
 						reissueCategory = "reissued"
-						log.Printf("🔄 [DLQ Reissue] Using original routing for non-failed message %s", corePayload["case_id"])
+						log.Printf("🔄 [DLQ Reissue] Reissuing non-failed message %s to original queue %s", corePayload["case_id"], targetRoutingKey)
 					}
 
 					// Create a clean, simple message payload (no nesting)

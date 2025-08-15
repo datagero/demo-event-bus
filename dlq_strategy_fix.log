@@ -412,3 +412,53 @@
 [0;37m14:52:05[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:52:05 | 200 |    3.729833ms |             ::1 | POST     "/api/dlq/reissue"
 [0;37m14:52:09[0m [0;34m[API_SERVER][0m 2025/08/15 14:52:09 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
 [0;37m14:52:09[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:52:09 | 200 |    6.562667ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m14:52:47[0m [0;34m[API_SERVER][0m 2025/08/15 14:52:47 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m14:52:47[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:52:47 | 200 |    3.011208ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m14:52:49[0m [0;34m[API_SERVER][0m 2025/08/15 14:52:49 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m14:52:49[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:52:49 | 200 |     6.22675ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m14:52:58[0m [0;34m[API_SERVER][0m 2025/08/15 14:52:58 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m14:52:58[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:52:58 | 200 |    6.081834ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🔄 [ResetGame] Starting comprehensive reset...
+[0;37m14:53:29[0m [0;32m[WORKERS][0m 2025/08/15 14:53:29 🛑 [ResetGame] Stopping worker: alice
+[0;37m14:53:29[0m [0;32m[WORKERS][0m 2025/08/15 14:53:29 🛑 [Go Worker] Stopping alice...
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+[0;37m14:53:29[0m [0;32m[WORKERS][0m 2025/08/15 14:53:29 ✅ [Go Worker] alice stopped
+[0;37m14:53:29[0m [0;32m[WORKERS][0m 2025/08/15 14:53:29 🛑 [Server] Stopped worker: alice
+[0;37m14:53:29[0m [0;32m[WORKERS][0m 2025/08/15 14:53:29 ✅ [ResetGame] Successfully stopped worker: alice
+[0;37m14:53:29[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:53:29 | 200 |      23.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.expired.q
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.failed.q
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.retry.q
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.unroutable.q
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted queue game.skill.gather.q
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted queue game.skill.slay.q
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted exchange game.dlx
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted exchange game.skill
+[0;37m14:53:29[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:29 🗑️ [RabbitMQ] Successfully deleted exchange game.unroutable
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔄 [RabbitMQ] Successfully created exchange game.dlx (topic)
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔄 [RabbitMQ] Successfully created exchange game.unroutable (fanout)
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 📦 [RabbitMQ] Successfully created queue game.dlq.failed.q
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔗 [RabbitMQ] Successfully bound queue game.dlq.failed.q to exchange game.dlx with routing key dlq.failed
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 📦 [RabbitMQ] Successfully created queue game.dlq.unroutable.q
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.dlx with routing key dlq.unroutable
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 📦 [RabbitMQ] Successfully created queue game.dlq.expired.q
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔗 [RabbitMQ] Successfully bound queue game.dlq.expired.q to exchange game.dlx with routing key dlq.expired
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 📦 [RabbitMQ] Successfully created queue game.dlq.retry.q
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔗 [RabbitMQ] Successfully bound queue game.dlq.retry.q to exchange game.dlx with routing key dlq.retry
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.unroutable with routing key 
+[0;37m14:53:30[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:30 🔄 [RabbitMQ] Successfully created exchange game.skill (topic)
+[0;37m14:53:30[0m [0;34m[API_SERVER][0m 2025/08/15 14:53:30 ✅ [DLQ] Auto-setup completed successfully
+[0;37m14:53:31[0m [0;35m[SYSTEM][0m 2025/08/15 14:53:31 ✅ [ResetGame] Reset completed successfully
+[0;37m14:53:31[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:53:31 | 200 |  1.533691625s |             ::1 | POST     "/api/reset"
+[0;37m14:53:33[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:53:33 | 400 |      35.084µs |             ::1 | POST     "/api/scenario/run"
+[0;37m14:53:50[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:53:50 | 400 |      23.375µs |             ::1 | POST     "/api/scenario/run"
+[0;37m14:54:41[0m [0;34m[API_SERVER][0m 2025/08/15 14:54:41 🛑 [API Server] Shutting down...
+[0;37m14:54:41[0m [0;34m[API_SERVER][0m 2025/08/15 14:54:41 ✅ [API Server] Graceful shutdown completed
+[0;37m14:54:43[0m [0;35m[SYSTEM][0m 2025/08/15 14:54:43 🛑 [Go Server] Shutting down...
+[0;37m14:54:43[0m [0;35m[SYSTEM][0m 2025/08/15 14:54:43 ✅ [Go Server] Shutdown complete
+
+[1;33m🛑 Shutting down services...[0m
+[0;34mStopping Go Workers (PID: 80861)...[0m
+[0;34mStopping Go API Server (PID: 80826)...[0m
+[0;32m✅ All services stopped[0m

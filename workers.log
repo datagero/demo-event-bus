@@ -1,434 +1,69 @@
-2025/08/15 14:50:27 🚀 [Go Server] Starting on port 8001
-2025/08/15 14:50:27 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
-2025/08/15 14:50:27 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
-2025/08/15 14:50:32 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
-2025/08/15 14:50:32 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
-2025/08/15 14:50:32 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-375299000","payload":{"case_id":"wave-gather-1755262225373393000-0","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":1,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:32 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225373393000-0 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:32 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:32 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
-2025/08/15 14:50:32 🎭 [Chaos] Registered worker: alice
-2025/08/15 14:50:32 ✅ [Server] Started worker: alice
-2025/08/15 14:50:32 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
-2025/08/15 14:50:32 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
-2025/08/15 14:50:32 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-301997000","payload":{"case_id":"wave-slay-1755262226301013000-0","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":1,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:32 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226301013000-0 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:32 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:32 🏃 [Go Worker] bob-worker-0 started on queue game.skill.slay.q
-2025/08/15 14:50:32 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
-2025/08/15 14:50:32 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262226-404267000","payload":{"case_id":"wave-slay-1755262226403366000-1","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":2,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:32 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262226403366000-1 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:32 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:32 🚀 [Go Worker] bob started with 1 workers, skills: [slay escort]
-2025/08/15 14:50:32 🎭 [Chaos] Registered worker: bob
-2025/08/15 14:50:32 ✅ [Server] Started worker: bob
-2025/08/15 14:50:32 🏃 [Go Worker] bob-worker-0 started on queue game.skill.escort.q
-2025/08/15 14:50:32 🔄 [Go Consumer] Waiting for messages on queue: game.skill.escort.q
-2025/08/15 14:50:33 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262226-506641000","payload":{"case_id":"wave-slay-1755262226505478000-2","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":3,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:33 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262226505478000-2 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:33 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:34 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-478394000","payload":{"case_id":"wave-gather-1755262225476599000-1","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":2,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:34 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225476599000-1 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:34 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:34 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-609411000","payload":{"case_id":"wave-slay-1755262226608036000-3","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":4,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:34 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226608036000-3 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:34 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:35 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262226-643553000","payload":{"case_id":"wave-slay-1755262226642729000-0","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":1,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:35 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262226642729000-0 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:35 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:36 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-581541000","payload":{"case_id":"wave-gather-1755262225579985000-2","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":3,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:36 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225579985000-2 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:36 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:36 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-713347000","payload":{"case_id":"wave-slay-1755262226710933000-4","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":5,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:36 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226710933000-4 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:36 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:36 💀 [Go Worker] bob quest wave-slay-1755262226642729000-0 failed - sending to DLQ
-2025/08/15 14:50:36 💀 [Go Worker] bob: Message processing failed, sending to DLQ
-2025/08/15 14:50:36 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262226-745820000","payload":{"case_id":"wave-slay-1755262226744813000-1","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":2,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:36 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262226744813000-1 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:36 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:37 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262226-815983000","payload":{"case_id":"wave-slay-1755262226814675000-5","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":6,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:37 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262226814675000-5 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:37 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:38 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-858456000","payload":{"case_id":"wave-slay-1755262226847818000-2","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":3,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:38 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-684658000","payload":{"case_id":"wave-gather-1755262225683391000-3","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":4,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:38 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226847818000-2 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:38 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:38 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225683391000-3 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:38 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:39 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262226-917785000","payload":{"case_id":"wave-slay-1755262226917158000-6","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":7,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:39 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262226917158000-6 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:39 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:40 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-719897000","payload":{"case_id":"wave-gather-1755262225719056000-0","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":1,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:40 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-960479000","payload":{"case_id":"wave-slay-1755262226959721000-3","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":4,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.slay"}
-2025/08/15 14:50:40 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225719056000-0 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:40 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:40 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226959721000-3 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:40 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:40 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262227-19728000","payload":{"case_id":"wave-slay-1755262227018884000-7","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":8,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:40 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262227018884000-7 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:40 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:42 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262227-62383000","payload":{"case_id":"wave-slay-1755262227061588000-4","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":5,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:42 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262227061588000-4 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:42 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:42 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262227-121660000","payload":{"case_id":"wave-slay-1755262227120910000-8","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":9,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:42 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-787941000","payload":{"case_id":"wave-gather-1755262225785550000-4","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":5,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:42 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227120910000-8 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:42 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:42 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225785550000-4 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:42 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:43 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262227-164100000","payload":{"case_id":"wave-slay-1755262227163480000-5","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":6,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:43 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262227163480000-5 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:43 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:44 💀 [Go Worker] alice quest wave-gather-1755262225785550000-4 failed - sending to DLQ
-2025/08/15 14:50:44 💀 [Go Worker] alice quest wave-slay-1755262227120910000-8 failed - sending to DLQ
-2025/08/15 14:50:44 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:50:44 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:50:44 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-822586000","payload":{"case_id":"wave-gather-1755262225821668000-1","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":2,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:44 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262227-223469000","payload":{"case_id":"wave-slay-1755262227222770000-9","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":10,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:44 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225821668000-1 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:44 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:44 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227222770000-9 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:44 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:44 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262227-266094000","payload":{"case_id":"wave-slay-1755262227265222000-6","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":7,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:44 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262227265222000-6 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:44 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:46 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-890729000","payload":{"case_id":"wave-gather-1755262225889595000-5","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":6,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:46 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262227-367987000","payload":{"case_id":"wave-slay-1755262227366855000-7","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":8,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:46 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225889595000-5 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:46 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:46 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227366855000-7 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:46 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:46 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262227-470814000","payload":{"case_id":"wave-slay-1755262227469405000-8","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":9,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:46 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262227469405000-8 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:46 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:47 💀 [Go Worker] bob quest wave-slay-1755262227469405000-8 failed - sending to DLQ
-2025/08/15 14:50:47 💀 [Go Worker] bob: Message processing failed, sending to DLQ
-2025/08/15 14:50:47 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755262227-573246000","payload":{"case_id":"wave-slay-1755262227571769000-9","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":10,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262227,"type":"game.quest.slay"}
-2025/08/15 14:50:47 ✅ [Go Worker Debug] bob parsed message: {CaseID:wave-slay-1755262227571769000-9 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:47 ℹ️ [Go Worker Debug] bob checking for skill 'slay' in [slay escort]
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-925164000","payload":{"case_id":"wave-gather-1755262225924085000-2","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":3,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225924085000-2 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226403366000-1","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226403366000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226403366000-1 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226301013000-0","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226301013000-0 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226301013000-0 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226505478000-2","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226505478000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226505478000-2 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226608036000-3","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226608036000-3 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226608036000-3 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226744813000-1","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226744813000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226744813000-1 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226710933000-4","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226710933000-4 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226710933000-4 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226814675000-5","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226814675000-5 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226814675000-5 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226847818000-2","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226847818000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226847818000-2 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226917158000-6","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226917158000-6 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226917158000-6 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262227018884000-7","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227018884000-7 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262227018884000-7 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262226959721000-3","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262226959721000-3 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262226959721000-3 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262227061588000-4","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227061588000-4 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262227061588000-4 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262227163480000-5","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227163480000-5 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262227163480000-5 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262227222770000-9","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227222770000-9 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262227222770000-9 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262227265222000-6","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227265222000-6 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262227265222000-6 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:48 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262227366855000-7","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:50:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227366855000-7 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:50:48 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:48 📄 [Go Worker] alice ignoring completion message wave-slay-1755262227366855000-7 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:49 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262227571769000-9","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
-2025/08/15 14:50:49 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262227571769000-9 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
-2025/08/15 14:50:49 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:50:49 📄 [Go Worker] alice ignoring completion message wave-slay-1755262227571769000-9 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:50:50 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262225-993288000","payload":{"case_id":"wave-gather-1755262225992074000-6","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":7,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262225,"type":"game.quest.gather"}
-2025/08/15 14:50:50 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225992074000-6 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:50 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:52 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-27929000","payload":{"case_id":"wave-gather-1755262226026621000-3","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":4,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:50:52 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226026621000-3 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:52 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:54 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-95885000","payload":{"case_id":"wave-gather-1755262226094830000-7","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":8,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:50:54 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226094830000-7 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:54 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:56 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-130024000","payload":{"case_id":"wave-gather-1755262226129259000-4","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":5,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:50:56 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226129259000-4 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:56 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:50:58 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-198236000","payload":{"case_id":"wave-gather-1755262226197177000-8","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":9,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:50:58 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226197177000-8 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:50:58 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:00 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-232499000","payload":{"case_id":"wave-gather-1755262226231278000-5","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":6,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:51:00 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226231278000-5 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:00 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:02 💀 [Go Worker] alice quest wave-gather-1755262226231278000-5 failed - sending to DLQ
-2025/08/15 14:51:02 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:51:02 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-300714000","payload":{"case_id":"wave-gather-1755262226299564000-9","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":10,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:51:02 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226299564000-9 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:02 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:04 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-334941000","payload":{"case_id":"wave-gather-1755262226333859000-6","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":7,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:51:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226333859000-6 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:06 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-437037000","payload":{"case_id":"wave-gather-1755262226436240000-7","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":8,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:51:06 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226436240000-7 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:06 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:08 💀 [Go Worker] alice quest wave-gather-1755262226436240000-7 failed - sending to DLQ
-2025/08/15 14:51:08 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:51:08 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-539690000","payload":{"case_id":"wave-gather-1755262226538284000-8","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":9,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:51:08 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226538284000-8 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:08 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:10 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262226-642410000","payload":{"case_id":"wave-gather-1755262226641071000-9","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":10,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262226,"type":"game.quest.gather"}
-2025/08/15 14:51:10 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226641071000-9 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:10 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262229-132697000","payload":{"case_id":"startup-test","correlation_id":"4faa1580-971b-4e42-8b86-2d8089d541c2","points":5,"published_at":1755262229,"published_by":"api_endpoint","quest_type":"gather"},"points":5,"timestamp":1755262229,"type":"game.quest.gather"}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:startup-test EventStage: Status: Source: QuestType:gather Difficulty:0 WorkSec:0 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225373393000-0","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225373393000-0 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225373393000-0 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225476599000-1","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225476599000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225476599000-1 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225579985000-2","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225579985000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225579985000-2 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225683391000-3","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225683391000-3 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225683391000-3 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225719056000-0","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225719056000-0 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225719056000-0 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225821668000-1","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225821668000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225821668000-1 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225889595000-5","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225889595000-5 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225889595000-5 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225924085000-2","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225924085000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225924085000-2 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262225992074000-6","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262225992074000-6 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262225992074000-6 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262226026621000-3","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226026621000-3 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262226026621000-3 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262226094830000-7","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262226094830000-7 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:12 📄 [Go Worker] alice ignoring completion message wave-gather-1755262226094830000-7 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:12 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262257-860870000","payload":{"case_id":"single-gather-1755262211257742000","difficulty":1,"points":5,"quest_type":"gather","reissued_at":"2025-08-15T14:50:57+02:00","reissued_from_dlq":true,"retry_count":1,"source":"dlq_reissue","work_sec":2},"points":5,"timestamp":1755262257,"type":"game.quest.gather"}
-2025/08/15 14:51:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755262211257742000 EventStage: Status: Source:dlq_reissue QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:13 🛑 [Go Worker] Stopping alice...
-2025/08/15 14:51:13 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
-2025/08/15 14:51:13 🛑 [Go Worker] alice stopped during work on single-gather-1755262211257742000
-2025/08/15 14:51:13 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:51:13 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
-2025/08/15 14:51:13 ✅ [Go Worker] alice stopped
-2025/08/15 14:51:13 🎭 [Chaos] Unregistered worker: alice
-2025/08/15 14:51:13 🛑 [Server] Stopped worker: alice
-2025/08/15 14:51:13 🛑 [Go Worker] Stopping bob...
-2025/08/15 14:51:13 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.escort.q
-2025/08/15 14:51:13 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
-2025/08/15 14:51:13 ✅ [Go Worker] bob stopped
-2025/08/15 14:51:13 🎭 [Chaos] Unregistered worker: bob
-2025/08/15 14:51:13 🛑 [Server] Stopped worker: bob
-2025/08/15 14:51:27 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
-2025/08/15 14:51:27 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
-2025/08/15 14:51:27 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
-2025/08/15 14:51:27 🎭 [Chaos] Registered worker: alice
-2025/08/15 14:51:27 ✅ [Server] Started worker: alice
-2025/08/15 14:51:27 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
-2025/08/15 14:51:27 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
-2025/08/15 14:51:30 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262290-552172000","payload":{"case_id":"single-gather-1755262290551153000","difficulty":1,"points":5,"quest_type":"gather","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755262290,"type":"game.quest.gather"}
-2025/08/15 14:51:30 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755262290551153000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:30 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:32 📬 [Go Worker Debug] alice received raw message: {"case_id":"single-gather-1755262290551153000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:32 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755262290551153000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:32 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:32 📄 [Go Worker] alice ignoring completion message single-gather-1755262290551153000 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:33 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262293-913201000","payload":{"case_id":"single-gather-1755262286331565000","difficulty":1,"points":5,"quest_type":"gather","reissued_at":"2025-08-15T14:51:33+02:00","reissued_from_dlq":true,"retry_count":1,"source":"dlq_reissue","work_sec":2},"points":5,"timestamp":1755262293,"type":"game.quest.gather"}
-2025/08/15 14:51:33 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755262286331565000 EventStage: Status: Source:dlq_reissue QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:33 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:35 📬 [Go Worker Debug] alice received raw message: {"case_id":"single-gather-1755262286331565000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:51:35 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755262286331565000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:51:35 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:35 📄 [Go Worker] alice ignoring completion message single-gather-1755262286331565000 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:51:44 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262304-534135000","payload":{"case_id":"wave-gather-1755262304532818000-0","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":1,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262304,"type":"game.quest.gather"}
-2025/08/15 14:51:44 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304532818000-0 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:44 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:45 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-461098000","payload":{"case_id":"wave-slay-1755262305460199000-0","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":1,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.slay"}
-2025/08/15 14:51:45 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305460199000-0 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:45 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:51:46 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262304-635961000","payload":{"case_id":"wave-gather-1755262304634809000-1","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":2,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262304,"type":"game.quest.gather"}
-2025/08/15 14:51:46 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304634809000-1 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:46 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:47 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-563362000","payload":{"case_id":"wave-slay-1755262305562414000-1","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":2,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.slay"}
-2025/08/15 14:51:47 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305562414000-1 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:47 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:51:48 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262304-738727000","payload":{"case_id":"wave-gather-1755262304737440000-2","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":3,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262304,"type":"game.quest.gather"}
-2025/08/15 14:51:48 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304737440000-2 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:48 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:49 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-665074000","payload":{"case_id":"wave-slay-1755262305663993000-2","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":3,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.slay"}
-2025/08/15 14:51:49 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305663993000-2 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:49 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:51:50 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262304-841607000","payload":{"case_id":"wave-gather-1755262304839976000-3","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":4,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262304,"type":"game.quest.gather"}
-2025/08/15 14:51:50 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304839976000-3 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:50 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:51 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-767661000","payload":{"case_id":"wave-slay-1755262305766529000-3","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":4,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.slay"}
-2025/08/15 14:51:51 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305766529000-3 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:51 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:51:52 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262304-944505000","payload":{"case_id":"wave-gather-1755262304942996000-4","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":5,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262304,"type":"game.quest.gather"}
-2025/08/15 14:51:52 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304942996000-4 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:52 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:53 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-870310000","payload":{"case_id":"wave-slay-1755262305868938000-4","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":5,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.slay"}
-2025/08/15 14:51:53 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305868938000-4 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:53 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:51:54 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-47460000","payload":{"case_id":"wave-gather-1755262305045936000-5","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":6,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.gather"}
-2025/08/15 14:51:54 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305045936000-5 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:54 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:55 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-972987000","payload":{"case_id":"wave-slay-1755262305971476000-5","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":6,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.slay"}
-2025/08/15 14:51:55 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305971476000-5 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:55 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:51:56 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-150252000","payload":{"case_id":"wave-gather-1755262305148965000-6","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":7,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.gather"}
-2025/08/15 14:51:56 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305148965000-6 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:56 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:57 💀 [Go Worker] alice quest wave-slay-1755262305971476000-5 failed - sending to DLQ
-2025/08/15 14:51:57 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:51:57 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262306-75867000","payload":{"case_id":"wave-slay-1755262306074019000-6","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":7,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262306,"type":"game.quest.slay"}
-2025/08/15 14:51:57 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262306074019000-6 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:57 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:51:58 💀 [Go Worker] alice quest wave-gather-1755262305148965000-6 failed - sending to DLQ
-2025/08/15 14:51:58 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:51:58 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-253626000","payload":{"case_id":"wave-gather-1755262305251748000-7","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":8,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.gather"}
-2025/08/15 14:51:58 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305251748000-7 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:58 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:51:59 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262306-177716000","payload":{"case_id":"wave-slay-1755262306176730000-7","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":8,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262306,"type":"game.quest.slay"}
-2025/08/15 14:51:59 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262306176730000-7 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:51:59 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:00 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-356864000","payload":{"case_id":"wave-gather-1755262305355356000-8","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":9,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.gather"}
-2025/08/15 14:52:00 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305355356000-8 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:52:00 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:01 💀 [Go Worker] alice quest wave-slay-1755262306176730000-7 failed - sending to DLQ
-2025/08/15 14:52:01 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:52:01 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262306-280714000","payload":{"case_id":"wave-slay-1755262306279226000-8","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":9,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262306,"type":"game.quest.slay"}
-2025/08/15 14:52:01 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262306279226000-8 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:52:01 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:02 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262305-460041000","payload":{"case_id":"wave-gather-1755262305458408000-9","difficulty":1,"points":5,"quest_type":"gather","source":"quest_wave","wave_index":10,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262305,"type":"game.quest.gather"}
-2025/08/15 14:52:02 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305458408000-9 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:52:02 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:03 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755262306-382986000","payload":{"case_id":"wave-slay-1755262306381433000-9","difficulty":1,"points":5,"quest_type":"slay","source":"quest_wave","wave_index":10,"wave_total":10,"work_sec":2},"points":5,"timestamp":1755262306,"type":"game.quest.slay"}
-2025/08/15 14:52:03 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262306381433000-9 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 14:52:03 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:04 💀 [Go Worker] alice quest wave-gather-1755262305458408000-9 failed - sending to DLQ
-2025/08/15 14:52:04 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262304532818000-0","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304532818000-0 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262304532818000-0 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262304634809000-1","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304634809000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262304634809000-1 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262304737440000-2","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304737440000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262304737440000-2 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262304839976000-3","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304839976000-3 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262304839976000-3 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262304942996000-4","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262304942996000-4 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262304942996000-4 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262305045936000-5","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305045936000-5 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262305045936000-5 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262305251748000-7","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305251748000-7 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262305251748000-7 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:04 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-gather-1755262305355356000-8","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755262305355356000-8 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:04 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 14:52:04 📄 [Go Worker] alice ignoring completion message wave-gather-1755262305355356000-8 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262305460199000-0","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305460199000-0 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262305460199000-0 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262305562414000-1","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305562414000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262305562414000-1 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262305663993000-2","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305663993000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262305663993000-2 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262305766529000-3","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305766529000-3 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262305766529000-3 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262305868938000-4","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262305868938000-4 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262305868938000-4 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262306074019000-6","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262306074019000-6 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262306074019000-6 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262306279226000-8","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262306279226000-8 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262306279226000-8 (EventStage: QUEST_COMPLETED)
-2025/08/15 14:52:05 📬 [Go Worker Debug] alice received raw message: {"case_id":"wave-slay-1755262306381433000-9","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"slay","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
-2025/08/15 14:52:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755262306381433000-9 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
-2025/08/15 14:52:05 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 14:52:05 📄 [Go Worker] alice ignoring completion message wave-slay-1755262306381433000-9 (EventStage: QUEST_COMPLETED)
+2025/08/15 15:15:50 🚀 [Go Server] Starting on port 8001
+2025/08/15 15:15:50 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+2025/08/15 15:15:50 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
+2025/08/15 15:15:55 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+2025/08/15 15:15:55 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
+2025/08/15 15:15:55 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755263688-543771000","payload":{"case_id":"single-gather-1755263688541758000","difficulty":1,"points":5,"quest_type":"gather","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755263688,"type":"game.quest.gather"}
+2025/08/15 15:15:55 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263688541758000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+2025/08/15 15:15:55 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:15:55 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+2025/08/15 15:15:55 🎭 [Chaos] Registered worker: alice
+2025/08/15 15:15:55 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+2025/08/15 15:15:55 ✅ [Server] Started worker: alice
+2025/08/15 15:15:55 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
+2025/08/15 15:15:55 🏃 [Go Worker] bob-worker-0 started on queue game.skill.slay.q
+2025/08/15 15:15:55 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
+2025/08/15 15:15:55 🚀 [Go Worker] bob started with 1 workers, skills: [slay escort]
+2025/08/15 15:15:55 🎭 [Chaos] Registered worker: bob
+2025/08/15 15:15:55 ✅ [Server] Started worker: bob
+2025/08/15 15:15:55 🏃 [Go Worker] bob-worker-0 started on queue game.skill.escort.q
+2025/08/15 15:15:55 🔄 [Go Consumer] Waiting for messages on queue: game.skill.escort.q
+2025/08/15 15:15:57 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755263752-483898000","payload":{"case_id":"startup-test","correlation_id":"5351bc88-0fca-45e8-a5a8-aca4f3fb0e6f","points":5,"published_at":1755263752,"published_by":"api_endpoint","quest_type":"gather"},"points":5,"timestamp":1755263752,"type":"game.quest.gather"}
+2025/08/15 15:15:57 ✅ [Go Worker Debug] alice parsed message: {CaseID:startup-test EventStage: Status: Source: QuestType:gather Difficulty:0 WorkSec:0 Points:5 Weight:0 Player: Payload:map[]}
+2025/08/15 15:15:57 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:15:57 📬 [Go Worker Debug] alice received raw message: {"case_id":"single-gather-1755263688541758000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
+2025/08/15 15:15:57 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263688541758000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+2025/08/15 15:15:57 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:15:57 📄 [Go Worker] alice ignoring completion message single-gather-1755263688541758000 (EventStage: QUEST_COMPLETED)
+2025/08/15 15:15:57 📬 [Go Worker Debug] alice received raw message: {"case_id":"startup-test","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":0,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
+2025/08/15 15:15:57 ✅ [Go Worker Debug] alice parsed message: {CaseID:startup-test EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:0 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+2025/08/15 15:15:57 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:15:57 📄 [Go Worker] alice ignoring completion message startup-test (EventStage: QUEST_COMPLETED)
+2025/08/15 15:15:58 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755263758-764242000","payload":{"case_id":"single-gather-1755263758763430000","difficulty":1,"points":5,"quest_type":"gather","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755263758,"type":"game.quest.gather"}
+2025/08/15 15:15:58 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263758763430000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+2025/08/15 15:15:58 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:16:00 📬 [Go Worker Debug] alice received raw message: {"case_id":"single-gather-1755263758763430000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
+2025/08/15 15:16:00 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263758763430000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+2025/08/15 15:16:00 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:16:00 📄 [Go Worker] alice ignoring completion message single-gather-1755263758763430000 (EventStage: QUEST_COMPLETED)
+2025/08/15 15:16:00 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755263760-805445000","payload":{"case_id":"single-gather-1755263760803827000","difficulty":1,"points":5,"quest_type":"gather","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755263760,"type":"game.quest.gather"}
+2025/08/15 15:16:00 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263760803827000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+2025/08/15 15:16:00 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:16:02 💀 [Go Worker] alice quest single-gather-1755263760803827000 failed - sending to DLQ
+2025/08/15 15:16:02 💀 [Go Worker] alice: Message processing failed, sending to DLQ
+2025/08/15 15:16:10 📬 [Go Worker Debug] bob received raw message: {"id":"q-1755263770-872793000","payload":{"case_id":"single-escort-1755263701183957000","difficulty":1,"points":5,"quest_type":"escort","reissued_at":"2025-08-15T15:16:10+02:00","reissued_from_dlq":true,"retry_count":4,"source":"dlq_reissue","work_sec":2},"points":5,"timestamp":1755263770,"type":"game.quest.escort"}
+2025/08/15 15:16:10 ✅ [Go Worker Debug] bob parsed message: {CaseID:single-escort-1755263701183957000 EventStage: Status: Source:dlq_reissue QuestType:escort Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+2025/08/15 15:16:10 ℹ️ [Go Worker Debug] bob checking for skill 'escort' in [slay escort]
+2025/08/15 15:16:10 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755263770-902756000","payload":{"case_id":"single-gather-1755263760803827000","difficulty":1,"points":5,"quest_type":"gather","reissued_at":"2025-08-15T15:16:10+02:00","reissued_from_dlq":true,"retry_count":1,"source":"dlq_reissue","work_sec":2},"points":5,"timestamp":1755263770,"type":"game.quest.gather"}
+2025/08/15 15:16:10 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263760803827000 EventStage: Status: Source:dlq_reissue QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+2025/08/15 15:16:10 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:16:12 📬 [Go Worker Debug] bob received raw message: {"case_id":"single-escort-1755263701183957000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:bob","quest_type":"escort","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"bob","payload":null}
+2025/08/15 15:16:12 ✅ [Go Worker Debug] bob parsed message: {CaseID:single-escort-1755263701183957000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:bob QuestType:escort Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:bob Payload:map[]}
+2025/08/15 15:16:12 ℹ️ [Go Worker Debug] bob checking for skill 'escort' in [slay escort]
+2025/08/15 15:16:12 📄 [Go Worker] bob ignoring completion message single-escort-1755263701183957000 (EventStage: QUEST_COMPLETED)
+2025/08/15 15:16:12 📬 [Go Worker Debug] alice received raw message: {"case_id":"single-gather-1755263760803827000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:alice","quest_type":"gather","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"alice","payload":null}
+2025/08/15 15:16:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263760803827000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+2025/08/15 15:16:12 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 15:16:12 📄 [Go Worker] alice ignoring completion message single-gather-1755263760803827000 (EventStage: QUEST_COMPLETED)
+2025/08/15 15:16:43 🛑 [Go Worker] Stopping alice...
+2025/08/15 15:16:43 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+2025/08/15 15:16:43 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+2025/08/15 15:16:43 ✅ [Go Worker] alice stopped
+2025/08/15 15:16:43 🎭 [Chaos] Unregistered worker: alice
+2025/08/15 15:16:43 🛑 [Server] Stopped worker: alice
+2025/08/15 15:16:43 🛑 [Go Worker] Stopping bob...
+2025/08/15 15:16:43 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+2025/08/15 15:16:43 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.escort.q
+2025/08/15 15:16:43 ✅ [Go Worker] bob stopped
+2025/08/15 15:16:43 🎭 [Chaos] Unregistered worker: bob
+2025/08/15 15:16:43 🛑 [Server] Stopped worker: bob
