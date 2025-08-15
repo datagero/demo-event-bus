@@ -572,7 +572,7 @@ func (c *RabbitMQClient) GetBindingsFromAPI() ([]map[string]interface{}, error) 
 	return bindings, nil
 }
 
-// PeekQueueMessages retrieves messages from a queue using RabbitMQ Management API
+// PeekQueueMessages retrieves messages from a queue using RabbitMQ Management API (non-destructive)
 func (c *RabbitMQClient) PeekQueueMessages(queueName string, count int) ([]map[string]interface{}, error) {
 	// URL-encode the queue name
 	encodedQueueName := url.QueryEscape(queueName)
@@ -580,7 +580,7 @@ func (c *RabbitMQClient) PeekQueueMessages(queueName string, count int) ([]map[s
 
 	requestBody := map[string]interface{}{
 		"count":    count,
-		"ackmode":  "ack_requeue_true",
+		"ackmode":  "ack_requeue_true", // PEEK only - requeue messages
 		"encoding": "auto",
 		"truncate": 50000,
 	}
@@ -625,6 +625,63 @@ func (c *RabbitMQClient) PeekQueueMessages(queueName string, count int) ([]map[s
 		return nil, fmt.Errorf("failed to unmarshal messages response: %w", err)
 	}
 
+	return messages, nil
+}
+
+// ConsumeQueueMessages removes messages from a queue using RabbitMQ Management API (destructive)
+func (c *RabbitMQClient) ConsumeQueueMessages(queueName string, count int) ([]map[string]interface{}, error) {
+	// URL-encode the queue name
+	encodedQueueName := url.QueryEscape(queueName)
+	endpoint := fmt.Sprintf("/queues/%%2F/%s/get", encodedQueueName)
+
+	requestBody := map[string]interface{}{
+		"count":    count,
+		"ackmode":  "ack_requeue_false", // CONSUME - remove messages from queue
+		"encoding": "auto",
+		"truncate": 50000,
+	}
+
+	bodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
+
+	apiURL := fmt.Sprintf("%s%s", c.managementURL, endpoint)
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Add headers
+	auth := base64.StdEncoding.EncodeToString([]byte(c.username + ":" + c.password))
+	req.Header.Add("Authorization", "Basic "+auth)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return []map[string]interface{}{}, nil // Queue doesn't exist
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var messages []map[string]interface{}
+	if err := json.Unmarshal(body, &messages); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal messages response: %w", err)
+	}
+
+	log.Printf("🔥 [RabbitMQ] Consumed %d messages from queue %s", len(messages), queueName)
 	return messages, nil
 }
 

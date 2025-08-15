@@ -1332,10 +1332,12 @@
         });
         typeMetricsDiv.textContent = parts.join('  ·  ');
         if (msg.metrics.total_pending!=null){
-          document.getElementById('status-pending').textContent = String(msg.metrics.total_pending);
+          const pendingEl = document.getElementById('status-pending');
+          if (pendingEl) pendingEl.textContent = String(msg.metrics.total_pending);
         }
           if (msg.metrics.total_expired!=null){
-            document.getElementById('status-expired').textContent = String(msg.metrics.total_expired);
+            const expiredEl = document.getElementById('status-expired');
+            if (expiredEl) expiredEl.textContent = String(msg.metrics.total_expired);
           }
       }
 
@@ -1499,6 +1501,17 @@
         if (window.refreshDLQData) {
           setTimeout(() => window.refreshDLQData(), 1000);
         }
+      } else if (msg.type === 'quest_dlq') {
+        // Quest Log entry for messages going to DLQ
+        const p = msg.payload;
+        const questId = p.case_id || 'unknown';
+        const questType = p.quest_type || 'unknown';
+        const category = p.category || 'unknown';
+        
+        // Add DLQ entry to Quest Log
+        appendFeed('warn', 'DLQ', `${questId} (${questType}) → ${category.toUpperCase()}`);
+        console.log('🔍 [DEBUG] Quest sent to DLQ:', p);
+        saveToDebugLog('dlq', `Quest ${questId} sent to ${category} DLQ`);
       } else if (msg.type === 'roster') {
         // DISABLED: Roster now sourced from real-time workers service
         // WebSocket roster snapshots can be stale and cause phantom workers
@@ -1912,7 +1925,7 @@
               </div>
             </div>
             <div class="dlq-message-actions">
-              <button class="mini-btn dlq-replay-one" data-id="${id}" title="Replay this message">🔄</button>
+              <button class="mini-btn dlq-replay-one" data-id="${id}" data-queue="${queue}" title="Replay this message">🔄</button>
               <button class="mini-btn dlq-inspect-one" data-id="${id}" title="Inspect message details">👁</button>
             </div>
           </div>
@@ -1923,18 +1936,19 @@
       container.querySelectorAll('.dlq-replay-one').forEach(btn => {
         btn.onclick = async () => {
           const id = btn.getAttribute('data-id');
+          const queue = btn.getAttribute('data-queue') || 'game.dlq.unroutable.q'; // Get queue from data attribute
           try {
             const response = await fetch('/api/dlq/reissue', {
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({quest_id: id})
+              body: JSON.stringify({queue: queue, count: 1}) // Use correct backend format
             });
             const result = await response.json();
-            if (result.ok) {
-              appendFeed('info', 'DLQ', `Replayed message ${id}`);
+            if (result.ok && result.data.reissued_count > 0) {
+              appendFeed('info', 'DLQ', `Reissued ${result.data.reissued_count} messages from DLQ`);
               setTimeout(refreshDLQData, 500); // Refresh after a short delay
             } else {
-              appendFeed('err', 'DLQ', `Failed to replay ${id}: ${result.error}`);
+              appendFeed('warn', 'DLQ', `Reissued ${result.data?.reissued_count || 0} messages from DLQ`);
             }
           } catch (error) {
             appendFeed('err', 'DLQ', `Error replaying ${id}`);

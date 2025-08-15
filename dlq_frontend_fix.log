@@ -1,0 +1,182 @@
+[0;35m================================================================================================[0m
+[0;35m🚀 Starting Demo Event Bus - Complete Go Migration[0m
+[0;35m================================================================================================[0m
+[0;36m📊 Configuration:[0m
+   🐰 RabbitMQ: localhost:5672 (Management: 15672) - External
+   🏗️  Go API Server: localhost:9000
+   ⚡ Go Workers: localhost:8001
+[0;35m================================================================================================[0m
+[1;33mℹ️  Note: RabbitMQ must be started manually before running this script[0m
+[1;33m   Run: docker-compose up -d[0m
+[0;35m================================================================================================[0m
+
+[0;35m📋 Step 1: Building and Starting Go API Server[0m
+[0;34m🔍 Checking RabbitMQ availability...[0m
+[0;32m✅ RabbitMQ AMQP port 5672 is accessible[0m
+[0;34m🔨 Building Go API Server...[0m
+[0;32m✅ Go API Server built successfully[0m
+[0;34m🚀 Starting Go API Server on port 9000...[0m
+[0;32m✅ Go API Server started (PID: 21079), logging to api-server.log[0m
+[0;34m🔄 Waiting for Go API Server on port 9000...[0m
+[1;33m   Attempt 1/30...[0m
+[0;32m✅ Go API Server is ready on port 9000[0m
+[0;34m🧪 Testing Go API Server Health: http://localhost:9000/health[0m
+[0;32m✅ Go API Server Health endpoint is responding[0m
+
+[0;35m📋 Step 2: Building and Starting Go Workers[0m
+[0;34m🔨 Building Go Workers...[0m
+[0;32m✅ Go Workers built successfully[0m
+[0;34m🚀 Starting Go Workers on port 8001...[0m
+[0;32m✅ Go Workers started (PID: 21125), logging to workers.log[0m
+[0;34m🔄 Waiting for Go Workers on port 8001...[0m
+[1;33m   Attempt 1/30...[0m
+[0;32m✅ Go Workers is ready on port 8001[0m
+[0;34m🧪 Testing Go Workers Health: http://localhost:8001/health[0m
+[0;32m✅ Go Workers Health endpoint is responding[0m
+
+[0;35m📋 Step 3: Testing Complete System Integration[0m
+[0;34m🧪 Testing Go API Server endpoints...[0m
+[0;32m✅ RabbitMQ-direct metrics working[0m
+[0;32m✅ Chaos engineering endpoints working[0m
+[0;34m🧪 Testing native message publishing...[0m
+[0;31m❌ Message publishing test failed[0m
+
+[0;35m📋 Step 4: System Information[0m
+
+[0;36m🌐 Service URLs:[0m
+   🏠 Frontend:              http://localhost:9000/
+   🔧 Go API Server:         http://localhost:9000/api/
+   ⚡ Go Workers:            http://localhost:8001/
+   🐰 RabbitMQ Management:   http://localhost:15672/ (guest/guest)
+
+[0;36m🔗 Key Endpoints:[0m
+   📊 RabbitMQ Metrics:      http://localhost:9000/api/rabbitmq/metrics
+   👥 Player Creation:       POST http://localhost:9000/api/players/quickstart
+   📨 Message Publishing:    POST http://localhost:9000/api/publish
+   ⚡ Chaos Engineering:     POST http://localhost:9000/api/chaos/arm
+   🎮 Scenarios:             POST http://localhost:9000/api/scenario/run
+   💀 DLQ Management:        POST http://localhost:9000/api/dlq/setup
+
+[0;36m📈 Educational Features:[0m
+   🎯 RabbitMQ-Direct Architecture - Zero abstraction layers
+   🔍 Management API Integration - Live broker introspection
+   ⚡ Native Chaos Engineering - Direct RabbitMQ operations
+   💀 Comprehensive DLQ System - Native dead letter handling
+   🌐 WebSocket Broadcasting - Real-time UI updates
+   🚀 Pure Go Implementation - No Python dependencies
+
+[0;36m🎮 Quick Start Commands:[0m
+   # Create Alice and Bob workers
+   curl -X POST http://localhost:9000/api/players/quickstart -H 'Content-Type: application/json' -d '{"preset":"alice_bob"}'
+
+   # Publish a quest
+   curl -X POST http://localhost:9000/api/publish -H 'Content-Type: application/json' -d '{"routing_key":"game.quest.gather","payload":{"case_id":"quest-1","quest_type":"gather","points":5}}'
+
+   # Run late-bind escort scenario
+   curl -X POST http://localhost:9000/api/scenario/run -H 'Content-Type: application/json' -d '{"scenario":"late-bind-escort"}'
+
+   # Trigger chaos (purge queue)
+   curl -X POST http://localhost:9000/api/chaos/arm -H 'Content-Type: application/json' -d '{"action":"rmq_purge_queue","target_queue":"game.skill.gather.q"}'
+
+[0;35m================================================================================================[0m
+[0;32m🎉 Demo Event Bus - Complete Go Migration is running![0m
+[0;35m================================================================================================[0m
+[0;36m📊 Architecture: RabbitMQ (External) + Go API Server + Go Workers[0m
+[0;36m🎯 Educational Focus: Direct RabbitMQ integration with minimal abstraction[0m
+[0;36m🌐 Frontend: http://localhost:9000/[0m
+[1;33mℹ️  RabbitMQ managed separately via: docker-compose up -d[0m
+[0;35m================================================================================================[0m
+[1;33mPress Ctrl+C to stop all services[0m
+
+[0;34m🔄 Monitoring services... (Check status with: ./check_status.sh)[0m
+[0;34m🔄 To restart individual services during development:[0m
+[0;34m   ./restart_api.sh     - Restart API server[0m
+[0;34m   ./restart_workers.sh - Restart workers[0m
+[0;35m================================================================================================[0m
+[0;36m📋 Live Logs (API Server + Workers):[0m
+[0;37mTip: Use Ctrl+C to stop all services[0m
+[0;35m================================================================================================[0m
+[0;37m14:10:54[0m [0;34m[API_SERVER][0m 2025/08/15 14:10:54 [2025-08-15T14:10:54+02:00] localhost:9000 says: Publishing message with correlation_id=03480225-f498-48dd-98d4-63ad164b356d to routing_key=game.quest.gather
+[0;37m14:10:54[0m [0;34m[API_SERVER][0m 2025/08/15 14:10:54 [2025-08-15T14:10:54+02:00] localhost:9000 says: Message payload: {"case_id":"startup-test","correlation_id":"03480225-f498-48dd-98d4-63ad164b356d","points":5,"published_at":1755259854,"published_by":"api_endpoint","quest_type":"gather"}
+[0;37m14:10:54[0m [0;34m[API_SERVER][0m 2025/08/15 14:10:54 [2025-08-15T14:10:54+02:00] localhost:9000 says: SUCCESS published message correlation_id=03480225-f498-48dd-98d4-63ad164b356d
+[0;37m14:10:54[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:10:54 | 200 |    1.044708ms |             ::1 | POST     "/api/publish"
+[0;37m14:10:54[0m [0;35m[SYSTEM][0m 2025/08/15 14:10:52 🚀 [Go Server] Starting on port 8001
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+[0;37m14:10:57[0m [0;34m[API_SERVER][0m 2025/08/15 14:10:57 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755259854-377762000","payload":{"case_id":"startup-test","correlation_id":"03480225-f498-48dd-98d4-63ad164b356d","points":5,"published_at":1755259854,"published_by":"api_endpoint","quest_type":"gather"},"points":5,"timestamp":1755259854,"type":"game.quest.gather"}
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 ✅ [Go Worker Debug] alice parsed message: {CaseID:startup-test EventStage: Status: Source: QuestType:gather Difficulty:0 WorkSec:0 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m14:10:57[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:10:57 | 200 |     114.958µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:10:57[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:10:57 | 200 |     161.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 ✅ [Go Worker Debug] alice parsed message: {CaseID:startup-test EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:0 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 ✅ [Server] Started worker: alice
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+[0;37m14:10:57[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:10:57 | 200 |      29.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 🏃 [Go Worker] bob-worker-0 started on queue game.skill.slay.q
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 🚀 [Go Worker] bob started with 1 workers, skills: [slay escort]
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 🏃 [Go Worker] bob-worker-0 started on queue game.skill.escort.q
+[0;37m14:10:57[0m [0;32m[WORKERS][0m 2025/08/15 14:10:57 ✅ [Server] Started worker: bob
+[0;37m14:10:57[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:10:57 | 200 |   29.416916ms |             ::1 | POST     "/api/players/quickstart"
+[0;37m14:10:57[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:10:57 | 200 |      29.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:11:19[0m [0;34m[API_SERVER][0m 2025/08/15 14:11:19 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m14:11:19[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:11:19 | 200 |    6.764708ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m14:11:19[0m [0;32m[WORKERS][0m 2025/08/15 14:11:19 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755259623660249000 EventStage: Status: Source:dlq_reissue QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m14:11:19[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:11:19 | 200 |      48.542µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:11:21[0m [0;32m[WORKERS][0m 2025/08/15 14:11:21 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755259623660249000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m14:11:21[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:11:21 | 200 |     341.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:11:38[0m [0;34m[API_SERVER][0m 2025/08/15 14:11:38 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m14:11:38[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:11:38 | 200 |    1.460958ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🔄 [ResetGame] Starting comprehensive reset...
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 🛑 [ResetGame] Stopping worker: alice
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 🛑 [Go Worker] Stopping alice...
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 ✅ [Go Worker] alice stopped
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 🛑 [Server] Stopped worker: alice
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 ✅ [ResetGame] Successfully stopped worker: alice
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 🛑 [ResetGame] Stopping worker: bob
+[0;37m14:12:20[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:20 | 200 |     284.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 🛑 [Go Worker] Stopping bob...
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.escort.q
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 ✅ [Go Worker] bob stopped
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 🛑 [Server] Stopped worker: bob
+[0;37m14:12:20[0m [0;32m[WORKERS][0m 2025/08/15 14:12:20 ✅ [ResetGame] Successfully stopped worker: bob
+[0;37m14:12:20[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:20 | 200 |      28.292µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.expired.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.failed.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.retry.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.unroutable.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted queue game.skill.escort.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted queue game.skill.gather.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted queue game.skill.slay.q
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted exchange game.dlx
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted exchange game.skill
+[0;37m14:12:20[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:20 🗑️ [RabbitMQ] Successfully deleted exchange game.unroutable
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔄 [RabbitMQ] Successfully created exchange game.dlx (topic)
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔄 [RabbitMQ] Successfully created exchange game.unroutable (fanout)
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 📦 [RabbitMQ] Successfully created queue game.dlq.failed.q
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔗 [RabbitMQ] Successfully bound queue game.dlq.failed.q to exchange game.dlx with routing key dlq.failed
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 📦 [RabbitMQ] Successfully created queue game.dlq.unroutable.q
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.dlx with routing key dlq.unroutable
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 📦 [RabbitMQ] Successfully created queue game.dlq.expired.q
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔗 [RabbitMQ] Successfully bound queue game.dlq.expired.q to exchange game.dlx with routing key dlq.expired
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 📦 [RabbitMQ] Successfully created queue game.dlq.retry.q
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔗 [RabbitMQ] Successfully bound queue game.dlq.retry.q to exchange game.dlx with routing key dlq.retry
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.unroutable with routing key 
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 🔄 [RabbitMQ] Successfully created exchange game.skill (topic)
+[0;37m14:12:21[0m [0;34m[API_SERVER][0m 2025/08/15 14:12:21 ✅ [DLQ] Auto-setup completed successfully
+[0;37m14:12:21[0m [0;35m[SYSTEM][0m 2025/08/15 14:12:21 ✅ [ResetGame] Reset completed successfully
+[0;37m14:12:21[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:21 | 200 |  1.543509916s |             ::1 | POST     "/api/reset"
+[0;37m14:12:24[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:24 | 200 |    2.157667ms |             ::1 | POST     "/api/master/one"
+[0;37m14:12:27[0m [0;32m[WORKERS][0m 2025/08/15 14:12:27 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+[0;37m14:12:27[0m [0;32m[WORKERS][0m 2025/08/15 14:12:27 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+[0;37m14:12:27[0m [0;32m[WORKERS][0m 2025/08/15 14:12:27 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+[0;37m14:12:27[0m [0;32m[WORKERS][0m 2025/08/15 14:12:27 ✅ [Server] Started worker: alice
+[0;37m14:12:27[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:27 | 200 |   31.037167ms |             ::1 | POST     "/api/players/quickstart"
+[0;37m14:12:27[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:27 | 200 |        34.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:12:30[0m [0;34m[API_SERVER][0m 2025/08/15 14:12:30 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m14:12:30[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:30 | 200 |       2.775ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m14:12:30[0m [0;32m[WORKERS][0m 2025/08/15 14:12:30 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755259944064525000 EventStage: Status: Source:dlq_reissue QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m14:12:30[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:30 | 200 |      72.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:12:32[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:32 | 200 |          86µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m14:12:32[0m [0;32m[WORKERS][0m 2025/08/15 14:12:32 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755259944064525000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}

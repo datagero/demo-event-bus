@@ -185,6 +185,7 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("❌ [DLQ Reissue] Failed to bind JSON: %v", err)
 		c.JSON(http.StatusBadRequest, models.APIResponse{
 			Success: false,
 			Error:   err.Error(),
@@ -192,48 +193,86 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 		return
 	}
 
+	log.Printf("🔍 [DLQ Reissue] Request received: queue='%s', count=%d", req.Queue, req.Count)
+
 	// For educational purposes, we'll use a simplified reissue mechanism
 	// In production, this would involve more sophisticated message manipulation
 	reissuedCount := 0
 
 	if req.Queue != "" {
-		// Reissue from specific queue
-		messages, err := h.RabbitMQClient.PeekQueueMessages(req.Queue, req.Count)
+		// Reissue from specific queue - CONSUME messages (remove them from DLQ)
+		log.Printf("🔍 [DLQ Reissue] Starting reissue from queue %s, count %d", req.Queue, req.Count)
+		messages, err := h.RabbitMQClient.ConsumeQueueMessages(req.Queue, req.Count)
 		if err != nil {
+			log.Printf("❌ [DLQ Reissue] ConsumeQueueMessages failed: %v", err)
 			c.JSON(http.StatusInternalServerError, models.APIResponse{
 				Success: false,
-				Error:   "Failed to peek DLQ messages: " + err.Error(),
+				Error:   "Failed to consume DLQ messages: " + err.Error(),
 			})
 			return
 		}
+		log.Printf("🔍 [DLQ Reissue] ConsumeQueueMessages returned %d messages", len(messages))
 
-		// For each message, republish to original routing key
+		// For each message, republish to original routing key with clean payload
 		for _, msg := range messages {
-			if routingKey, ok := msg["routing_key"].(string); ok {
-				// Extract original payload
-				if payloadStr, ok := msg["payload"].(string); ok {
-					var payload map[string]interface{}
-					if json.Unmarshal([]byte(payloadStr), &payload) == nil {
-						// Preserve original case_id for tracking
-						originalCaseID, _ := payload["case_id"].(string)
+			// Extract original payload
+			if payloadStr, ok := msg["payload"].(string); ok {
+				var payload map[string]interface{}
+				if json.Unmarshal([]byte(payloadStr), &payload) == nil {
+					// Extract the core quest data from potentially nested payload
+					var corePayload map[string]interface{}
 
-						// Add reissue metadata
-						payload["reissued_from_dlq"] = true
-						payload["reissued_at"] = time.Now().Format(time.RFC3339)
-						payload["reissue_of"] = originalCaseID
+					// If this is a nested/reissued message, extract the innermost payload
+					if innerPayload, ok := payload["payload"].(map[string]interface{}); ok {
+						corePayload = innerPayload
+					} else {
+						corePayload = payload
+					}
 
-						// Log the reissue for debugging
-						log.Printf("🔄 [DLQ Reissue] Reissuing message %s from DLQ to %s", originalCaseID, routingKey)
+					// Extract quest_type for routing
+					questType, hasQuestType := corePayload["quest_type"].(string)
+					if !hasQuestType {
+						log.Printf("⚠️ [DLQ Reissue] No quest_type found in message, skipping")
+						continue
+					}
 
-						if err := h.RabbitMQClient.PublishMessage(routingKey, payload); err == nil {
-							reissuedCount++
+					// Create simple, clean routing key
+					originalRoutingKey := fmt.Sprintf("game.quest.%s", questType)
 
-							// Broadcast quest_issued event for UI tracking
-							// This ensures the frontend sees the reissued quest with proper metadata
-							h.broadcastMessage("quest_issued", payload)
-						} else {
-							log.Printf("❌ [DLQ Reissue] Failed to reissue message %s: %v", originalCaseID, err)
-						}
+					// Create a clean, simple message payload (no nesting)
+					cleanPayload := map[string]interface{}{
+						"case_id":           corePayload["case_id"],
+						"quest_type":        questType,
+						"difficulty":        corePayload["difficulty"],
+						"points":            corePayload["points"],
+						"work_sec":          corePayload["work_sec"],
+						"source":            "dlq_reissue",
+						"reissued_from_dlq": true,
+						"reissued_at":       time.Now().Format(time.RFC3339),
+					}
+
+					// Preserve original case_id for tracking
+					originalCaseID, _ := corePayload["case_id"].(string)
+
+					// Log the reissue for debugging
+					log.Printf("🔄 [DLQ Reissue] Reissuing clean message %s (%s) from DLQ to %s", originalCaseID, questType, originalRoutingKey)
+
+					if err := h.RabbitMQClient.PublishMessage(originalRoutingKey, cleanPayload); err == nil {
+						reissuedCount++
+
+						// Broadcast quest_issued event for UI tracking
+						h.broadcastMessage("quest_issued", cleanPayload)
+
+						// Also broadcast Quest Log entry for the reissue
+						h.broadcastMessage("quest_dlq", map[string]interface{}{
+							"case_id":    originalCaseID,
+							"quest_type": questType,
+							"category":   "reissued",
+							"queue":      req.Queue,
+							"source":     "dlq_reissue",
+						})
+					} else {
+						log.Printf("❌ [DLQ Reissue] Failed to reissue message %s: %v", originalCaseID, err)
 					}
 				}
 			}
