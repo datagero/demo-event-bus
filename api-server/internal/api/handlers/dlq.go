@@ -236,8 +236,21 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 						continue
 					}
 
-					// Create simple, clean routing key
-					originalRoutingKey := fmt.Sprintf("game.quest.%s", questType)
+					// Determine reissue strategy based on source queue
+					var targetRoutingKey string
+					var reissueCategory string
+
+					if strings.Contains(req.Queue, "failed") {
+						// For failed messages: use retry queue with delay mechanism
+						targetRoutingKey = "dlq.retry"
+						reissueCategory = "retry"
+						log.Printf("🔄 [DLQ Reissue] Using retry queue for failed message %s", corePayload["case_id"])
+					} else {
+						// For unroutable/expired: send back to original queue
+						targetRoutingKey = fmt.Sprintf("game.quest.%s", questType)
+						reissueCategory = "reissued"
+						log.Printf("🔄 [DLQ Reissue] Using original routing for non-failed message %s", corePayload["case_id"])
+					}
 
 					// Create a clean, simple message payload (no nesting)
 					cleanPayload := map[string]interface{}{
@@ -249,15 +262,16 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 						"source":            "dlq_reissue",
 						"reissued_from_dlq": true,
 						"reissued_at":       time.Now().Format(time.RFC3339),
+						"retry_count":       getRetryCount(corePayload) + 1,
 					}
 
 					// Preserve original case_id for tracking
 					originalCaseID, _ := corePayload["case_id"].(string)
 
 					// Log the reissue for debugging
-					log.Printf("🔄 [DLQ Reissue] Reissuing clean message %s (%s) from DLQ to %s", originalCaseID, questType, originalRoutingKey)
+					log.Printf("🔄 [DLQ Reissue] Reissuing clean message %s (%s) from DLQ to %s", originalCaseID, questType, targetRoutingKey)
 
-					if err := h.RabbitMQClient.PublishMessage(originalRoutingKey, cleanPayload); err == nil {
+					if err := h.RabbitMQClient.PublishMessage(targetRoutingKey, cleanPayload); err == nil {
 						reissuedCount++
 
 						// Broadcast quest_issued event for UI tracking
@@ -267,7 +281,7 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 						h.broadcastMessage("quest_dlq", map[string]interface{}{
 							"case_id":    originalCaseID,
 							"quest_type": questType,
-							"category":   "reissued",
+							"category":   reissueCategory,
 							"queue":      req.Queue,
 							"source":     "dlq_reissue",
 						})
@@ -692,6 +706,19 @@ func getIntField(data map[string]interface{}, field string) int {
 		}
 		if intVal, ok := val.(int); ok {
 			return intVal
+		}
+	}
+	return 0
+}
+
+// getRetryCount extracts the retry count from a message payload
+func getRetryCount(payload map[string]interface{}) int {
+	if retryCount, exists := payload["retry_count"]; exists {
+		if count, ok := retryCount.(float64); ok {
+			return int(count)
+		}
+		if count, ok := retryCount.(int); ok {
+			return count
 		}
 	}
 	return 0

@@ -180,3 +180,17 @@
 [0;37m14:12:30[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:30 | 200 |      72.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
 [0;37m14:12:32[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 14:12:32 | 200 |          86µs |             ::1 | POST     "/api/go-workers/webhook/events"
 [0;37m14:12:32[0m [0;32m[WORKERS][0m 2025/08/15 14:12:32 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755259944064525000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m14:15:01[0m [0;34m[API_SERVER][0m 2025/08/15 14:15:01 🛑 [API Server] Shutting down...
+[0;37m14:15:01[0m [0;34m[API_SERVER][0m 2025/08/15 14:15:01 ✅ [API Server] Graceful shutdown completed
+[0;37m14:15:03[0m [0;35m[SYSTEM][0m 2025/08/15 14:15:03 🛑 [Go Server] Shutting down...
+[0;37m14:15:03[0m [0;32m[WORKERS][0m 2025/08/15 14:15:03 🛑 [Go Server] Stopping worker: alice
+[0;37m14:15:03[0m [0;32m[WORKERS][0m 2025/08/15 14:15:03 🛑 [Go Worker] Stopping alice...
+[0;37m14:15:03[0m [0;35m[SYSTEM][0m 2025/08/15 14:15:03 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+[0;37m14:15:03[0m [0;35m[SYSTEM][0m 2025/08/15 14:15:03 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+[0;37m14:15:03[0m [0;32m[WORKERS][0m 2025/08/15 14:15:03 ✅ [Go Worker] alice stopped
+[0;37m14:15:03[0m [0;35m[SYSTEM][0m 2025/08/15 14:15:03 ✅ [Go Server] Shutdown complete
+
+[1;33m🛑 Shutting down services...[0m
+[0;34mStopping Go Workers (PID: 21125)...[0m
+[0;34mStopping Go API Server (PID: 21079)...[0m
+[0;32m✅ All services stopped[0m

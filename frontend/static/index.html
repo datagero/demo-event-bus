@@ -512,15 +512,25 @@
           <div>Broker: <span id="status-broker" class="tag info">ready=– · unacked=–</span> <button id="sync-broker" class="mini-btn" title="Sync broker KPIs">↻</button></div>
         </div>
         
-        <!-- Center - Prominent DLQ Status -->
-        <div style="display:flex; gap:10px; align-items:center; padding:6px 12px; background:rgba(155, 89, 182, 0.08); border:1px solid var(--accent); border-radius:6px">
-          <span style="color:var(--accent); font-weight:bold; font-size:14px">⚰️ DLQ:</span>
-          <span id="dlq-status-failed" class="dlq-quest-filter dlq-status-btn" data-filter="failed" title="Click to filter failed quests">Failed: 0</span>
-          <span id="dlq-status-unroutable" class="dlq-quest-filter dlq-status-btn" data-filter="unroutable" title="Click to filter unroutable quests">Unroutable: 0</span>
-          <span id="dlq-status-expired" class="dlq-quest-filter dlq-status-btn" data-filter="expired" title="Click to filter expired quests">Expired: 0</span>
-          <span id="dlq-status-retrying" class="dlq-quest-filter dlq-status-btn" data-filter="retrying" title="Click to filter retrying quests">Retrying: 0</span>
-          <button id="dlq-status-all" class="dlq-quest-filter dlq-status-btn-all" data-filter="all" title="Show all quests">All</button>
-          <button id="dlq-actions-menu" class="dlq-actions-btn" title="DLQ Management">⚙️</button>
+        <!-- Center - Message Backlog Overview -->
+        <div style="display:flex; gap:12px; align-items:center">
+          <!-- Pending & Unacked KPIs -->
+          <div style="display:flex; gap:8px; align-items:center; padding:6px 10px; background:rgba(52, 152, 219, 0.1); border:1px solid #3498db; border-radius:6px">
+            <span style="color:#3498db; font-weight:bold; font-size:14px">📊 Queue:</span>
+            <span id="queue-status-pending" class="tag info" title="Messages waiting to be processed">Pending: –</span>
+            <span id="queue-status-unacked" class="tag warn" title="Messages delivered but not yet acknowledged">Unacked: –</span>
+          </div>
+          
+          <!-- DLQ Status -->
+          <div style="display:flex; gap:10px; align-items:center; padding:6px 12px; background:rgba(155, 89, 182, 0.08); border:1px solid var(--accent); border-radius:6px">
+            <span style="color:var(--accent); font-weight:bold; font-size:14px">⚰️ DLQ:</span>
+            <span id="dlq-status-failed" class="dlq-quest-filter dlq-status-btn" data-filter="failed" title="Click to filter failed quests">Failed: 0</span>
+            <span id="dlq-status-unroutable" class="dlq-quest-filter dlq-status-btn" data-filter="unroutable" title="Click to filter unroutable quests">Unroutable: 0</span>
+            <span id="dlq-status-expired" class="dlq-quest-filter dlq-status-btn" data-filter="expired" title="Click to filter expired quests">Expired: 0</span>
+            <span id="dlq-status-retrying" class="dlq-quest-filter dlq-status-btn" data-filter="retrying" title="Click to filter retrying quests">Retrying: 0</span>
+            <button id="dlq-status-all" class="dlq-quest-filter dlq-status-btn-all" data-filter="all" title="Show all quests">All</button>
+            <button id="dlq-actions-menu" class="dlq-actions-btn" title="DLQ Management">⚙️</button>
+          </div>
         </div>
         
         <!-- Right side spacer -->
@@ -1508,8 +1518,21 @@
         const questType = p.quest_type || 'unknown';
         const category = p.category || 'unknown';
         
-        // Add DLQ entry to Quest Log
-        appendFeed('warn', 'DLQ', `${questId} (${questType}) → ${category.toUpperCase()}`);
+        // Add DLQ entry to Quest Log with emoji
+        const categoryEmoji = {
+          'unroutable': '📍',
+          'failed': '❌', 
+          'expired': '⏰',
+          'retrying': '🔄',
+          'retry': '🔄',
+          'reissued': '↻'
+        };
+        const emoji = categoryEmoji[category] || '⚰️';
+        appendFeed('warn', 'DLQ', `${emoji} ${questId} (${questType}) → ${category.toUpperCase()}`);
+        
+        // Add timeline entry to quest card
+        addQuestCardDLQEntry(questId, category);
+        
         console.log('🔍 [DEBUG] Quest sent to DLQ:', p);
         saveToDebugLog('dlq', `Quest ${questId} sent to ${category} DLQ`);
       } else if (msg.type === 'roster') {
@@ -1825,6 +1848,95 @@
     let workersRosterData = { workers: [], lastUpdate: null };
     let rosterUpdateInterval = null;
     
+    // Track DLQ messages to detect new ones
+    let previousDLQMessages = new Set();
+    
+    // Detect new DLQ messages and create notifications
+    function detectNewDLQMessages(currentMessages) {
+      const currentDLQMessageIds = new Set();
+      
+      currentMessages.forEach(msg => {
+        let questId = null;
+        try {
+          const payload = JSON.parse(msg.payload || '{}');
+          // Extract quest ID using same logic as quest cards
+          let questData = payload;
+          if (payload.payload) {
+            const nested = typeof payload.payload === 'object' ? payload.payload : JSON.parse(payload.payload);
+            questData = { ...payload, ...nested };
+          }
+          questId = questData.case_id || questData.quest_id || questData.id;
+        } catch (e) {
+          // Skip if can't parse
+        }
+        
+        if (questId) {
+          const messageKey = `${questId}-${msg.category}`;
+          currentDLQMessageIds.add(messageKey);
+          
+          // Check if this is a new DLQ message
+          if (!previousDLQMessages.has(messageKey)) {
+            console.log(`🚨 [DLQ Detection] New ${msg.category} DLQ message: ${questId}`);
+            
+            // Add Quest Log entry
+            const categoryEmoji = {
+              'unroutable': '📍',
+              'failed': '❌', 
+              'expired': '⏰',
+              'retrying': '🔄',
+              'retry': '🔄'
+            };
+            const emoji = categoryEmoji[msg.category] || '⚰️';
+            appendFeed('warn', 'DLQ', `${emoji} ${questId} → ${msg.category.toUpperCase()}`);
+            
+            // Update quest card with DLQ timeline entry
+            addQuestCardDLQEntry(questId, msg.category);
+          }
+        }
+      });
+      
+      // Update the set for next comparison
+      previousDLQMessages = currentDLQMessageIds;
+    }
+    
+    // Add DLQ entry to quest card timeline
+    function addQuestCardDLQEntry(questId, category) {
+      const questCard = document.querySelector(`[data-quest-id="${questId}"]`);
+      if (questCard) {
+        const timeline = questCard.querySelector('.tl');
+        if (timeline) {
+          // Check if this DLQ entry already exists to prevent duplicates
+          const dlqEntryId = `dlq-${questId}-${category}`;
+          const existingEntry = timeline.querySelector(`[data-dlq-entry="${dlqEntryId}"]`);
+          if (existingEntry) {
+            console.log(`🎯 [Quest Card] DLQ timeline entry already exists for ${questId}: ${category}`);
+            return; // Skip duplicate
+          }
+          
+          const categoryEmoji = {
+            'unroutable': '📍',
+            'failed': '❌',
+            'expired': '⏰', 
+            'retrying': '🔄',
+            'reissued': '↻'
+          };
+          const emoji = categoryEmoji[category] || '⚰️';
+          const timestamp = new Date().toLocaleTimeString();
+          
+          const timelineEntry = document.createElement('li');
+          // Use different colors for different DLQ types
+          const entryColor = category === 'reissued' ? '#f39c12' : '#e74c3c'; // Yellow for reissued, red for others
+          timelineEntry.style.cssText = `font-size:10px; color:${entryColor}; margin:2px 0;`;
+          timelineEntry.textContent = `${timestamp}: ${emoji} Sent to ${category.toUpperCase()} DLQ`;
+          timelineEntry.setAttribute('data-dlq-entry', dlqEntryId); // Add unique identifier
+          
+          timeline.appendChild(timelineEntry);
+          
+          console.log(`🎯 [Quest Card] Added DLQ timeline entry to ${questId}: ${category}`);
+        }
+      }
+    }
+    
     // Main DLQ data fetcher and updater
     async function refreshDLQData() {
       try {
@@ -1832,12 +1944,18 @@
         const result = await response.json();
         
         if (result.ok && result.data) {
+          // Detect new DLQ messages for notifications
+          detectNewDLQMessages(result.data.messages || []);
+          
           dlqData = result.data;
           dlqLastUpdate = new Date();
           updateDLQStatistics();
           renderDLQMessages();
           updateLastUpdateTime();
           showEducationalHints();
+          
+          // Also update queue KPIs for complete backlog overview
+          updateQueueKPIs();
         } else {
           console.error('Failed to fetch DLQ data:', result.error);
           showDLQError('Failed to fetch DLQ data: ' + (result.error || 'Unknown error'));
@@ -2446,10 +2564,14 @@
           quest.querySelector('.who').textContent = 'Unassigned';
           quest.querySelector('.bar').style.width = '0%';
           
-          // Remove DLQ indicators
+          // Remove DLQ indicators and refresh buttons
           const indicator = quest.querySelector('.dlq-indicator');
           if (indicator) {
             indicator.remove();
+          }
+          const refreshBtn = quest.querySelector('.dlq-refresh-btn');
+          if (refreshBtn) {
+            refreshBtn.remove();
           }
         }
       });
@@ -2581,6 +2703,90 @@
                                 state.status === 'failed' ? '❌' : 
                                 state.status === 'expired' ? '⏰' : '🔄';
           indicator.title = `${state.status.toUpperCase()} in DLQ`;
+          
+          // Add DLQ refresh button
+          let refreshBtn = questCard.querySelector('.dlq-refresh-btn');
+          if (!refreshBtn) {
+            refreshBtn = document.createElement('button');
+            refreshBtn.className = 'dlq-refresh-btn mini-btn';
+            refreshBtn.style.cssText = 'font-size:10px; margin-left:4px; padding:2px 4px; background:#2563eb; color:white; border:none; border-radius:3px; cursor:pointer; max-width:20px; overflow:hidden;';
+            refreshBtn.textContent = '🔄';
+            refreshBtn.title = 'Reissue from DLQ';
+            questCard.querySelector('.title').appendChild(refreshBtn);
+            
+            // Capture queue and status for closure (fix scoping issue)
+            const capturedQueue = state.data?.queue;
+            const capturedStatus = state.status;
+            const capturedQuestId = questId;
+            
+            // Add click handler for DLQ reissue
+            refreshBtn.onclick = async (e) => {
+              e.stopPropagation(); // Prevent opening quest modal
+              
+              // Determine the correct DLQ queue based on captured state
+              let queue = capturedQueue;
+              if (!queue) {
+                // Fallback: derive queue from DLQ status
+                const dlqMapping = {
+                  'failed': 'game.dlq.failed.q',
+                  'unroutable': 'game.dlq.unroutable.q',
+                  'expired': 'game.dlq.expired.q',
+                  'retrying': 'game.dlq.retry.q'
+                };
+                queue = dlqMapping[capturedStatus] || 'game.dlq.unroutable.q';
+              }
+              
+              console.log(`🔄 [DLQ Refresh] Reissuing from queue: ${queue} for quest ${capturedQuestId} (status: ${capturedStatus})`);
+              
+              try {
+                refreshBtn.disabled = true;
+                refreshBtn.textContent = '⏳';
+                
+                const response = await fetch('/api/dlq/reissue', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({queue: queue, count: 1})
+                });
+                
+                const result = await response.json();
+                if (result.ok && result.data.reissued_count > 0) {
+                  // Success - the WebSocket handler will update the UI
+                  console.log(`✅ [DLQ Refresh] Successfully reissued ${result.data.reissued_count} messages from ${queue}`);
+                  const feedMessage = capturedStatus === 'failed' ? 
+                    `🔄 ${capturedQuestId} sent to RETRY queue` : 
+                    `↻ ${capturedQuestId} reissued to original queue`;
+                  appendFeed('info', 'DLQ', feedMessage);
+                  
+                  refreshBtn.textContent = '✅';
+                  setTimeout(() => {
+                    refreshBtn.textContent = '🔄';
+                    refreshBtn.disabled = false;
+                  }, 3000);
+                  
+                  // Add timeline entry for reissue - use different category based on DLQ type
+                  const reissueCategory = capturedStatus === 'failed' ? 'retry' : 'reissued';
+                  addQuestCardDLQEntry(capturedQuestId, reissueCategory);
+                } else {
+                  // No messages to reissue or failed
+                  console.warn(`⚠️ [DLQ Refresh] Failed to reissue from ${queue}: ${result.data.reissued_count} messages reissued`);
+                  appendFeed('warn', 'DLQ', `⚠️ No ${capturedStatus.toUpperCase()} messages to reissue for ${capturedQuestId}`);
+                  
+                  refreshBtn.textContent = '❌';
+                  setTimeout(() => {
+                    refreshBtn.textContent = '🔄';
+                    refreshBtn.disabled = false;
+                  }, 2000);
+                }
+              } catch (error) {
+                console.error('DLQ reissue failed:', error);
+                refreshBtn.textContent = '❌';
+                setTimeout(() => {
+                  refreshBtn.textContent = '🔄';
+                  refreshBtn.disabled = false;
+                }, 2000);
+              }
+            };
+          }
           
         } else if (state.source === 'pending') {
           // Handle pending states (only if not overridden by DLQ)
@@ -3090,6 +3296,66 @@
       if (!data.ok){ appendFeed('err','BROKER',`Sync failed: ${data.error||'unknown'}`); return; }
       document.getElementById('status-broker').textContent = `ready=${data.total_ready} · unacked=${data.total_unacked}`;
     };
+    
+    // Sync queue KPIs (Pending & Unacked)
+    async function updateQueueKPIs() {
+      try {
+        const res = await fetch('/api/rabbitmq/metrics');
+        const data = await res.json();
+        console.log('🔍 [Queue KPIs] Raw data:', data); // Debug log
+        
+        if (data.ok) {
+          const pendingEl = document.getElementById('queue-status-pending');
+          const unackedEl = document.getElementById('queue-status-unacked');
+          
+          // Get non-DLQ pending (exclude DLQ queues from pending count)
+          const totalPending = data.data.total_pending || 0;
+          const dlqReady = Object.entries(data.data.queue_stats || {})
+            .filter(([queueName, _]) => queueName.includes('dlq'))
+            .reduce((sum, [_, stats]) => sum + (stats.ready || 0), 0);
+          const nonDlqPending = Math.max(0, totalPending - dlqReady);
+          
+          console.log('🔍 [Queue KPIs] Calculated:', {totalPending, dlqReady, nonDlqPending, totalUnacked: data.data.total_unacked}); // Debug log
+          
+          if (pendingEl) {
+            pendingEl.textContent = `Pending: ${nonDlqPending}`;
+            console.log('🔍 [Queue KPIs] Updated pending element:', pendingEl.textContent); // Debug log
+            // Visual emphasis for non-zero pending
+            if (nonDlqPending > 0) {
+              pendingEl.style.fontWeight = 'bold';
+              pendingEl.style.transform = 'scale(1.05)';
+            } else {
+              pendingEl.style.fontWeight = 'normal';
+              pendingEl.style.transform = 'scale(1)';
+            }
+          } else {
+            console.error('🔍 [Queue KPIs] Pending element not found!');
+          }
+          
+          if (unackedEl) {
+            const totalUnacked = data.data.total_unacked || 0;
+            unackedEl.textContent = `Unacked: ${totalUnacked}`;
+            console.log('🔍 [Queue KPIs] Updated unacked element:', unackedEl.textContent); // Debug log
+            // Visual emphasis for non-zero unacked
+            if (totalUnacked > 0) {
+              unackedEl.style.fontWeight = 'bold';
+              unackedEl.style.transform = 'scale(1.05)';
+            } else {
+              unackedEl.style.fontWeight = 'normal';
+              unackedEl.style.transform = 'scale(1)';
+            }
+          } else {
+            console.error('🔍 [Queue KPIs] Unacked element not found!');
+          }
+        } else {
+          console.error('Failed to fetch queue KPIs:', data.error);
+        }
+      } catch (error) {
+        console.error('Queue KPI fetch error:', error);
+      }
+    }
+    
+    // Queue KPIs are automatically refreshed with DLQ updates (real-time)
     // Send one buttons
     document.querySelectorAll('.send-one').forEach(btn=>{
       btn.onclick = async ()=>{
@@ -3505,6 +3771,8 @@
       startRabbitMQQuestUpdates();
       // Start real-time workers roster updates
       startWorkersRosterUpdates();
+      // Initialize queue KPIs
+      updateQueueKPIs();
       // Start skill queue monitoring
       startSkillQueueMonitoring();
     }, 1000);
