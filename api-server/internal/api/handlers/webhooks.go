@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"demo-event-bus-api/internal/models"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -52,6 +53,11 @@ func (h *Handlers) ReceiveWorkerEvents(c *gin.Context) {
 func (h *Handlers) handleMessageEvent(event map[string]interface{}) {
 	// Extract event details
 	eventStage, _ := event["event"].(string)
+	player, _ := event["player"].(string)
+
+	// Debug logging to trace webhook events
+	log.Printf("🔔 [Webhook] Received message event: stage=%s, player=%s", eventStage, player)
+
 	// Normalize to uppercase to accept both legacy (UPPER) and Go worker (lowercase) forms
 	switch eventStage {
 	case "accept":
@@ -61,7 +67,6 @@ func (h *Handlers) handleMessageEvent(event map[string]interface{}) {
 	case "failed":
 		eventStage = "FAILED"
 	}
-	player, _ := event["player"].(string)
 
 	// Map Go worker event names to frontend event names
 	var msgType string
@@ -90,6 +95,7 @@ func (h *Handlers) handleMessageEvent(event map[string]interface{}) {
 	message["event"] = eventStage // Add event stage for context
 	message["source"] = "go-worker-webhook"
 
+	log.Printf("🔔 [Webhook] Broadcasting WebSocket: type=%s, player=%s, stage=%s", msgType, player, eventStage)
 	h.broadcastMessage(msgType, message)
 }
 

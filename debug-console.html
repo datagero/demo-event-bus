@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Queue Quest - Debug Console</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            background: #0b1020; 
+            color: #e7eeff; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .header {
+            background: #1c2950;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #32406a;
+        }
+        .log-container {
+            background: #0e162b;
+            border: 1px solid #1e2a4d;
+            border-radius: 8px;
+            padding: 15px;
+            height: 600px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .log-debug { background: rgba(52, 152, 219, 0.1); color: #8ec6ff; }
+        .log-info { background: rgba(46, 204, 113, 0.1); color: #6fe0a0; }
+        .log-warn { background: rgba(241, 196, 15, 0.1); color: #ffd26f; }
+        .log-error { background: rgba(231, 76, 60, 0.1); color: #ff9b9b; }
+        .log-websocket { background: rgba(155, 89, 182, 0.1); color: #c39bd3; }
+        .timestamp { color: #8aa0c7; font-size: 10px; }
+        .controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            background: #1c2950;
+            border: 1px solid #32406a;
+            color: #e7eeff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover { background: #233368; }
+        .status { 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 11px; 
+            font-weight: bold;
+        }
+        .status.connected { background: #27ae60; color: white; }
+        .status.disconnected { background: #e74c3c; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>🔍 Queue Quest Debug Console</h2>
+        <p>Real-time logging for frontend WebSocket messages, quest acceptance, and debugging</p>
+    </div>
+    
+    <div class="controls">
+        <button onclick="clearLogs()">Clear Logs</button>
+        <button onclick="saveLogsToFile()">Save to File</button>
+        <button onclick="connectToMain()">Connect to Main App</button>
+        <span class="status" id="connection-status">Disconnected</span>
+        <span style="color: #8aa0c7; margin-left: 20px;">Auto-scroll: </span>
+        <input type="checkbox" id="auto-scroll" checked>
+    </div>
+    
+    <div class="log-container" id="log-container">
+        <div class="log-entry log-info">
+            <span class="timestamp">[SYSTEM]</span> Debug console initialized. Click "Connect to Main App" to start logging.
+        </div>
+    </div>
+
+    <script>
+        let logEntries = [];
+        let isConnected = false;
+        
+        function log(level, message, source = 'DEBUG') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = {
+                timestamp,
+                level,
+                message,
+                source
+            };
+            
+            logEntries.push(entry);
+            displayLog(entry);
+            
+            // Auto-scroll if enabled
+            if (document.getElementById('auto-scroll').checked) {
+                const container = document.getElementById('log-container');
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        
+        function displayLog(entry) {
+            const container = document.getElementById('log-container');
+            const div = document.createElement('div');
+            div.className = `log-entry log-${entry.level}`;
+            div.innerHTML = `<span class="timestamp">[${entry.timestamp}] [${entry.source}]</span> ${entry.message}`;
+            container.appendChild(div);
+            
+            // Keep only last 1000 entries for performance
+            if (container.children.length > 1000) {
+                container.removeChild(container.firstChild);
+            }
+        }
+        
+        function clearLogs() {
+            document.getElementById('log-container').innerHTML = '';
+            logEntries = [];
+            log('info', 'Logs cleared', 'SYSTEM');
+        }
+        
+        function saveLogsToFile() {
+            const content = logEntries.map(entry => 
+                `[${entry.timestamp}] [${entry.source}] [${entry.level.toUpperCase()}] ${entry.message}`
+            ).join('\n');
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `queue-quest-debug-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.log`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            log('info', `Logs saved to file: ${a.download}`, 'SYSTEM');
+        }
+        
+        function connectToMain() {
+            if (isConnected) {
+                log('warn', 'Already connected to main app', 'SYSTEM');
+                return;
+            }
+            
+            try {
+                // Try to connect to main app window
+                const mainWindow = window.open('http://localhost:9000/', 'mainApp');
+                
+                if (mainWindow) {
+                    log('info', 'Opening main app window...', 'SYSTEM');
+                    
+                    // Poll for the main window to load
+                    const pollInterval = setInterval(() => {
+                        try {
+                            if (mainWindow.console) {
+                                setupConsoleInterception(mainWindow);
+                                clearInterval(pollInterval);
+                                isConnected = true;
+                                document.getElementById('connection-status').textContent = 'Connected';
+                                document.getElementById('connection-status').className = 'status connected';
+                                log('info', 'Successfully connected to main app console', 'SYSTEM');
+                            }
+                        } catch (e) {
+                            // Still loading or cross-origin issue
+                        }
+                    }, 1000);
+                    
+                    // Timeout after 10 seconds
+                    setTimeout(() => {
+                        clearInterval(pollInterval);
+                        if (!isConnected) {
+                            log('error', 'Failed to connect to main app console (timeout)', 'SYSTEM');
+                        }
+                    }, 10000);
+                }
+            } catch (error) {
+                log('error', `Failed to connect to main app: ${error.message}`, 'SYSTEM');
+            }
+        }
+        
+        function setupConsoleInterception(targetWindow) {
+            const originalLog = targetWindow.console.log;
+            const originalWarn = targetWindow.console.warn;
+            const originalError = targetWindow.console.error;
+            const originalInfo = targetWindow.console.info;
+            
+            targetWindow.console.log = function(...args) {
+                originalLog.apply(this, args);
+                const message = args.map(arg => 
+                    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                ).join(' ');
+                
+                // Determine log level based on content
+                let level = 'info';
+                if (message.includes('🔍 [DEBUG]') || message.includes('🎯 [DEBUG]')) {
+                    level = 'debug';
+                } else if (message.includes('WebSocket') || message.includes('player_accept') || message.includes('quest_issued')) {
+                    level = 'websocket';
+                }
+                
+                log(level, message, 'FRONTEND');
+            };
+            
+            targetWindow.console.warn = function(...args) {
+                originalWarn.apply(this, args);
+                const message = args.map(arg => String(arg)).join(' ');
+                log('warn', message, 'FRONTEND');
+            };
+            
+            targetWindow.console.error = function(...args) {
+                originalError.apply(this, args);
+                const message = args.map(arg => String(arg)).join(' ');
+                log('error', message, 'FRONTEND');
+            };
+            
+            targetWindow.console.info = function(...args) {
+                originalInfo.apply(this, args);
+                const message = args.map(arg => String(arg)).join(' ');
+                log('info', message, 'FRONTEND');
+            };
+        }
+        
+        // Add backend log polling
+        let backendLogInterval;
+        
+        function startBackendLogPolling() {
+            log('info', 'Starting backend log polling...', 'SYSTEM');
+            
+            backendLogInterval = setInterval(async () => {
+                try {
+                    // This would require a backend endpoint to serve recent logs
+                    // For now, we'll just show this is where it would go
+                    const response = await fetch('/api/debug/recent-logs');
+                    if (response.ok) {
+                        const logs = await response.json();
+                        logs.forEach(logEntry => {
+                            if (logEntry.message.includes('🔔')) {
+                                log('websocket', logEntry.message, 'BACKEND');
+                            } else if (logEntry.level === 'error') {
+                                log('error', logEntry.message, 'BACKEND');
+                            } else {
+                                log('info', logEntry.message, 'BACKEND');
+                            }
+                        });
+                    }
+                } catch (error) {
+                    // Backend endpoint not available, that's fine
+                }
+            }, 2000);
+        }
+        
+        // Initialize
+        log('info', 'Debug console ready. Click "Connect to Main App" to start intercepting logs.', 'SYSTEM');
+        
+        // Auto-connect if main app is already open
+        setTimeout(() => {
+            if (!isConnected) {
+                log('info', 'Click "Connect to Main App" to open the main application and start logging.', 'SYSTEM');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

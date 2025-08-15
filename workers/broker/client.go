@@ -111,6 +111,7 @@ func (c *Client) DeclareQueue(queueName, routingKey string) error {
 		return fmt.Errorf("failed to declare queue %s: %w", queueName, err)
 	}
 
+	// Bind to incoming quest messages (e.g., game.quest.gather)
 	err = c.channel.QueueBind(
 		queueName,    // queue name
 		routingKey,   // routing key
@@ -120,6 +121,20 @@ func (c *Client) DeclareQueue(queueName, routingKey string) error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed to bind queue %s: %w", queueName, err)
+	}
+
+	// Also bind to completion messages (e.g., game.quest.gather.done)
+	// This prevents completion messages from going to unroutable DLQ
+	completionRoutingKey := routingKey + ".done"
+	err = c.channel.QueueBind(
+		queueName,            // queue name
+		completionRoutingKey, // routing key for completions
+		ExchangeName,         // exchange
+		false,                // no-wait
+		nil,                  // arguments
+	)
+	if err != nil {
+		return fmt.Errorf("failed to bind queue %s to completion routing key %s: %w", queueName, completionRoutingKey, err)
 	}
 
 	return nil

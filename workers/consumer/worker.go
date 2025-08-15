@@ -227,6 +227,12 @@ func (w *Worker) processMessage(delivery amqp.Delivery) bool {
 	log.Printf("✅ [Go Worker Debug] %s parsed message: %+v", w.Config.PlayerName, msg)
 	log.Printf("ℹ️ [Go Worker Debug] %s checking for skill '%s' in %v", w.Config.PlayerName, msg.QuestType, w.Config.Skills)
 
+	// IGNORE completion messages - these should not be processed as new quests
+	if msg.EventStage == "QUEST_COMPLETED" || msg.EventStage == "QUEST_FAILED" {
+		log.Printf("📄 [Go Worker] %s ignoring completion message %s (EventStage: %s)", w.Config.PlayerName, msg.CaseID, msg.EventStage)
+		return true // ACK the completion message but don't process it
+	}
+
 	// Check if this worker should handle this quest type
 	if w.Config.RoutingMode == "skill" && !w.hasSkill(msg.QuestType) {
 		log.Printf("⚠️ [Go Worker] %s skipping %s (no skill)", w.Config.PlayerName, msg.QuestType)

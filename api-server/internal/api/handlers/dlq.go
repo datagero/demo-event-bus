@@ -214,12 +214,25 @@ func (h *Handlers) ReissueDLQMessages(c *gin.Context) {
 				if payloadStr, ok := msg["payload"].(string); ok {
 					var payload map[string]interface{}
 					if json.Unmarshal([]byte(payloadStr), &payload) == nil {
+						// Preserve original case_id for tracking
+						originalCaseID, _ := payload["case_id"].(string)
+
 						// Add reissue metadata
 						payload["reissued_from_dlq"] = true
 						payload["reissued_at"] = time.Now().Format(time.RFC3339)
+						payload["reissue_of"] = originalCaseID
+
+						// Log the reissue for debugging
+						log.Printf("🔄 [DLQ Reissue] Reissuing message %s from DLQ to %s", originalCaseID, routingKey)
 
 						if err := h.RabbitMQClient.PublishMessage(routingKey, payload); err == nil {
 							reissuedCount++
+
+							// Broadcast quest_issued event for UI tracking
+							// This ensures the frontend sees the reissued quest with proper metadata
+							h.broadcastMessage("quest_issued", payload)
+						} else {
+							log.Printf("❌ [DLQ Reissue] Failed to reissue message %s: %v", originalCaseID, err)
 						}
 					}
 				}

@@ -1,0 +1,4 @@
+2025/08/15 12:45:48 🚀 [Go Server] Starting on port 8001
+2025/08/15 12:45:48 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+2025/08/15 12:45:48 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
+2025/08/15 12:45:48 HTTP server error: listen tcp :8001: bind: address already in use

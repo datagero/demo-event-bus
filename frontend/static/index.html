@@ -45,7 +45,7 @@
     .skill { font-size:11px; padding:2px 6px; border-radius:999px; border:1px solid #2a3863; background:#0b1326; }
     .tiny-btn { padding: 1px 5px; font-size: 11px; border-radius: 6px; border: 1px solid #32406a; background:#1c2950; color: var(--text); cursor:pointer; }
     .roster-wrap { display: grid; grid-template-columns: 1fr; gap: 6px; align-items:start; }
-    .pill .name { max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display:inline-block; }
+    .pill .name { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display:inline-block; }
     .pill .skills { display:inline-flex; gap:4px; max-width: 200px; overflow: visible; flex-wrap: wrap; }
     .pill .stats { min-width: 160px; text-align: left; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .pill .controls { display:inline-flex; gap:6px; }
@@ -150,14 +150,17 @@
       border: none;
       color: var(--muted);
       cursor: pointer;
-      font-size: 12px;
+      font-size: 8px;
       padding: 0;
       margin: 0;
-      border-radius: 3px;
-      opacity: 0.7;
+      border-radius: 2px;
+      opacity: 0.5;
       transition: all 0.2s ease;
       display: inline;
       line-height: 1;
+      vertical-align: baseline;
+      max-width: 12px;
+      overflow: hidden;
     }
     
     .roster-details-btn:hover {
@@ -457,6 +460,7 @@
         </label>
         <button id="help-btn">How it works</button>
         <button id="scores-btn">Leaderboard</button>
+        <button onclick="window.open('debug-console.html', 'debug')" title="Open debug console for development logging">🔍 Debug</button>
       </div>
     </div>
   </header>
@@ -758,74 +762,62 @@
         <div class="muted" style="margin-top:6px">RabbitMQ UI: http://localhost:15672</div>
       </div>
 
-      <!-- RabbitMQ Direct Introspection Panel -->
-      <div class="card" id="rabbitmq-pane">
-        <h3>🐰 RabbitMQ Direct View</h3>
+      <!-- Skill Queue Monitor Panel -->
+      <div class="card" id="skill-queue-monitor">
+        <h3>⚔️ Skill Queue Monitor</h3>
         <div class="muted" style="margin-bottom:8px; font-size:12px">
-          Direct RabbitMQ data - minimal abstraction for educational purposes
+          Live monitoring of skill-based queues - shows which skills have active consumers and pending work
         </div>
         
-        <!-- Queue Stats -->
-        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Live Queue Stats</h4>
-        <div id="rmq-queue-stats" style="font-family:monospace; font-size:11px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:120px; overflow-y:auto">
-          <div class="muted">Connecting to RabbitMQ...</div>
+        <!-- Active Skill Queues -->
+        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Active Skill Queues</h4>
+        <div id="skill-queue-list" style="background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:8px; margin-bottom:8px">
+          <div class="muted">Loading skill queues...</div>
         </div>
         
-        <!-- Exchange Topology -->
-        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Exchange Bindings</h4>
-        <div id="rmq-topology" style="font-family:monospace; font-size:11px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:100px; overflow-y:auto">
-          <div class="muted">Loading topology...</div>
-        </div>
-        
-        <!-- Live Message Stream -->
-        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Live Message Stream</h4>
-        <div id="rmq-live-stream" style="font-family:monospace; font-size:10px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:180px; overflow-y:auto">
-          <div class="muted">Connecting to live message stream...</div>
-        </div>
-        
-        <!-- Message Peek Controls -->
-        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Message Peek</h4>
-        <div style="display:flex; gap:6px; margin-bottom:4px">
-          <select id="rmq-queue-select" style="flex:1; padding:4px; background:var(--panel); border:1px solid #34495e; color:var(--text); border-radius:4px; font-size:11px">
-            <option value="">Select queue...</option>
-          </select>
-          <button id="rmq-peek-btn" style="width:auto; padding:4px 8px; font-size:11px">Peek</button>
-        </div>
-        <div id="rmq-messages" style="font-family:monospace; font-size:10px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; max-height:120px; overflow-y:auto">
-          <div class="muted">Select a queue and click Peek to view messages</div>
-        </div>
-        
-        <!-- Educational Abstraction Comparison -->
-        <h4 style="margin:8px 0 4px 0; font-size:13px; color:#8aa0c7">Educational Comparison</h4>
-        <div style="font-size:10px; background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px">
-          <div style="color:#ffd26f; margin-bottom:4px">🎯 <strong>Abstraction Layers Removed:</strong></div>
-          <div style="color:#e7eeff; line-height:1.4">
-            ❌ Internal quest state tracking<br>
-            ❌ Server-side scoreboard aggregation<br>
-            ❌ Manual message counting<br>
-            ❌ Internal roster management<br>
-            ✅ Direct RabbitMQ queue queries<br>
-            ✅ Live consumer information<br>
-            ✅ Real-time queue depths
+        <!-- Queue Health Summary -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:8px">
+          <div style="background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; text-align:center">
+            <div style="font-size:18px; font-weight:bold; color:#6fe0a0" id="total-skill-queues">0</div>
+            <div style="font-size:10px; color:#8aa0c7">Total Skills</div>
           </div>
-          <div style="margin-top:6px; padding-top:4px; border-top:1px solid #1e2a4d">
-            <div style="color:#8aa0c7; font-size:9px">
-              <strong>Data Sources:</strong><br>
-              <span style="color:#6fe0a0">✓ Main APIs</span> - RabbitMQ-derived<br>
-              <span style="color:#ffd26f">⚠ Expired/Failed</span> - App-level (valid)<br>
-              <span style="color:#8ec6ff">ℹ Current Source:</span> <span id="current-data-source">Standard</span>
-            </div>
+          <div style="background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; text-align:center">
+            <div style="font-size:18px; font-weight:bold; color:#ffd26f" id="active-consumers">0</div>
+            <div style="font-size:10px; color:#8aa0c7">Active Workers</div>
+          </div>
+          <div style="background:#0e162b; border:1px solid #1e2a4d; border-radius:4px; padding:6px; text-align:center">
+            <div style="font-size:18px; font-weight:bold; color:#e74c3c" id="orphaned-queues">0</div>
+            <div style="font-size:10px; color:#8aa0c7">Orphaned Queues</div>
           </div>
         </div>
         
-        <!-- Raw API Access -->
+        <!-- Queue Management Actions -->
+        <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap">
+          <button id="refresh-skill-queues" class="action-btn info" title="Refresh skill queue data">🔄 Refresh</button>
+          <button id="cleanup-orphaned" class="action-btn warning" title="Clean up queues with no consumers">🧹 Cleanup Orphaned</button>
+          <button id="view-all-queues" class="action-btn setup" title="View all RabbitMQ queues">📋 All Queues</button>
+        </div>
+        
+        <!-- Educational Info -->
+        <div style="background:#0e162b; border-radius:4px; border-left:3px solid var(--info); padding:8px; font-size:11px">
+          <div style="color:var(--muted); margin-bottom:6px">
+            💡 <strong>Skill Queue Lifecycle:</strong> Created when workers start, may persist after worker deletion
+          </div>
+          <div style="color:var(--muted); margin-bottom:6px">
+            🔍 <strong>Monitoring:</strong> Track which skills have active consumers vs. orphaned queues requiring cleanup
+          </div>
+          <div style="color:var(--muted); font-size:10px">
+            <strong>Queue Pattern:</strong> <code>game.skill.{skill_name}.q</code> (e.g., <code>game.skill.gather.q</code>)
+          </div>
+        </div>
+        
+        <!-- Direct RabbitMQ Access -->
         <div style="margin-top:8px; padding:6px; background:#1c2950; border:1px solid #32406a; border-radius:4px">
-          <div style="font-size:11px; color:#8aa0c7; margin-bottom:4px">Direct RabbitMQ Management API:</div>
+          <div style="font-size:11px; color:#8aa0c7; margin-bottom:4px">Direct RabbitMQ Management:</div>
           <div style="font-size:10px; font-family:monospace">
-            <a href="http://localhost:15672" target="_blank" style="color:#6fe0a0">Management UI</a> |
-            <a href="/api/rabbitmq/raw/queues" target="_blank" style="color:#6fe0a0">Raw Queues</a> |
-            <a href="/api/rabbitmq/raw/exchanges" target="_blank" style="color:#6fe0a0">Raw Exchanges</a> |
-            <a href="/api/rabbitmq/derived/metrics" target="_blank" style="color:#6fe0a0">Derived Metrics</a>
+            <a href="http://localhost:15672/#/queues" target="_blank" style="color:#6fe0a0">Queue Management</a> |
+            <a href="http://localhost:15672/#/exchanges" target="_blank" style="color:#6fe0a0">Exchanges</a> |
+            <a href="/api/rabbitmq/raw/queues" target="_blank" style="color:#6fe0a0">Raw API</a>
           </div>
         </div>
       </div>
@@ -928,6 +920,89 @@
   </div>
 
   <script>
+    // Debug logging system for development
+    const DEBUG_LOG_KEY = 'queue-quest-debug-logs';
+    let debugLogs = [];
+    
+    function saveToDebugLog(category, message) {
+      const timestamp = new Date().toISOString();
+      const logEntry = { timestamp, category, message };
+      debugLogs.push(logEntry);
+      
+      // Keep only last 1000 entries to prevent memory issues
+      if (debugLogs.length > 1000) {
+        debugLogs = debugLogs.slice(-1000);
+      }
+      
+      // Save to localStorage for persistence
+      try {
+        localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(debugLogs));
+      } catch (e) {
+        // localStorage might be full, remove old entries
+        debugLogs = debugLogs.slice(-500);
+        try {
+          localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(debugLogs));
+        } catch (e2) {
+          // If still failing, just keep in memory
+        }
+      }
+    }
+    
+    function exportDebugLogs() {
+      const logs = debugLogs.map(log => 
+        `[${log.timestamp}] [${log.category.toUpperCase()}] ${log.message}`
+      ).join('\n');
+      
+      const blob = new Blob([logs], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `queue-quest-frontend-debug-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.log`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      console.log('🔍 Debug logs exported to file');
+    }
+    
+    function clearDebugLogs() {
+      debugLogs = [];
+      localStorage.removeItem(DEBUG_LOG_KEY);
+      console.log('🔍 Debug logs cleared');
+    }
+    
+    // Load existing debug logs from localStorage
+    try {
+      const stored = localStorage.getItem(DEBUG_LOG_KEY);
+      if (stored) {
+        debugLogs = JSON.parse(stored);
+        console.log(`🔍 Loaded ${debugLogs.length} debug log entries from localStorage`);
+      }
+    } catch (e) {
+      console.log('🔍 Could not load debug logs from localStorage');
+    }
+    
+    // Add debug controls to the page (keyboard shortcuts)
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey) {
+        if (e.key === 'L') {
+          e.preventDefault();
+          exportDebugLogs();
+        } else if (e.key === 'C') {
+          e.preventDefault();
+          clearDebugLogs();
+        } else if (e.key === 'D') {
+          e.preventDefault();
+          console.log('🔍 Debug Logs:', debugLogs);
+        }
+      }
+    });
+    
+    // Log initial startup
+    saveToDebugLog('system', 'Frontend debug logging initialized');
+    console.log('🔍 Debug logging active. Shortcuts: Ctrl+Shift+L (export), Ctrl+Shift+C (clear), Ctrl+Shift+D (view)');
+    
     const feed = document.getElementById('feed');
     // scores is rendered inside the scores modal; guard if absent
     const rosterDiv = document.getElementById('roster');
@@ -1194,456 +1269,9 @@
     const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
     const ws = new WebSocket(`${wsProto}://${location.host}/ws`);
     
-    // RabbitMQ Direct WebSocket Connection for educational introspection
-    const rmqWs = new WebSocket(`${wsProto}://${location.host}/ws/rabbitmq`);
-    let rmqQueues = [];
+    // Note: RabbitMQ Direct View functionality removed - replaced with Skill Queue Monitor
     
-    rmqWs.onmessage = (ev) => {
-      const msg = JSON.parse(ev.data);
-      
-      if (msg.type === 'rabbitmq_queues') {
-        rmqQueues = msg.data || [];
-        updateRmqQueueStats(msg.data);
-        updateQueueSelector(msg.data);
-      } else if (msg.type === 'rabbitmq_topology') {
-        updateRmqTopology(msg.exchanges, msg.bindings);
-      } else if (msg.type === 'live_message') {
-        addLiveMessage(msg);
-      } else if (msg.type === 'message_history') {
-        displayMessageHistory(msg.messages);
-      } else if (msg.type === 'error') {
-        console.error('RabbitMQ WebSocket error:', msg.message);
-      }
-    };
-    
-    rmqWs.onerror = (err) => {
-      console.error('RabbitMQ WebSocket connection error:', err);
-      document.getElementById('rmq-queue-stats').innerHTML = '<div style="color:#e74c3c">RabbitMQ connection failed</div>';
-    };
-    
-    function updateRmqQueueStats(queues) {
-      const container = document.getElementById('rmq-queue-stats');
-      if (!queues || queues.length === 0) {
-        container.innerHTML = '<div class="muted">No game queues found</div>';
-        return;
-      }
-      
-      const lines = queues.map(q => {
-        const name = q.name || 'unknown';
-        const ready = q.messages_ready || 0;
-        const unacked = q.messages_unacknowledged || 0;
-        const consumers = q.consumers || 0;
-        const state = q.state || 'unknown';
-        
-        return `<div style="margin-bottom:2px">
-          <span style="color:#6fe0a0">${name}</span>
-          <span style="color:#8aa0c7">ready:</span><span style="color:#ffd26f">${ready}</span>
-          <span style="color:#8aa0c7">unacked:</span><span style="color:#ff9b9b">${unacked}</span>
-          <span style="color:#8aa0c7">consumers:</span><span style="color:#8ec6ff">${consumers}</span>
-          <span style="color:#8aa0c7">[${state}]</span>
-        </div>`;
-      }).join('');
-      
-      container.innerHTML = lines;
-    }
-    
-    function updateRmqTopology(exchanges, bindings) {
-      const container = document.getElementById('rmq-topology');
-      if (!exchanges || !bindings) {
-        container.innerHTML = '<div class="muted">No topology data</div>';
-        return;
-      }
-      
-      const lines = [];
-      exchanges.forEach(ex => {
-        if (ex.name && ex.name !== '') {
-          lines.push(`<div style="color:#6fe0a0; margin-bottom:2px">Exchange: ${ex.name} (${ex.type})</div>`);
-          const exBindings = bindings.filter(b => b.source === ex.name);
-          exBindings.forEach(b => {
-            lines.push(`<div style="margin-left:12px; color:#8aa0c7; font-size:10px">
-              → ${b.destination} [${b.routing_key || 'no-key'}]
-            </div>`);
-          });
-        }
-      });
-      
-      container.innerHTML = lines.join('') || '<div class="muted">No bindings found</div>';
-    }
-    
-    function updateQueueSelector(queues) {
-      const select = document.getElementById('rmq-queue-select');
-      select.innerHTML = '<option value="">Select queue...</option>';
-      (queues || []).forEach(q => {
-        const option = document.createElement('option');
-        option.value = q.name;
-        option.textContent = `${q.name} (${q.messages_ready || 0} ready)`;
-        select.appendChild(option);
-      });
-    }
-    
-    let liveMessageCount = 0;
-    const MAX_LIVE_MESSAGES = 30;
-    
-    function addLiveMessage(messageData) {
-      // Process message for raw mode calculations
-      processRawMessage(messageData);
-      
-      const container = document.getElementById('rmq-live-stream');
-      const timestamp = new Date(messageData.timestamp * 1000).toLocaleTimeString();
-      const source = messageData.source || 'unknown';
-      const routingKey = messageData.routing_key || 'no-key';
-      
-      // Color code by source
-      let sourceColor = '#8aa0c7';
-      if (source === 'publish') sourceColor = '#6fe0a0';  // Green for outgoing
-      else if (source === 'scoreboard_consumer') sourceColor = '#ff9b9b';  // Red for incoming
-      else if (source.includes('worker')) sourceColor = '#8ec6ff';  // Blue for workers
-      
-      const messageDiv = document.createElement('div');
-      messageDiv.style.marginBottom = '4px';
-      messageDiv.style.borderBottom = '1px solid #1e2a4d';
-      messageDiv.style.paddingBottom = '2px';
-      messageDiv.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center">
-          <span style="color:${sourceColor}; font-weight:bold">${source}</span>
-          <span style="color:#8aa0c7; font-size:9px">${timestamp}</span>
-        </div>
-        <div style="color:#ffd26f; font-size:9px; margin:1px 0">${routingKey}</div>
-        <div style="color:#e7eeff; font-size:9px; max-height:40px; overflow-y:auto">
-          ${JSON.stringify(messageData.payload, null, 1).replace(/\\n/g, '').substring(0, 200)}${JSON.stringify(messageData.payload).length > 200 ? '...' : ''}
-        </div>
-      `;
-      
-      container.appendChild(messageDiv);
-      liveMessageCount++;
-      
-      // Limit number of displayed messages
-      while (liveMessageCount > MAX_LIVE_MESSAGES) {
-        container.removeChild(container.firstElementChild);
-        liveMessageCount--;
-      }
-      
-      // Auto-scroll to bottom
-      container.scrollTop = container.scrollHeight;
-    }
-    
-    function displayMessageHistory(messages) {
-      const container = document.getElementById('rmq-live-stream');
-      container.innerHTML = '';
-      liveMessageCount = 0;
-      
-      if (!messages || messages.length === 0) {
-        container.innerHTML = '<div class="muted">No recent messages</div>';
-        return;
-      }
-      
-      messages.forEach(msg => addLiveMessage(msg));
-    }
-    
-    // Client-side raw data processing for educational purposes
-    let rawModeEnabled = false;
-    let clientSideStats = {
-      scoreboard: {},
-      player_stats: {},
-      processed_results: new Set()
-    };
-    
-    function processRawMessage(messageData) {
-      if (!rawModeEnabled) return;
-      
-      const payload = messageData.payload;
-      const eventStage = payload.event_stage || '';
-      const player = payload.player || '';
-      const points = parseInt(payload.points || 0);
-      const caseId = payload.case_id;
-      
-      // Client-side processing - direct from RabbitMQ messages
-      if (eventStage.endsWith('COMPLETED') && caseId && !clientSideStats.processed_results.has(caseId) && player) {
-        clientSideStats.processed_results.add(caseId);
-        clientSideStats.scoreboard[player] = (clientSideStats.scoreboard[player] || 0) + points;
-        
-        // Update player stats
-        if (!clientSideStats.player_stats[player]) {
-          clientSideStats.player_stats[player] = { accepted: 0, completed: 0, failed: 0 };
-        }
-        clientSideStats.player_stats[player].completed += 1;
-        
-        // Update UI with raw calculations
-        updateRawModeUI();
-      } else if (eventStage.endsWith('FAILED') && caseId && !clientSideStats.processed_results.has(caseId) && player) {
-        clientSideStats.processed_results.add(caseId);
-        
-        if (!clientSideStats.player_stats[player]) {
-          clientSideStats.player_stats[player] = { accepted: 0, completed: 0, failed: 0 };
-        }
-        clientSideStats.player_stats[player].failed += 1;
-        
-        updateRawModeUI();
-      }
-    }
-    
-    function updateRawModeUI() {
-      if (!rawModeEnabled) return;
-      
-      // Update scores with client-side calculations
-      const scoresDiv = document.getElementById('scores');
-      if (scoresDiv) {
-        const sortedScores = Object.entries(clientSideStats.scoreboard)
-          .sort(([,a], [,b]) => b - a)
-          .slice(0, 10);
-          
-        scoresDiv.innerHTML = sortedScores.map(([player, score]) => {
-          const stats = clientSideStats.player_stats[player] || {};
-          return `<div class="score-row">
-            <span>${player}</span>
-            <span class="badge">${score}</span>
-            <span style="font-size:10px; color:#8aa0c7">
-              C:${stats.completed || 0} F:${stats.failed || 0}
-            </span>
-          </div>`;
-        }).join('') || '<div class="muted">No scores yet (raw mode)</div>';
-      }
-      
-      // Show raw mode indicator
-      document.getElementById('worker-mode').innerHTML = 
-        rawModeEnabled ? '🐰 Raw RabbitMQ Mode' : '🚀 Go workers ready';
-    }
-    
-    // RabbitMQ-derived metrics mode - enable by default for educational value
-    let rmqDerivedMode = true;
-    
-    // Raw mode toggle handler
-    document.getElementById('raw-mode-toggle').onchange = function() {
-      rawModeEnabled = this.checked;
-      
-      if (rawModeEnabled) {
-        // Disable RabbitMQ-derived mode when raw mode is enabled
-        document.getElementById('rmq-derived-toggle').checked = false;
-        rmqDerivedMode = false;
-        
-        // Reset client-side calculations
-        clientSideStats = {
-          scoreboard: {},
-          player_stats: {},
-          processed_results: new Set()
-        };
-        
-        alert('🐰 Raw RabbitMQ Mode Enabled\n\nScoreboard now calculated client-side from raw RabbitMQ messages.\nThis demonstrates minimal abstraction for educational purposes.');
-      } else {
-        alert('🚀 Standard Mode Enabled\n\nReturning to server-aggregated data.');
-      }
-      
-      updateRawModeUI();
-    };
-    
-    // RabbitMQ-derived toggle handler
-    document.getElementById('rmq-derived-toggle').onchange = function() {
-      rmqDerivedMode = this.checked;
-      
-      if (rmqDerivedMode) {
-        // Disable raw mode when RabbitMQ-derived mode is enabled
-        document.getElementById('raw-mode-toggle').checked = false;
-        rawModeEnabled = false;
-        
-        // Start polling RabbitMQ for derived metrics
-        startRmqDerivedPolling();
-        
-        alert('📊 RabbitMQ-Derived Metrics Enabled\n\nAll metrics now calculated directly from RabbitMQ Management API.\nThis shows how to derive application state from broker internals.');
-      } else {
-        stopRmqDerivedPolling();
-        alert('🚀 Standard Mode Enabled\n\nReturning to server-aggregated data.');
-      }
-      
-      updateModeIndicator();
-    };
-    
-    let rmqPollingInterval = null;
-    
-    function startRmqDerivedPolling() {
-      stopRmqDerivedPolling(); // Clear any existing interval
-      
-      rmqPollingInterval = setInterval(async () => {
-        try {
-          // Get RabbitMQ-derived metrics
-          const metricsResponse = await fetch('/api/rabbitmq/derived/metrics');
-          const metricsResult = await metricsResponse.json();
-          
-          // Get RabbitMQ-derived scoreboard
-          const scoreResponse = await fetch('/api/rabbitmq/derived/scoreboard');
-          const scoreResult = await scoreResponse.json();
-          
-          if (metricsResult.ok && scoreResult.ok) {
-            updateUIFromRabbitMQ(metricsResult.metrics, scoreResult.data);
-          }
-        } catch (e) {
-          console.error('RabbitMQ polling error:', e);
-        }
-      }, 2000); // Poll every 2 seconds
-    }
-    
-    function stopRmqDerivedPolling() {
-      if (rmqPollingInterval) {
-        clearInterval(rmqPollingInterval);
-        rmqPollingInterval = null;
-      }
-    }
-    
-    function updateUIFromRabbitMQ(metrics, scoreData) {
-      // Update pending/unacked counters from RabbitMQ
-      document.getElementById('status-pending').textContent = metrics.total_pending || 0;
-      
-      // Update type metrics from RabbitMQ queue states
-      const typeMetricsDiv = document.getElementById('type-metrics');
-      if (metrics.per_type) {
-        const parts = [];
-        Object.entries(metrics.per_type).forEach(([type, stats]) => {
-          parts.push(`${type}: P${stats.pending||0} A${stats.accepted||0} D${stats.completed||0} F${stats.failed||0}`);
-        });
-        typeMetricsDiv.textContent = parts.join('  ·  ');
-      }
-      
-      // Defensively check for scoreData before proceeding
-      if (!scoreData) {
-        console.warn("Polling received empty or invalid scoreData, skipping UI update.");
-        return;
-      }
-      
-      // Update scoreboard from RabbitMQ-derived data
-      if (scoreData.scoreboard) {
-        const scoresDiv = document.getElementById('scores');
-        if (scoresDiv) {
-          const sortedScores = Object.entries(scoreData.scoreboard)
-            .sort(([,a], [,b]) => b - a)
-            .slice(0, 10);
-            
-          scoresDiv.innerHTML = sortedScores.map(([player, score]) => {
-            const stats = scoreData.player_stats[player] || {};
-            return `<div class="score-row">
-              <span>${player}</span>
-              <span class="badge">${score}</span>
-              <span style="font-size:10px; color:#8aa0c7">
-                C:${stats.completed || 0} F:${stats.failed || 0}
-              </span>
-            </div>`;
-          }).join('') || '<div class="muted">No scores yet (RabbitMQ-derived)</div>';
-        }
-      }
-      
-      // Update roster from actual RabbitMQ consumers
-      if (scoreData.roster) {
-        updateRosterFromRabbitMQ(scoreData.roster);
-      }
-    }
-    
-    function updateRosterFromRabbitMQ(rabbitMQRoster) {
-      const rosterDiv = document.getElementById('roster');
-      if (!rosterDiv) return;
-      
-      const entries = Object.entries(rabbitMQRoster);
-      if (entries.length === 0) {
-        rosterDiv.innerHTML = '<div class="muted">No active consumers in RabbitMQ</div>';
-        return;
-      }
-      
-      rosterDiv.innerHTML = entries.map(([workerName, workerInfo]) => {
-        const queueList = (workerInfo.queues || []).map(q => q.split('.').pop()).join(', ');
-        return `<div class="pill go-worker" style="margin-bottom:4px">
-          <div class="line1">
-            <span class="name">${workerName}</span>
-            <span class="dot online"></span>
-            <span class="type-badge">RMQ</span>
-          </div>
-          <div class="line2" style="font-size:11px; color:#8aa0c7">
-            Consumers: ${workerInfo.consumer_count || 0} | Queues: ${queueList || 'none'}
-          </div>
-        </div>`;
-      }).join('');
-    }
-    
-    function updateModeIndicator() {
-      const indicator = document.getElementById('worker-mode');
-      if (rmqDerivedMode) {
-        indicator.innerHTML = '📊 RabbitMQ-Derived Mode';
-      } else if (rawModeEnabled) {
-        indicator.innerHTML = '🐰 Raw RabbitMQ Mode';
-      } else {
-        indicator.innerHTML = '🚀 Go workers ready';
-      }
-    }
-    
-    function updateDataSourceIndicator(msg) {
-      const sourceElement = document.getElementById('current-data-source');
-      if (!sourceElement) return;
-      
-      let sourceText = 'Standard';
-      let sourceColor = '#8aa0c7';
-      
-      if (rmqDerivedMode) {
-        sourceText = 'RabbitMQ-Derived';
-        sourceColor = '#6fe0a0';
-      } else if (rawModeEnabled) {
-        sourceText = 'Raw Messages';
-        sourceColor = '#ffd26f';
-      } else if (msg.source) {
-        // Check if the WebSocket message includes source information
-        if (msg.source === 'direct_rabbitmq') {
-          sourceText = 'RabbitMQ API';
-          sourceColor = '#6fe0a0';
-        } else if (msg.source === 'app_state') {
-          sourceText = 'App State';
-          sourceColor = '#ff9b9b';
-        } else if (msg.source.includes('fallback')) {
-          sourceText = 'Fallback';
-          sourceColor = '#ffd26f';
-        }
-      }
-      
-      sourceElement.textContent = sourceText;
-      sourceElement.style.color = sourceColor;
-    }
-    
-    // Message peek functionality
-    document.getElementById('rmq-peek-btn').onclick = async () => {
-      const queueName = document.getElementById('rmq-queue-select').value;
-      if (!queueName) {
-        document.getElementById('rmq-messages').innerHTML = '<div style="color:#e74c3c">Please select a queue first</div>';
-        return;
-      }
-      
-      try {
-        const response = await fetch(`/api/rabbitmq/raw/messages/${queueName}?count=5`);
-        const result = await response.json();
-        
-        if (result.ok && result.messages) {
-          const container = document.getElementById('rmq-messages');
-          if (result.messages.length === 0) {
-            container.innerHTML = '<div class="muted">No messages in queue</div>';
-          } else {
-            const lines = result.messages.map((msg, i) => {
-              const payload = JSON.stringify(JSON.parse(msg.payload), null, 2);
-              return `<div style="border-bottom:1px solid #1e2a4d; padding:4px 0; margin-bottom:4px">
-                <div style="color:#6fe0a0; font-size:11px">Message ${i+1}:</div>
-                <div style="color:#8aa0c7; font-size:9px">Routing: ${msg.routing_key || 'none'}</div>
-                <pre style="margin:2px 0; color:#e7eeff; font-size:9px; white-space:pre-wrap">${payload}</pre>
-              </div>`;
-            }).join('');
-            container.innerHTML = lines;
-          }
-        } else {
-          document.getElementById('rmq-messages').innerHTML = `<div style="color:#e74c3c">Error: ${result.error}</div>`;
-        }
-              } catch (e) {
-          document.getElementById('rmq-messages').innerHTML = `<div style="color:#e74c3c">Failed to fetch messages: ${e.message}</div>`;
-        }
-      };
-    
-    // Initialize RabbitMQ-derived mode on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      if (rmqDerivedMode) {
-        startRmqDerivedPolling();
-        updateModeIndicator();
-      }
-    });
+    // Old RabbitMQ Direct View functionality has been removed and replaced with Skill Queue Monitor
     
     // update quick-add hover titles from stats
     function updateQuickTitles(msg){
@@ -1678,8 +1306,14 @@
     ws.onmessage = (ev) => {
       const msg = JSON.parse(ev.data);
       
-      // Update data source indicator
-      updateDataSourceIndicator(msg);
+      // DEBUG: Log all WebSocket messages for quest acceptance debugging
+      if (msg.type === 'player_accept' || msg.type === 'quest_issued') {
+        console.log('🔍 [DEBUG] WebSocket message received:', msg.type, msg.payload);
+        saveToDebugLog('websocket', `WebSocket ${msg.type}: ${JSON.stringify(msg.payload)}`);
+      }
+      
+      // Update data source indicator (function removed, skip for now)
+      // updateDataSourceIndicator(msg);
       
       renderScores(msg); 
       // DISABLED: Roster now sourced from real-time workers service
@@ -1742,6 +1376,13 @@
       } else if (msg.type === 'quest_issued') {
         const p = msg.payload; const id = questId(p); const existed = !!quests[id];
         const qc = ensureQuestCard(p);
+        
+        // Enhanced reissue tracking
+        if (p.reissue_of) {
+          console.log('🔄 [DEBUG] Reissued quest received:', p.case_id, 'reissue of:', p.reissue_of);
+          saveToDebugLog('reissue', `Quest ${p.case_id} reissued from DLQ (original: ${p.reissue_of})`);
+        }
+        
         appendFeed('info', 'QUEST', `${p.quest_type} (${p.difficulty}) worth ${p.points} pts${p.reissue_of? ' (reissue)': ''}${p.unroutable?' · UNROUTABLE':''}`);
         addHist(id, msg.ts, p.unroutable ? 'err' : 'info', p.unroutable ? 'unroutable' : (p.reissue_of ? 're-issued' : 'issued'));
         const tl = qc.el && qc.el.querySelector('.tl');
@@ -1787,15 +1428,23 @@
         }
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_accept') {
-        const p = msg.payload; const q = ensureQuestCard(p); if (q.el){
+        console.log('🎯 [DEBUG] player_accept handler called!', msg.payload);
+        saveToDebugLog('quest', `player_accept handler called for ${msg.payload.player}`);
+        const p = msg.payload; const q = ensureQuestCard(p); 
+        console.log('🎯 [DEBUG] Quest card for acceptance:', q, 'Quest ID:', questId(p));
+        if (q.el){
           const whoEl = q.el.querySelector('.who');
           const prev = whoEl.textContent;
+          console.log('🎯 [DEBUG] Updating quest card - Previous assignee:', prev, 'New assignee:', p.player);
           if (prev && prev !== 'Unassigned' && prev !== p.player){
             const reason = lastEventByQuest[questId(p)] === 'drop' ? 'disconnected' : (lastEventByQuest[questId(p)] === 'requeue' ? 'requeued' : 'returned');
             addTL(q.el, 'warn', `${prev} ${reason} → Ready`);
           }
           whoEl.textContent = p.player;
           setStatus(q.el, 'Unacked', 'ok');
+          console.log('🎯 [DEBUG] Quest card updated successfully!');
+        } else {
+          console.log('❌ [DEBUG] No quest card element found for player_accept!');
         }
         appendFeed('ok', 'ACCEPT', `${p.player} -> ${questId(p)} (${p.quest_type}) ${p.difficulty}`);
         if (q && q.el){ addTL(q.el, 'ok', `accepted by ${p.player}`); }
@@ -1839,8 +1488,17 @@
         // Just log it for feed but don't update quest card state
         const p = msg.payload;
         appendFeed('err', 'FAIL', `${p.player} failed ${p.quest_type}`);
-        addHist(questId(p), msg.ts, 'err', `failed by ${p.player}`);
-        if (chaosActiveGlobal==='fail_early'){ chaosActiveGlobal=null; updateChaosUI(); }
+      } else if (msg.type === 'dlq_reissued') {
+        const p = msg.payload;
+        console.log('🔄 [DEBUG] DLQ reissue event received:', p);
+        saveToDebugLog('dlq', `Reissued ${p.reissued_count} messages from ${p.queue}`);
+        
+        appendFeed('info', 'DLQ', `Reissued ${p.reissued_count} messages from ${p.queue || 'DLQ'}`);
+        
+        // Refresh the DLQ display to show updated counts
+        if (window.refreshDLQData) {
+          setTimeout(() => window.refreshDLQData(), 1000);
+        }
       } else if (msg.type === 'roster') {
         // DISABLED: Roster now sourced from real-time workers service
         // WebSocket roster snapshots can be stale and cause phantom workers
@@ -1868,6 +1526,10 @@
         // Reset and restart workers roster updates to reflect clean state
         stopWorkersRosterUpdates();
         setTimeout(() => startWorkersRosterUpdates(), 1000);
+        
+        // Reset and restart skill queue monitoring to refresh after reset
+        stopSkillQueueMonitoring();
+        setTimeout(() => startSkillQueueMonitoring(), 1500);
         
         // Clear activity and throughput data
         act.ts = []; act.online = [];
@@ -3104,41 +2766,63 @@
     // Show worker details modal
     async function showWorkerDetails(workerName) {
       try {
-        // Fetch fresh worker data
-        const workersData = await fetchWorkersRosterData();
-        console.log('🔍 Fetched workers data for modal:', workersData);
-        console.log('🔍 Looking for worker:', workerName);
-        console.log('🔍 Available worker_details:', workersData.worker_details);
+        console.log('🔍 Fetching worker details for:', workerName);
         
-        const workerDetails = workersData.worker_details && workersData.worker_details[workerName];
-        
-        if (!workerDetails) {
-          console.error('❌ Worker details not found:', {
-            workerName,
-            availableWorkers: Object.keys(workersData.worker_details || {}),
-            workersData
-          });
-          alert(`Worker details not found for ${workerName}. Available workers: ${Object.keys(workersData.worker_details || {}).join(', ')}`);
-          return;
-        }
-        
-        // Also get RabbitMQ consumer information
-        const [statusResponse, consumersResponse] = await Promise.all([
-          fetch(`http://localhost:8001/status`),
-          fetch(`http://localhost:15672/api/consumers`, {
-            headers: { 'Authorization': 'Basic ' + btoa('guest:guest') }
-          })
+        // Fetch data from API server's proper endpoints
+        const [workersResponse, consumersResponse] = await Promise.all([
+          fetch('/api/workers/status'),
+          fetch('/api/rabbitmq/consumers')
         ]);
         
+        let workersData = null;
         let rabbitMQConsumers = [];
+        
+        // Parse workers data
+        if (workersResponse.ok) {
+          const workersResult = await workersResponse.json();
+          workersData = workersResult.data;
+          console.log('🔍 Workers status response:', workersData);
+        } else {
+          console.error('❌ Failed to fetch workers status:', workersResponse.status);
+        }
+        
+        // Parse RabbitMQ consumers
         if (consumersResponse.ok) {
-          rabbitMQConsumers = await consumersResponse.json();
+          const consumersResult = await consumersResponse.json();
+          rabbitMQConsumers = consumersResult.data || [];
+          console.log('🔍 RabbitMQ consumers response:', rabbitMQConsumers);
+        } else {
+          console.error('❌ Failed to fetch RabbitMQ consumers:', consumersResponse.status);
+        }
+        
+        // Find worker in the workers data
+        // The workers service returns: { worker_details: { "alice": { player: "alice", ... } } }
+        let workerDetails = null;
+        if (workersData && workersData.worker_details) {
+          workerDetails = workersData.worker_details[workerName];
+        }
+        
+        if (!workerDetails) {
+          console.error('❌ Worker details not found for:', workerName);
+          console.error('📊 Workers data structure:', workersData);
+          
+          const availableWorkers = workersData && workersData.worker_details ? 
+            Object.keys(workersData.worker_details) : [];
+          
+          if (availableWorkers.length === 0) {
+            alert(`No worker details available. The workers service might be down or the worker has been deleted.`);
+          } else {
+            alert(`Worker "${workerName}" not found.\n\nAvailable workers: ${availableWorkers.join(', ')}\n\nThis might happen if the worker was recently deleted. Try refreshing the page.`);
+          }
+          return;
         }
         
         // Filter consumers for this worker
         const workerConsumers = rabbitMQConsumers.filter(consumer => 
           consumer.consumer_tag && consumer.consumer_tag.includes(workerName)
         );
+        
+        console.log('🔍 Found worker consumers:', workerConsumers);
         
         // Update modal title and content
         document.getElementById('worker-details-title').textContent = `🔍 ${workerName} - Worker Details`;
@@ -3562,6 +3246,135 @@
     
     let chaosActiveGlobal = null; // Legacy variable for compatibility
 
+    // Skill Queue Monitor System
+    let skillQueueData = { queues: [], lastUpdate: null };
+    let skillQueueUpdateInterval = null;
+
+    async function fetchSkillQueues() {
+      try {
+        const response = await fetch('http://localhost:15672/api/queues', {
+          headers: { 'Authorization': 'Basic ' + btoa('guest:guest') }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const allQueues = await response.json();
+        
+        // Filter for skill queues
+        const skillQueues = allQueues.filter(queue => 
+          queue.name.startsWith('game.skill.') && queue.name.endsWith('.q')
+        );
+        
+        return skillQueues.map(queue => ({
+          name: queue.name,
+          skill: queue.name.replace('game.skill.', '').replace('.q', ''),
+          messages: queue.messages || 0,
+          consumers: queue.consumers || 0,
+          state: queue.state || 'unknown',
+          node: queue.node || 'unknown',
+          durable: queue.durable || false,
+          auto_delete: queue.auto_delete || false
+        }));
+        
+      } catch (error) {
+        console.error('Failed to fetch skill queues:', error);
+        return [];
+      }
+    }
+
+    function updateSkillQueueDisplay(queues) {
+      const listDiv = document.getElementById('skill-queue-list');
+      const totalSkills = document.getElementById('total-skill-queues');
+      const activeConsumers = document.getElementById('active-consumers');
+      const orphanedQueues = document.getElementById('orphaned-queues');
+      
+      if (!listDiv) return;
+      
+      // Update summary stats
+      const totalConsumers = queues.reduce((sum, q) => sum + q.consumers, 0);
+      const orphaned = queues.filter(q => q.consumers === 0);
+      
+      totalSkills.textContent = queues.length;
+      activeConsumers.textContent = totalConsumers;
+      orphanedQueues.textContent = orphaned.length;
+      
+      // Update queue list
+      if (queues.length === 0) {
+        listDiv.innerHTML = '<div class="muted">No skill queues found</div>';
+        return;
+      }
+      
+      const html = queues.map(queue => {
+        const statusColor = queue.consumers > 0 ? '#6fe0a0' : '#e74c3c';
+        const statusIcon = queue.consumers > 0 ? '✅' : '⚠️';
+        const pendingBadge = queue.messages > 0 ? ` <span style="background:#ffd26f; color:#000; padding:1px 4px; border-radius:8px; font-size:9px">${queue.messages}</span>` : '';
+        
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #1e2a4d">
+            <div style="display:flex; align-items:center; gap:8px">
+              <span style="font-size:12px">${statusIcon}</span>
+              <span style="font-weight:bold; color:${statusColor}; font-family:monospace">${queue.skill}</span>
+              <span style="font-size:10px; color:#8aa0c7">${queue.name}</span>
+              ${pendingBadge}
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:11px">
+              <span style="color:#ffd26f" title="Active consumers">${queue.consumers} workers</span>
+              <span style="color:#8aa0c7" title="Queue state">${queue.state}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      listDiv.innerHTML = html;
+    }
+
+    async function refreshSkillQueues() {
+      const queues = await fetchSkillQueues();
+      skillQueueData = { queues, lastUpdate: Date.now() };
+      updateSkillQueueDisplay(queues);
+      console.log('🔄 Skill queues refreshed:', queues);
+    }
+
+    function startSkillQueueMonitoring() {
+      // Initial load
+      refreshSkillQueues();
+      
+      // Update every 5 seconds
+      skillQueueUpdateInterval = setInterval(refreshSkillQueues, 5000);
+    }
+
+    function stopSkillQueueMonitoring() {
+      if (skillQueueUpdateInterval) {
+        clearInterval(skillQueueUpdateInterval);
+        skillQueueUpdateInterval = null;
+      }
+    }
+
+    // Setup skill queue monitor event handlers
+    document.getElementById('refresh-skill-queues').onclick = () => {
+      refreshSkillQueues();
+    };
+
+    document.getElementById('cleanup-orphaned').onclick = async () => {
+      const orphaned = skillQueueData.queues.filter(q => q.consumers === 0);
+      
+      if (orphaned.length === 0) {
+        alert('No orphaned queues found to cleanup.');
+        return;
+      }
+      
+      const confirmMsg = `Delete ${orphaned.length} orphaned skill queues?\n\n${orphaned.map(q => q.name).join('\n')}`;
+      
+      if (!confirm(confirmMsg)) return;
+      
+      // Note: Queue deletion would require backend API endpoint
+      alert(`Queue cleanup would delete:\n${orphaned.map(q => q.name).join('\n')}\n\nThis requires backend implementation.`);
+    };
+
+    document.getElementById('view-all-queues').onclick = () => {
+      window.open('http://localhost:15672/#/queues', '_blank');
+    };
+
     // Card Game System
     let cardGameActive = false;
     
@@ -3678,6 +3491,8 @@
       startRabbitMQQuestUpdates();
       // Start real-time workers roster updates
       startWorkersRosterUpdates();
+      // Start skill queue monitoring
+      startSkillQueueMonitoring();
     }, 1000);
   </script>
 </body>
