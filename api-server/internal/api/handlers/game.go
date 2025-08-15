@@ -553,6 +553,7 @@ func (h *Handlers) DeletePlayer(c *gin.Context) {
 	// Broadcast disconnect to update roster immediately in the UI
 	h.broadcastMessage("player_disconnected", map[string]interface{}{
 		"player": req.Player,
+		"reason": "deleted",
 		"source": "go-api",
 	})
 

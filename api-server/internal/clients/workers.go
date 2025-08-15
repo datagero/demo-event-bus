@@ -103,7 +103,7 @@ func (c *WorkersClient) StartWorker(name string, skills []string, config map[str
 
 // StopWorker stops a worker
 func (c *WorkersClient) StopWorker(name string) error {
-	payload := map[string]string{"name": name}
+	payload := map[string]string{"player": name}
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal stop worker request: %w", err)
@@ -127,26 +127,32 @@ func (c *WorkersClient) StopWorker(name string) error {
 	return nil
 }
 
-// ControlWorker controls a worker (pause/resume)
+// ControlWorker controls a worker (pause/resume/crash)
 func (c *WorkersClient) ControlWorker(name string, action string) error {
-	payload := map[string]string{
-		"name":   name,
-		"action": action,
+	var endpoint string
+	var payload interface{}
+
+	switch action {
+	case "pause":
+		endpoint = "/pause"
+		payload = map[string]string{"player": name}
+	case "resume":
+		endpoint = "/resume"
+		payload = map[string]string{"player": name}
+	case "crash":
+		// Use chaos system for crash (disconnect + auto-reconnect)
+		endpoint = "/chaos"
+		payload = map[string]string{
+			"action":        "drop",
+			"target_player": name,
+		}
+	default:
+		return fmt.Errorf("invalid action: %s (supported: pause, resume, crash)", action)
 	}
 
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal control worker request: %w", err)
-	}
-
-	var endpoint string
-	switch action {
-	case "pause":
-		endpoint = "/pause"
-	case "resume":
-		endpoint = "/resume"
-	default:
-		return fmt.Errorf("invalid action: %s", action)
 	}
 
 	resp, err := c.httpClient.Post(

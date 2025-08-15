@@ -117,14 +117,28 @@ func (s *Server) GetStatus() map[string]interface{} {
 	defer s.mu.RUnlock()
 
 	workerNames := make([]string, 0, len(s.workers))
-	for name := range s.workers {
+	workerDetails := make(map[string]interface{})
+
+	for name, worker := range s.workers {
 		workerNames = append(workerNames, name)
+
+		// Include worker configuration details for accurate roster display
+		workerDetails[name] = map[string]interface{}{
+			"player":           worker.Config.PlayerName,
+			"skills":           worker.Config.Skills,
+			"fail_pct":         worker.Config.FailPct,
+			"speed_multiplier": worker.Config.SpeedMultiplier,
+			"workers":          worker.Config.WorkerCount,
+			"routing_mode":     worker.Config.RoutingMode,
+			"status":           "online", // Worker exists = online
+		}
 	}
 
 	return map[string]interface{}{
-		"worker_count": len(s.workers),
-		"workers":      workerNames,
-		"chaos":        s.chaosManager.GetStatus(),
+		"worker_count":   len(s.workers),
+		"workers":        workerNames,
+		"worker_details": workerDetails,
+		"chaos":          s.chaosManager.GetStatus(),
 	}
 }
 

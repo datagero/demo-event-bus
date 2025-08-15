@@ -30,7 +30,7 @@
     .quest .bar { height:100%; width:0%; background:linear-gradient(90deg, #2ecc71, #9b59b6); transition: width .1s linear; }
     .quest.done .bar { background: #2ecc71; }
     .quest.fail .bar { background: #e74c3c; }
-    .quest.unrout .bar { background: #7a2929; }
+    .quest.unrout .bar { background: #888888; }  /* Grey progress bar for unroutable */
     #reset-app.fixed { position: fixed; top: 12px; right: 12px; z-index: 100; padding:10px 12px; border:2px solid #7a2929; background:#4b1616; }
 
     /* Roster */
@@ -46,7 +46,7 @@
     .tiny-btn { padding: 1px 5px; font-size: 11px; border-radius: 6px; border: 1px solid #32406a; background:#1c2950; color: var(--text); cursor:pointer; }
     .roster-wrap { display: grid; grid-template-columns: 1fr; gap: 6px; align-items:start; }
     .pill .name { max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display:inline-block; }
-    .pill .skills { display:inline-flex; gap:4px; max-width: 160px; overflow: hidden; }
+    .pill .skills { display:inline-flex; gap:4px; max-width: 200px; overflow: visible; flex-wrap: wrap; }
     .pill .stats { min-width: 160px; text-align: left; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .pill .controls { display:inline-flex; gap:6px; }
     .pill .line1, .pill .line2 { display:flex; align-items:center; justify-content:space-between; }
@@ -73,6 +73,7 @@
     .tag.info { background: #143a56; color: #8ec6ff; border: 1px solid #215b83; }
     .tag.ok { background: #0f3b2a; color: #6fe0a0; border: 1px solid #1e6a4f; }
     .tag.warn { background: #4b3c12; color: #ffd26f; border: 1px solid #7a601e; }
+    .tag.unroutable { background: #d68910; color: #fff3cd; border: 1px solid #e67e22; }  /* Orange tag for unroutable */
     .tag.err { background: #4b1616; color: #ff9b9b; border: 1px solid #7a2929; }
     .muted { color: var(--muted); }
     /* Legend bubble */
@@ -88,6 +89,82 @@
     .modal { position:fixed; inset:0; display:none; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
     .modal .inner { width: min(800px, 92vw); background: var(--panel); border:1px solid #1e2a4d; border-radius:12px; padding:16px; }
     .modal.show { display:flex; }
+    
+    /* Roster Details Modal */
+    .worker-detail-section {
+      margin: 15px 0;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      border-left: 3px solid var(--accent);
+    }
+    
+    .worker-detail-header {
+      font-weight: bold;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    .worker-config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    
+    .config-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    .config-label {
+      font-weight: 600;
+      color: var(--muted);
+    }
+    
+    .config-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--text);
+    }
+    
+    .worker-consumers {
+      margin-top: 10px;
+    }
+    
+    .consumer-item {
+      padding: 4px 8px;
+      background: rgba(52, 152, 219, 0.1);
+      border-radius: 4px;
+      margin: 4px 0;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    
+    .roster-details-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      margin: 0;
+      border-radius: 3px;
+      opacity: 0.7;
+      transition: all 0.2s ease;
+      display: inline;
+      line-height: 1;
+    }
+    
+    .roster-details-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--accent);
+      opacity: 1;
+    }
     
     /* DLQ Management Styles */
     .dlq-stat-card { 
@@ -799,6 +876,21 @@
     </div>
   </div>
 
+  <!-- Roster Worker Details Modal -->
+  <div id="roster-details-modal" class="modal">
+    <div class="inner" style="max-width:700px">
+      <h3 id="worker-details-title">🔍 Worker Details</h3>
+      
+      <div id="worker-details-content">
+        <!-- Worker details will be populated here -->
+      </div>
+      
+      <div style="text-align:right; margin-top:16px">
+        <button onclick="document.getElementById('roster-details-modal').style.display='none'" style="background:var(--panel); border:1px solid #34495e; padding:8px 16px; border-radius:4px">Close</button>
+      </div>
+    </div>
+  </div>
+
   <div id="help" class="modal">
     <div class="inner">
       <h3>How it works</h3>
@@ -929,7 +1021,7 @@
         const sel = (name===activePlayer)?' selected':'';
         const typeClass = workerType === 'go' ? 'go-worker' : 'python-worker';
         return `<span class="pill ${typeClass}${sel}" data-name="${name}" title="${tip}">
-          <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span class="type-badge">${typeIcon}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
+          <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span>&nbsp;·&nbsp;</span><button class="roster-details-btn" onclick="showWorkerDetails('${name}')" title="View worker details">🔍</button><span class="type-badge">${typeIcon}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
           <div class="line2"><span class="stats">w${String(wrk).padStart(2,' ')} · s${spdTxt} · f${failTxt}</span>
             <span class="controls">
               <button class="tiny-btn player-action" data-action="pause" data-name="${name}" title="Disconnect (real disconnect - stays offline)">⏸</button>
@@ -1590,9 +1682,11 @@
       updateDataSourceIndicator(msg);
       
       renderScores(msg); 
-      if (msg.roster !== undefined) {
-        renderRoster(msg);
-      }
+      // DISABLED: Roster now sourced from real-time workers service
+      // WebSocket roster updates can be stale and cause phantom workers
+      // if (msg.roster !== undefined) {
+      //   renderRoster(msg);
+      // }
       updateQuickTitles(msg);
       updateChaosPlayerOptions(msg.roster);
       updateWorkerStatus(msg);
@@ -1663,18 +1757,34 @@
           const qobj = quests[id]; if (qobj){ qobj.start = Date.now(); qobj.dur = Math.max(500, Math.round((p.work_sec||1)*1000)); }
         }
       } else if (msg.type === 'player_online') {
-        const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'online'}; renderRoster({roster: rosterState});
+        // DISABLED: Roster now sourced from real-time workers service
+        // These WebSocket events can cause phantom workers to reappear
+        // const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'online'}; renderRoster({roster: rosterState});
+        const p = msg.payload;
         appendFeed('info', 'PLAYER', `${p.player} online`);
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_reconnecting') {
-        const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'reconnecting'}; renderRoster({roster: rosterState});
+        // DISABLED: Roster now sourced from real-time workers service  
+        // const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'reconnecting'}; renderRoster({roster: rosterState});
+        const p = msg.payload;
         appendFeed('warn', 'PLAYER', `${p.player} reconnecting`);
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_disconnected') {
-        const p = msg.payload; 
-        rosterState[p.player] = {...(rosterState[p.player]||{}), status:'disconnected'}; 
-        renderRoster({roster: rosterState});
-        appendFeed('err', 'PLAYER', `${p.player} CRASHED mid-processing (message will be redelivered)`);
+        // DISABLED: Roster now sourced from real-time workers service
+        // This WebSocket event would cause phantom workers to reappear
+        // const p = msg.payload; 
+        // rosterState[p.player] = {...(rosterState[p.player]||{}), status:'disconnected'}; 
+        // renderRoster({roster: rosterState});
+        
+        const p = msg.payload;
+        // More accurate disconnect message - could be delete, crash, or pause
+        if (p.reason === 'deleted' || p.reason === 'stopped') {
+          appendFeed('info', 'PLAYER', `${p.player} stopped/deleted`);
+        } else if (p.reason === 'chaos' || p.reason === 'crash') {
+          appendFeed('err', 'PLAYER', `${p.player} crashed (will auto-reconnect)`);
+        } else {
+          appendFeed('warn', 'PLAYER', `${p.player} disconnected`);
+        }
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_accept') {
         const p = msg.payload; const q = ensureQuestCard(p); if (q.el){
@@ -1732,8 +1842,9 @@
         addHist(questId(p), msg.ts, 'err', `failed by ${p.player}`);
         if (chaosActiveGlobal==='fail_early'){ chaosActiveGlobal=null; updateChaosUI(); }
       } else if (msg.type === 'roster') {
-        // roster snapshot
-        renderRoster(msg);
+        // DISABLED: Roster now sourced from real-time workers service
+        // WebSocket roster snapshots can be stale and cause phantom workers
+        // renderRoster(msg);
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'routing_mode') {
         const mode = (msg.payload&&msg.payload.mode) || msg.routing_mode || 'skill';
@@ -1753,6 +1864,10 @@
         
         // Clear RabbitMQ quest data including completed states
         rabbitMQQuestData = { pending: [], dlq: [], completed: {} };
+        
+        // Reset and restart workers roster updates to reflect clean state
+        stopWorkersRosterUpdates();
+        setTimeout(() => startWorkersRosterUpdates(), 1000);
         
         // Clear activity and throughput data
         act.ts = []; act.online = [];
@@ -2030,6 +2145,10 @@
     // Real-time RabbitMQ-driven quest state system
     let rabbitMQQuestData = { pending: [], dlq: [], completed: {} };
     let questStateUpdateInterval = null;
+    
+    // Real-time workers service roster system
+    let workersRosterData = { workers: [], lastUpdate: null };
+    let rosterUpdateInterval = null;
     
     // Main DLQ data fetcher and updater
     async function refreshDLQData() {
@@ -2757,7 +2876,7 @@
               break;
             case 'unroutable':
               questCard.classList.add('unrout', 'dlq-unroutable');
-              setStatus(questCard, 'Unroutable', 'err');
+              setStatus(questCard, 'Unroutable', 'unroutable');
               console.log(`🟠 Applied "Unroutable" status to quest ${questId}`);
               break;
             case 'expired':
@@ -2886,6 +3005,230 @@
       if (questStateUpdateInterval) {
         clearInterval(questStateUpdateInterval);
         questStateUpdateInterval = null;
+      }
+    }
+    
+    // Real-time workers roster system
+    async function fetchWorkersRosterData() {
+      try {
+        const response = await fetch('/api/workers/status');
+        const result = await response.json();
+        
+        if (result.ok && result.data) {
+          return {
+            workers: result.data.workers || [],
+            worker_count: result.data.worker_count || 0,
+            worker_details: result.data.worker_details || {}, // BUG FIX: Include worker_details!
+            chaos: result.data.chaos || {},
+            lastUpdate: Date.now()
+          };
+        }
+      } catch (error) {
+        console.error('Failed to fetch workers roster data:', error);
+      }
+      return { workers: [], worker_count: 0, chaos: {}, lastUpdate: null };
+    }
+    
+    async function updateRosterFromWorkers() {
+      const workersData = await fetchWorkersRosterData();
+      console.log('🎮 Workers roster fetched:', workersData);
+      
+      workersRosterData = workersData;
+      
+      // Clear and rebuild roster from actual workers service data with real configurations
+      const ordered = workersData.workers.map(name => {
+        // Get real worker details from workers service
+        const workerDetails = workersData.worker_details && workersData.worker_details[name];
+        
+        if (workerDetails) {
+          // Use actual worker configuration
+          return [name, {
+            status: 'online',
+            worker_type: 'go',
+            skills: workerDetails.skills || ['gather'], // Real skills from worker config
+            workers: workerDetails.workers || 1,
+            speed_multiplier: workerDetails.speed_multiplier || 1.0,
+            fail_pct: workerDetails.fail_pct || 0.1,
+            routing_mode: workerDetails.routing_mode || 'skill'
+          }];
+        } else {
+          // Fallback for workers without details (shouldn't happen with new API)
+          const meta = rosterState[name] || {
+            status: 'online',
+            worker_type: 'go',
+            skills: ['gather'], // Conservative fallback
+            workers: 1,
+            speed_multiplier: 1.0,
+            fail_pct: 0.1
+          };
+          return [name, { ...meta, status: 'online', worker_type: 'go' }];
+        }
+      });
+      
+      // Update rosterState to reflect actual workers
+      const newRosterState = {};
+      ordered.forEach(([name, meta]) => {
+        newRosterState[name] = meta;
+      });
+      
+      // Replace rosterState with real workers data
+      Object.keys(rosterState).forEach(k => delete rosterState[k]);
+      Object.assign(rosterState, newRosterState);
+      
+      console.log('🎮 Updated rosterState from workers service:', rosterState);
+      
+      // Debug skills display
+      Object.entries(rosterState).forEach(([name, meta]) => {
+        console.log(`🔍 ${name} skills:`, meta.skills, 'type:', typeof meta.skills, 'is array:', Array.isArray(meta.skills));
+      });
+      
+      // Re-render roster with real data
+      renderRoster({ roster: rosterState });
+    }
+    
+    function startWorkersRosterUpdates() {
+      // First update immediately
+      updateRosterFromWorkers();
+      
+      // Then start regular updates every 3 seconds
+      rosterUpdateInterval = setInterval(updateRosterFromWorkers, 3000);
+    }
+    
+    function stopWorkersRosterUpdates() {
+      if (rosterUpdateInterval) {
+        clearInterval(rosterUpdateInterval);
+        rosterUpdateInterval = null;
+      }
+    }
+    
+    // Show worker details modal
+    async function showWorkerDetails(workerName) {
+      try {
+        // Fetch fresh worker data
+        const workersData = await fetchWorkersRosterData();
+        console.log('🔍 Fetched workers data for modal:', workersData);
+        console.log('🔍 Looking for worker:', workerName);
+        console.log('🔍 Available worker_details:', workersData.worker_details);
+        
+        const workerDetails = workersData.worker_details && workersData.worker_details[workerName];
+        
+        if (!workerDetails) {
+          console.error('❌ Worker details not found:', {
+            workerName,
+            availableWorkers: Object.keys(workersData.worker_details || {}),
+            workersData
+          });
+          alert(`Worker details not found for ${workerName}. Available workers: ${Object.keys(workersData.worker_details || {}).join(', ')}`);
+          return;
+        }
+        
+        // Also get RabbitMQ consumer information
+        const [statusResponse, consumersResponse] = await Promise.all([
+          fetch(`http://localhost:8001/status`),
+          fetch(`http://localhost:15672/api/consumers`, {
+            headers: { 'Authorization': 'Basic ' + btoa('guest:guest') }
+          })
+        ]);
+        
+        let rabbitMQConsumers = [];
+        if (consumersResponse.ok) {
+          rabbitMQConsumers = await consumersResponse.json();
+        }
+        
+        // Filter consumers for this worker
+        const workerConsumers = rabbitMQConsumers.filter(consumer => 
+          consumer.consumer_tag && consumer.consumer_tag.includes(workerName)
+        );
+        
+        // Update modal title and content
+        document.getElementById('worker-details-title').textContent = `🔍 ${workerName} - Worker Details`;
+        
+        const contentDiv = document.getElementById('worker-details-content');
+        contentDiv.innerHTML = `
+          <div class="worker-detail-section">
+            <div class="worker-detail-header">⚙️ Configuration</div>
+            <div class="worker-config-grid">
+              <div class="config-item">
+                <span class="config-label">Player Name:</span>
+                <span class="config-value">${workerDetails.player}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Status:</span>
+                <span class="config-value">${workerDetails.status}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Worker Count:</span>
+                <span class="config-value">${workerDetails.workers}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Speed Multiplier:</span>
+                <span class="config-value">${workerDetails.speed_multiplier}x</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Fail Rate:</span>
+                <span class="config-value">${(workerDetails.fail_pct * 100).toFixed(1)}%</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Routing Mode:</span>
+                <span class="config-value">${workerDetails.routing_mode}</span>
+              </div>
+            </div>
+            <div style="margin-top:10px">
+              <div class="config-label">Skills:</div>
+              <div style="margin-top:4px">
+                ${(workerDetails.skills || []).map(skill => 
+                  `<span class="skill" style="margin:2px">${skill}</span>`
+                ).join('')}
+              </div>
+            </div>
+          </div>
+          
+          <div class="worker-detail-section">
+            <div class="worker-detail-header">🐰 RabbitMQ Consumers</div>
+            <div class="worker-consumers">
+              ${workerConsumers.length > 0 ? 
+                workerConsumers.map(consumer => `
+                  <div class="consumer-item">
+                    <strong>Tag:</strong> ${consumer.consumer_tag}<br>
+                    <strong>Queue:</strong> ${consumer.queue.name}<br>
+                    <strong>Channel:</strong> ${consumer.channel_details.name} (${consumer.channel_details.connection_name})<br>
+                    <strong>Prefetch:</strong> ${consumer.prefetch_count || 0}
+                  </div>
+                `).join('') : 
+                '<div class="consumer-item" style="color:var(--muted)">No active consumers found</div>'
+              }
+            </div>
+          </div>
+          
+          <div class="worker-detail-section">
+            <div class="worker-detail-header">📊 Performance Insights</div>
+            <div class="worker-config-grid">
+              <div class="config-item">
+                <span class="config-label">Theoretical Max Rate:</span>
+                <span class="config-value">${((1 / 2) * workerDetails.speed_multiplier * workerDetails.workers).toFixed(2)} quests/sec</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Expected Success Rate:</span>
+                <span class="config-value">${((1 - workerDetails.fail_pct) * 100).toFixed(1)}%</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Active Connections:</span>
+                <span class="config-value">${workerConsumers.length}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Queue Coverage:</span>
+                <span class="config-value">${[...new Set(workerConsumers.map(c => c.queue.name))].length} queues</span>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Show modal
+        document.getElementById('roster-details-modal').style.display = 'flex';
+        
+      } catch (error) {
+        console.error('Failed to fetch worker details:', error);
+        alert(`Failed to load worker details for ${workerName}`);
       }
     }
     
@@ -3333,6 +3676,8 @@
       initializeDLQManagement();
       // Start real-time RabbitMQ quest state updates
       startRabbitMQQuestUpdates();
+      // Start real-time workers roster updates
+      startWorkersRosterUpdates();
     }, 1000);
   </script>
 </body>

@@ -1,26 +1,13 @@
-2025/08/15 01:22:10 🚀 [Go Server] Starting on port 8001
-2025/08/15 01:22:10 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
-2025/08/15 01:22:10 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
-2025/08/15 01:26:57 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
-2025/08/15 01:26:57 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
-2025/08/15 01:26:57 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
-2025/08/15 01:26:57 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
-2025/08/15 01:26:57 🎭 [Chaos] Registered worker: alice
-2025/08/15 01:26:57 ✅ [Server] Started worker: alice
-2025/08/15 01:26:57 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
-2025/08/15 01:27:00 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755214020-673984000","payload":{"case_id":"single-gather-1755214020673280000","difficulty":1,"points":5,"quest_type":"gather","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755214020,"type":"game.quest.gather"}
-2025/08/15 01:27:00 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755214020673280000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 01:27:00 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 01:27:35 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755214055-822136000","payload":{"case_id":"single-slay-1755214055821400000","difficulty":1,"points":5,"quest_type":"slay","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755214055,"type":"game.quest.slay"}
-2025/08/15 01:27:35 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-slay-1755214055821400000 EventStage: Status: Source:frontend_send_one QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 01:27:35 ℹ️ [Go Worker Debug] alice checking for skill 'slay' in [gather slay]
-2025/08/15 01:28:02 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755214082-21891000","payload":{"case_id":"single-gather-1755214082021015000","difficulty":1,"points":5,"quest_type":"gather","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755214082,"type":"game.quest.gather"}
-2025/08/15 01:28:02 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755214082021015000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 01:28:02 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 01:28:04 💀 [Go Worker] alice quest single-gather-1755214082021015000 failed - sending to DLQ
-2025/08/15 01:28:04 💀 [Go Worker] alice: Message processing failed, sending to DLQ
-2025/08/15 01:28:10 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755214090-439171000","payload":{"case_id":"single-gather-1755214090438440000","difficulty":1,"points":5,"quest_type":"gather","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755214090,"type":"game.quest.gather"}
-2025/08/15 01:28:10 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755214090438440000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/15 01:28:10 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
-2025/08/15 01:28:17 🔚 [Go Consumer] Delivery channel closed for queue: game.skill.gather.q
-2025/08/15 01:28:17 🔚 [Go Consumer] Delivery channel closed for queue: game.skill.slay.q
+2025/08/15 02:05:56 🚀 [Go Server] Starting on port 8001
+2025/08/15 02:05:56 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+2025/08/15 02:05:56 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
+2025/08/15 02:06:00 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+2025/08/15 02:06:00 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
+2025/08/15 02:06:00 📬 [Go Worker Debug] alice received raw message: {"id":"q-1755216358-827342000","payload":{"case_id":"startup-test","correlation_id":"f934f97e-dbe3-407d-a3bc-8911a72069b8","points":5,"published_at":1755216358,"published_by":"api_endpoint","quest_type":"gather"},"points":5,"timestamp":1755216358,"type":"game.quest.gather"}
+2025/08/15 02:06:00 ✅ [Go Worker Debug] alice parsed message: {CaseID:startup-test EventStage: Status: Source: QuestType:gather Difficulty:0 WorkSec:0 Points:5 Weight:0 Player: Payload:map[]}
+2025/08/15 02:06:00 ℹ️ [Go Worker Debug] alice checking for skill 'gather' in [gather slay]
+2025/08/15 02:06:00 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+2025/08/15 02:06:00 🎭 [Chaos] Registered worker: alice
+2025/08/15 02:06:00 ✅ [Server] Started worker: alice
+2025/08/15 02:06:00 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+2025/08/15 02:06:00 🔄 [Go Consumer] Waiting for messages on queue: game.skill.slay.q
