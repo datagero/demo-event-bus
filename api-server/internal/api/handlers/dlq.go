@@ -511,96 +511,39 @@ func (h *Handlers) IsDLQQueue(queueName string) bool {
 }
 
 func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
-	// Check properties for death reason first (most reliable)
-	if props, ok := msg["properties"].(map[string]interface{}); ok {
-		if headers, ok := props["headers"].(map[string]interface{}); ok {
-			// Check custom failure_reason header (set by our DLQ system)
-			if failureReason, ok := headers["failure_reason"].(string); ok {
-				switch failureReason {
-				case "rejected", "nack":
-					return "failed"
-				case "unroutable":
-					return "unroutable"
-				case "expired", "ttl":
-					return "expired"
-				case "poison", "malformed":
-					return "failed"
-				case "retry":
-					return "retrying"
-				}
-			}
-
-			// Check standard x-death headers
-			if deaths, ok := headers["x-death"].([]interface{}); ok && len(deaths) > 0 {
-				if death, ok := deaths[0].(map[string]interface{}); ok {
-					if reason, ok := death["reason"].(string); ok {
-						switch reason {
-						case "rejected", "nack":
-							return "failed"
-						case "expired", "ttl":
-							return "expired"
-						case "maxlen", "overflow":
-							return "maxlength"
-						default:
-							return "failed"
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Check message payload for failure indicators (worker-generated messages)
-	if payloadStr, ok := msg["payload"].(string); ok {
-		var payload map[string]interface{}
-		if json.Unmarshal([]byte(payloadStr), &payload) == nil {
-			// Check for worker failure indicators
-			if status, exists := payload["status"]; exists {
-				if statusStr, ok := status.(string); ok && strings.ToLower(statusStr) == "failed" {
-					return "failed"
-				}
-			}
-			if eventStage, exists := payload["event_stage"]; exists {
-				if stageStr, ok := eventStage.(string); ok && strings.Contains(strings.ToLower(stageStr), "failed") {
-					return "failed"
-				}
-			}
-			// Check nested payload for worker results
-			if nestedPayload, exists := payload["payload"]; exists {
-				if nestedMap, ok := nestedPayload.(map[string]interface{}); ok {
-					if status, exists := nestedMap["status"]; exists {
-						if statusStr, ok := status.(string); ok && strings.ToLower(statusStr) == "failed" {
-							return "failed"
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Enhanced categorization based on queue name patterns (lower priority than death reasons)
+	// SIMPLIFIED: Use queue name as primary source of truth for DLQ categorization
+	// This ensures KPIs match RabbitMQ actual queue message counts
 	if queueName, ok := msg["queue"].(string); ok {
 		queueLower := strings.ToLower(queueName)
 
-		// Only use queue name if we couldn't determine from death reason or payload
-		if strings.Contains(queueLower, "failed") || strings.Contains(queueLower, "poison") || strings.Contains(queueLower, "malformed") {
+		log.Printf("🔍 [DLQ Categorize] Queue: %s", queueName)
+
+		// Direct queue name mapping (most reliable)
+		if strings.Contains(queueLower, "failed") {
 			return "failed"
 		}
-		if strings.Contains(queueLower, "retry") || strings.Contains(queueLower, "retr") {
-			return "retrying"
+		if strings.Contains(queueLower, "unroutable") || strings.Contains(queueLower, "unrout") {
+			return "unroutable"
 		}
 		if strings.Contains(queueLower, "expired") || strings.Contains(queueLower, "ttl") {
 			return "expired"
 		}
-		// Only classify as unroutable if no other indicators suggest failure
-		if strings.Contains(queueLower, "unroutable") || strings.Contains(queueLower, "unrout") {
-			return "unroutable"
+		if strings.Contains(queueLower, "retry") || strings.Contains(queueLower, "retr") {
+			return "retrying"
 		}
+		if strings.Contains(queueLower, "maxlen") || strings.Contains(queueLower, "overflow") {
+			return "maxlength"
+		}
+
+		log.Printf("⚠️ [DLQ Categorize] Unknown queue pattern: %s, defaulting to 'failed'", queueName)
+		return "failed" // Default for unknown queue patterns
 	}
 
-	// Check routing key patterns (lowest priority)
+	// Fallback: if no queue name available, try routing key patterns
 	if routingKey, ok := msg["routing_key"].(string); ok {
 		routingLower := strings.ToLower(routingKey)
+		log.Printf("🔍 [DLQ Categorize] No queue name, checking routing key: %s", routingKey)
+
 		if strings.Contains(routingLower, "dlq.failed") || strings.Contains(routingLower, "dlq.rejected") {
 			return "failed"
 		}
@@ -615,7 +558,8 @@ func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
 		}
 	}
 
-	return "failed" // Default fallback - most messages that reach DLQ are failed
+	log.Printf("⚠️ [DLQ Categorize] No queue or routing key info, defaulting to 'failed'")
+	return "failed" // Final fallback
 }
 
 func (h *Handlers) ExtractDeathInfo(msg map[string]interface{}) map[string]interface{} {

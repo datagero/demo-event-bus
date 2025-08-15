@@ -184,3 +184,132 @@
 [0;37m15:16:44[0m [0;34m[API_SERVER][0m 2025/08/15 15:16:44 ✅ [DLQ] Auto-setup completed successfully
 [0;37m15:16:45[0m [0;35m[SYSTEM][0m 2025/08/15 15:16:45 ✅ [ResetGame] Reset completed successfully
 [0;37m15:16:45[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:45 | 200 |  1.553505833s |             ::1 | POST     "/api/reset"
+[0;37m15:16:50[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:50 | 200 |     705.833µs |             ::1 | POST     "/api/master/one"
+[0;37m15:16:52[0m [0;32m[WORKERS][0m 2025/08/15 15:16:52 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+[0;37m15:16:52[0m [0;32m[WORKERS][0m 2025/08/15 15:16:52 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+[0;37m15:16:52[0m [0;32m[WORKERS][0m 2025/08/15 15:16:52 ✅ [Server] Started worker: alice
+[0;37m15:16:52[0m [0;32m[WORKERS][0m 2025/08/15 15:16:52 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+[0;37m15:16:52[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:52 | 200 |   15.331459ms |             ::1 | POST     "/api/players/quickstart"
+[0;37m15:16:52[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:52 | 200 |      22.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:16:56[0m [0;32m[WORKERS][0m 2025/08/15 15:16:56 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263816873355000-0 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:16:56[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:56 | 200 |     108.209µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:16:57[0m [0;32m[WORKERS][0m 2025/08/15 15:16:57 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263817794925000-0 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:16:57[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:57 | 200 |     288.041µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:16:58[0m [0;32m[WORKERS][0m 2025/08/15 15:16:58 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263816974834000-1 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:16:58[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:58 | 200 |      184.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:16:58[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:58 | 200 |     126.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:16:59[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:59 | 200 |  2.768745542s |             ::1 | POST     "/api/master/start"
+[0;37m15:16:59[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:59 | 200 |     271.709µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:16:59[0m [0;32m[WORKERS][0m 2025/08/15 15:16:59 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263817896873000-1 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:16:59[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:16:59 | 200 |     165.167µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:00[0m [0;32m[WORKERS][0m 2025/08/15 15:17:00 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817077178000-2 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:00[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:00 | 200 |     166.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:00[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:00 | 200 |      139.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:01[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:01 | 200 |     516.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:01[0m [0;32m[WORKERS][0m 2025/08/15 15:17:01 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263817999090000-2 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:01[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:01 | 200 |     189.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:02[0m [0;32m[WORKERS][0m 2025/08/15 15:17:02 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817179982000-3 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:02[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:02 | 200 |     263.583µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:02[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:02 | 200 |     392.959µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:03[0m [0;32m[WORKERS][0m 2025/08/15 15:17:03 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818100785000-3 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:03[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:03 | 200 |     408.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:03[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:03 | 200 |     153.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:04[0m [0;32m[WORKERS][0m 2025/08/15 15:17:04 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817282888000-4 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:04[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:04 | 200 |     291.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:04[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:04 | 200 |     204.458µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:05[0m [0;32m[WORKERS][0m 2025/08/15 15:17:05 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818202957000-4 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:05[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:05 | 200 |     372.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:05[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:05 | 200 |     114.416µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:06[0m [0;32m[WORKERS][0m 2025/08/15 15:17:06 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817386186000-5 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:06[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:06 | 200 |     167.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:06[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:06 | 200 |     125.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:07[0m [0;32m[WORKERS][0m 2025/08/15 15:17:07 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818304348000-5 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:07[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:07 | 200 |     264.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:07[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:07 | 200 |     314.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:08[0m [0;32m[WORKERS][0m 2025/08/15 15:17:08 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817488073000-6 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:08[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:08 | 200 |     214.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:08[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:08 | 200 |     185.708µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:09[0m [0;32m[WORKERS][0m 2025/08/15 15:17:09 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818405583000-6 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:09[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:09 | 200 |      387.25µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:09[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:09 | 200 |     207.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:10[0m [0;32m[WORKERS][0m 2025/08/15 15:17:10 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817589936000-7 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:10[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:10 | 200 |     321.125µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:10[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:10 | 200 |     183.667µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:11[0m [0;32m[WORKERS][0m 2025/08/15 15:17:11 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818507576000-7 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:11[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:11 | 200 |     330.834µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:11[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:11 | 200 |     365.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:12[0m [0;32m[WORKERS][0m 2025/08/15 15:17:12 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817692015000-8 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:12[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:12 | 200 |     207.042µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:12[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:12 | 200 |      99.625µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:13[0m [0;32m[WORKERS][0m 2025/08/15 15:17:13 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818610408000-8 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:13[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:13 | 200 |     342.833µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:13[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:13 | 200 |     459.875µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:14[0m [0;32m[WORKERS][0m 2025/08/15 15:17:14 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817794000000-9 EventStage: Status: Source:quest_wave QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:14[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:14 | 200 |     258.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:14[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:14 | 200 |     248.208µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:15[0m [0;32m[WORKERS][0m 2025/08/15 15:17:15 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818713500000-9 EventStage: Status: Source:quest_wave QuestType:slay Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:17:15[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:15 | 200 |     524.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:15[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:15 | 200 |     179.541µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:16[0m [0;32m[WORKERS][0m 2025/08/15 15:17:16 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263816873355000-0 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:16[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:16 | 200 |     552.375µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:16[0m [0;32m[WORKERS][0m 2025/08/15 15:17:16 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263816974834000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:16[0m [0;32m[WORKERS][0m 2025/08/15 15:17:16 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817077178000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:16[0m [0;32m[WORKERS][0m 2025/08/15 15:17:16 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817282888000-4 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:16[0m [0;32m[WORKERS][0m 2025/08/15 15:17:16 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817488073000-6 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:16[0m [0;32m[WORKERS][0m 2025/08/15 15:17:16 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-gather-1755263817794000000-9 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263817896873000-1 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263817999090000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:17 | 200 |       346.5µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818100785000-3 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818202957000-4 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818304348000-5 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818405583000-6 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818507576000-7 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818610408000-8 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:17[0m [0;32m[WORKERS][0m 2025/08/15 15:17:17 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755263818713500000-9 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:17:22[0m [0;34m[API_SERVER][0m 2025/08/15 15:17:22 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m15:17:22[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:22 | 200 |    4.528917ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m15:17:59[0m [0;32m[WORKERS][0m 2025/08/15 15:17:59 🛑 [Go Worker] Stopping alice...
+[0;37m15:17:59[0m [0;35m[SYSTEM][0m 2025/08/15 15:17:59 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+[0;37m15:17:59[0m [0;35m[SYSTEM][0m 2025/08/15 15:17:59 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+[0;37m15:17:59[0m [0;32m[WORKERS][0m 2025/08/15 15:17:59 ✅ [Go Worker] alice stopped
+[0;37m15:17:59[0m [0;32m[WORKERS][0m 2025/08/15 15:17:59 🛑 [Server] Stopped worker: alice
+[0;37m15:17:59[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:59 | 200 |      25.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:17:59[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:17:59 | 200 |    3.078042ms |             ::1 | POST     "/api/player/delete"
+[0;37m15:18:03[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:03 | 200 |    1.574917ms |             ::1 | POST     "/api/master/one"
+[0;37m15:18:06[0m [0;32m[WORKERS][0m 2025/08/15 15:18:06 🏃 [Go Worker] alice-worker-0 started on queue game.skill.gather.q
+[0;37m15:18:06[0m [0;32m[WORKERS][0m 2025/08/15 15:18:06 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263883629672000 EventStage: Status: Source:frontend_send_one QuestType:gather Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
+[0;37m15:18:06[0m [0;32m[WORKERS][0m 2025/08/15 15:18:06 🚀 [Go Worker] alice started with 1 workers, skills: [gather slay]
+[0;37m15:18:06[0m [0;32m[WORKERS][0m 2025/08/15 15:18:06 ✅ [Server] Started worker: alice
+[0;37m15:18:06[0m [0;32m[WORKERS][0m 2025/08/15 15:18:06 🏃 [Go Worker] alice-worker-0 started on queue game.skill.slay.q
+[0;37m15:18:06[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:06 | 200 |   12.901041ms |             ::1 | POST     "/api/players/quickstart"
+[0;37m15:18:06[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:06 | 200 |      42.792µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:18:06[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:06 | 200 |     188.291µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:18:08[0m [0;32m[WORKERS][0m 2025/08/15 15:18:08 ✅ [Go Worker Debug] alice parsed message: {CaseID:single-gather-1755263883629672000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:gather Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:18:08[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:08 | 200 |     228.417µs |             ::1 | POST     "/api/go-workers/webhook/events"
+[0;37m15:18:14[0m [0;34m[API_SERVER][0m 2025/08/15 15:18:14 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m15:18:14[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:14 | 200 |       5.131ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m15:18:18[0m [0;34m[API_SERVER][0m 2025/08/15 15:18:18 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m15:18:18[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:18 | 200 |    5.229583ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m15:18:20[0m [0;34m[API_SERVER][0m 2025/08/15 15:18:20 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m15:18:20[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:20 | 200 |    4.679208ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m15:18:22[0m [0;34m[API_SERVER][0m 2025/08/15 15:18:22 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m15:18:22[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:22 | 200 |     4.19825ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m15:18:29[0m [0;34m[API_SERVER][0m 2025/08/15 15:18:29 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m15:18:29[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:29 | 200 |    3.604958ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m15:18:38[0m [0;34m[API_SERVER][0m 2025/08/15 15:18:38 🔍 [DLQ Reissue] Starting reissue from queue game.dlq.unroutable.q, count 1
+[0;37m15:18:38[0m [0;34m[API_SERVER][0m [GIN] 2025/08/15 - 15:18:38 | 200 |    4.413375ms |             ::1 | POST     "/api/dlq/reissue"
+[0;37m15:20:00[0m [0;34m[API_SERVER][0m 2025/08/15 15:20:00 🛑 [API Server] Shutting down...
+[0;37m15:20:00[0m [0;34m[API_SERVER][0m 2025/08/15 15:20:00 ✅ [API Server] Graceful shutdown completed
+[0;37m15:20:02[0m [0;35m[SYSTEM][0m 2025/08/15 15:20:02 🛑 [Go Server] Shutting down...
+[0;37m15:20:02[0m [0;32m[WORKERS][0m 2025/08/15 15:20:02 🛑 [Go Server] Stopping worker: alice
+[0;37m15:20:02[0m [0;32m[WORKERS][0m 2025/08/15 15:20:02 🛑 [Go Worker] Stopping alice...
+[0;37m15:20:02[0m [0;35m[SYSTEM][0m 2025/08/15 15:20:02 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+[0;37m15:20:02[0m [0;35m[SYSTEM][0m 2025/08/15 15:20:02 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+[0;37m15:20:02[0m [0;32m[WORKERS][0m 2025/08/15 15:20:02 ✅ [Go Worker] alice stopped
+[0;37m15:20:02[0m [0;35m[SYSTEM][0m 2025/08/15 15:20:02 ✅ [Go Server] Shutdown complete
+
+[1;33m🛑 Shutting down services...[0m
+[0;34mStopping Go Workers (PID: 13397)...[0m
+[0;34mStopping Go API Server (PID: 13364)...[0m
+[0;32m✅ All services stopped[0m

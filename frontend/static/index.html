@@ -1456,11 +1456,14 @@
         }
         if (qc.el){
           // Only reset if not already completed (preserve completed state)
-          if (!qc.el.classList.contains('done')) {
+          // AND not in DLQ state (preserve DLQ status from RabbitMQ)
+          if (!qc.el.classList.contains('done') && !qc.el.classList.contains('dlq-failed') && !qc.el.classList.contains('dlq-unroutable') && !qc.el.classList.contains('dlq-expired') && !qc.el.classList.contains('dlq-retrying')) {
             qc.el.querySelector('.who').textContent = 'Unassigned';
             qc.el.classList.remove('fail');
             const bar = qc.el.querySelector('.bar'); if (bar) bar.style.width = '0%';
             // Don't set initial status here - let RabbitMQ updates handle it
+          } else if (qc.el.classList.contains('dlq-failed') || qc.el.classList.contains('dlq-unroutable') || qc.el.classList.contains('dlq-expired') || qc.el.classList.contains('dlq-retrying')) {
+            console.log(`🔒 [DLQ Protection] Preserving DLQ status for quest ${questId(p)} - skipping reset from quest_issued event`);
           }
           const qobj = quests[id]; if (qobj){ qobj.start = Date.now(); qobj.dur = Math.max(500, Math.round((p.work_sec||1)*1000)); }
         }
@@ -2713,6 +2716,15 @@
         
         if (questId) {
           console.log('🔴 DLQ quest found:', questId, msg.category);
+          // DEBUGGING: Extra logging for failed messages
+          if (msg.category === 'failed') {
+            console.log('❗ [FAILED DEBUG] Processing failed message:', {
+              questId,
+              queue: msg.queue,
+              category: msg.category,
+              source: 'dlq'
+            });
+          }
           questStates.set(questId, {
             status: msg.category,
             source: 'dlq',
@@ -2726,21 +2738,29 @@
       console.log('🗺️ Final quest states map:', Array.from(questStates.entries()));
       
       // Clear existing quest card states (except completed)
+      // BUT preserve DLQ states that will be reapplied from RabbitMQ
       document.querySelectorAll('.quest').forEach(quest => {
         if (!quest.classList.contains('done')) { // Preserve completed quests
-          // Reset to unknown state - will be updated from RabbitMQ data
-          quest.classList.remove('fail', 'unrout', 'dlq-failed', 'dlq-unroutable', 'dlq-expired', 'dlq-retrying');
-          quest.querySelector('.who').textContent = 'Unassigned';
-          quest.querySelector('.bar').style.width = '0%';
+          const questId = quest.getAttribute('data-quest-id');
+          const willGetDLQStatus = questStates.has(questId) && questStates.get(questId).source === 'dlq';
           
-          // Remove DLQ indicators and refresh buttons
-          const indicator = quest.querySelector('.dlq-indicator');
-          if (indicator) {
-            indicator.remove();
-          }
-          const refreshBtn = quest.querySelector('.dlq-refresh-btn');
-          if (refreshBtn) {
-            refreshBtn.remove();
+          if (!willGetDLQStatus) {
+            // Only clear DLQ classes if this quest won't get DLQ status reapplied
+            quest.classList.remove('fail', 'unrout', 'dlq-failed', 'dlq-unroutable', 'dlq-expired', 'dlq-retrying');
+            quest.querySelector('.who').textContent = 'Unassigned';
+            quest.querySelector('.bar').style.width = '0%';
+            
+            // Remove DLQ indicators and refresh buttons
+            const indicator = quest.querySelector('.dlq-indicator');
+            if (indicator) {
+              indicator.remove();
+            }
+            const refreshBtn = quest.querySelector('.dlq-refresh-btn');
+            if (refreshBtn) {
+              refreshBtn.remove();
+            }
+          } else {
+            console.log(`🔒 [DLQ Preserve] Keeping DLQ state for quest ${questId} during state update`);
           }
         }
       });
@@ -2834,12 +2854,31 @@
         
         if (state.source === 'dlq') {
           console.log(`🔴 Applying DLQ state "${state.status}" to quest ${questId}`);
+          
+          // AGGRESSIVE DEBUG: Check current quest card state before applying DLQ status
+          const currentStatus = questCard.querySelector('.status')?.textContent;
+          const currentClasses = questCard.className;
+          console.log(`🔍 [DLQ Debug] Quest ${questId} current state before DLQ application:`, {
+            currentStatus,
+            currentClasses,
+            dlqStatus: state.status,
+            dlqQueue: state.data?.queue
+          });
+          
           // Handle DLQ states
           switch (state.status) {
             case 'failed':
               questCard.classList.add('fail', 'dlq-failed');
               setStatus(questCard, 'Failed', 'err');
               console.log(`🔴 Applied "Failed" status to quest ${questId}`);
+              // DEBUGGING: Verify the status was applied
+              const statusEl = questCard.querySelector('.status');
+              console.log(`❗ [FAILED DEBUG] Status element after update:`, {
+                questId,
+                statusText: statusEl?.textContent,
+                statusClass: statusEl?.className,
+                cardClasses: questCard.className
+              });
               break;
             case 'unroutable':
               questCard.classList.add('unrout', 'dlq-unroutable');
@@ -2907,6 +2946,13 @@
               }
               
               console.log(`🔄 [DLQ Refresh] Reissuing from queue: ${queue} for quest ${capturedQuestId} (status: ${capturedStatus})`);
+              console.log(`🔍 [DLQ Refresh Debug] Captured data:`, {
+                capturedQueue,
+                capturedStatus, 
+                capturedQuestId,
+                derivedQueue: queue,
+                messageData: capturedMessageData
+              });
               
               try {
                 refreshBtn.disabled = true;
@@ -2941,6 +2987,14 @@
                   // Add timeline entry for reissue - use different category based on DLQ type
                   const reissueCategory = capturedStatus === 'failed' ? 'retry' : 'reissued';
                   addQuestCardDLQEntry(capturedQuestId, reissueCategory);
+                  
+                  // Force immediate DLQ refresh to update KPIs from RabbitMQ after reissue
+                  // Also trigger quest card state update to ensure accuracy
+                  setTimeout(() => {
+                    console.log('🔄 [DLQ Refresh] Forcing KPI refresh and quest state update after reissue');
+                    refreshDLQData();
+                    updateQuestCardsFromRabbitMQ(); // Ensure quest card states are accurate
+                  }, 1000); // Wait 1s for RabbitMQ to process the reissue
                 } else {
                   // No messages to reissue or failed
                   console.warn(`⚠️ [DLQ Refresh] Failed to reissue from ${queue}: ${result.data.reissued_count} messages reissued`);
