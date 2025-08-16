@@ -1638,13 +1638,15 @@
         // Clear RabbitMQ quest data including completed states
         rabbitMQQuestData = { pending: [], dlq: [], completed: {} };
         
-        // Reset and restart workers roster updates to reflect clean state
-        stopWorkersRosterUpdates();
-        setTimeout(() => startWorkersRosterUpdates(), 1000);
-        
-        // Reset and restart skill queue monitoring to refresh after reset
-        stopSkillQueueMonitoring();
-        setTimeout(() => startSkillQueueMonitoring(), 1500);
+        // Reset unified refresh system to reflect clean state
+        stopUnifiedRefresh();
+        setTimeout(() => {
+          // Re-initialize individual systems
+          startWorkersRosterUpdates();   // Initial roster load
+          startSkillQueueMonitoring();   // Initial skill queue load
+          // Restart unified refresh
+          startUnifiedRefresh();
+        }, 1000);
         
         // Clear activity and throughput data
         act.ts = []; act.online = [];
@@ -1786,11 +1788,17 @@
       const skip_rate = parseFloat(document.getElementById('skip_rate').value);
       await fetch('/api/player/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player, skills, fail_pct, speed_multiplier, workers, prefetch, drop_rate, skip_rate}) });
       appendFeed('info','PLAYERS',`Started ${player} (${skills})`);
+      
+      // 🔥 Ultra immediate refresh after worker creation
+      await triggerUltraImmediateRefresh(`Worker ${player} created`);
     };
     // Quickstart
     document.getElementById('quick-alice-bob').onclick = async () => {
       await fetch('/api/players/quickstart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({preset:'alice_bob'})});
       appendFeed('info','PLAYERS','Started Alice and Bob');
+      
+      // 🔥 Ultra immediate refresh after quickstart
+      await triggerUltraImmediateRefresh('Quickstart Alice and Bob');
     };
     // Click-to-add bios
     document.querySelectorAll('.bio').forEach(bio=>{
@@ -1859,6 +1867,9 @@
             appendFeed('info','SCENARIO',`📈 Results: ${results.total_messages_sent} total messages, ${results.processed_messages} processed, ${results.backlog_messages} backlog`);
             appendFeed('info','SCENARIO',`🔍 Unreachable message ID: ${results.unreachable_message_id}`);
           }
+          
+          // 🚀 Immediate refresh after scenario completion
+          await triggerImmediateRefresh('Late-bind Escort scenario completed');
         } else {
           const errorMsg = result.data?.summary || result.data?.error || result.error || 'Unknown error';
           appendFeed('error','SCENARIO',`❌ Scenario failed: ${errorMsg}`);
@@ -1908,11 +1919,11 @@
               headers:{'Content-Type':'application/json'}, 
               body: JSON.stringify({player:name})
             })
-            .then(response => {
+            .then(async response => {
               if (response.ok) {
-                // Immediately refresh roster to remove deleted worker from display
-                updateRosterFromWorkers();
-                console.log(`🗑️ Worker ${name} deleted, roster refreshed`);
+                // 🔥 Ultra immediate refresh after worker deletion
+                await triggerUltraImmediateRefresh(`Worker ${name} deleted`);
+                console.log(`🗑️ Worker ${name} deleted, full refresh triggered`);
               }
             })
             .catch(error => {
@@ -2718,9 +2729,118 @@
       }
     }
     
-    // Auto-refresh DLQ data periodically for real-time sync
+    // 🎯 ULTRA REAL-TIME REFRESH SYSTEM: Immediate RabbitMQ synchronization
+    let unifiedRefreshInterval = null;
+    const UNIFIED_REFRESH_INTERVAL_MS = 100; // 0.1 seconds for ultra real-time updates
+
+    async function performUnifiedRefresh() {
+      console.log('🔄 [Unified Refresh] Starting synchronized data update...');
+      
+      // Execute all refresh functions simultaneously
+      const refreshPromises = [
+        refreshDLQData(),           // DLQ data and messages
+        updateQuestCardsFromRabbitMQ(), // Quest card states
+        updateRosterFromWorkers(),  // Worker roster
+        refreshSkillQueues(),       // Skill queue monitor
+        updateQueueKPIs()           // Queue KPIs (Pending & Unacked)
+      ];
+      
+      // 🔥 Also update Activity and Throughput graphs (synchronous, no promises needed)
+      drawActivity();
+      drawThroughput();
+
+      try {
+        await Promise.all(refreshPromises);
+        console.log('✅ [Unified Refresh] All data sources synchronized');
+        
+        // 🔥 Check if any sync issues detected and boost refresh rate temporarily
+        checkAndBoostRefreshIfNeeded();
+      } catch (error) {
+        console.error('❌ [Unified Refresh] Error during synchronized update:', error);
+      }
+    }
+
+    // 🔥 SYNC BOOST: Temporarily increase refresh rate when sync issues detected
+    let syncBoostActive = false;
+    let syncBoostTimeout = null;
+    
+    function checkAndBoostRefreshIfNeeded() {
+      // Check if skill queue monitor shows any "syncing" states
+      if (skillQueueData && skillQueueData.queues) {
+        const hasSyncIssues = skillQueueData.queues.some(queue => {
+          const hasActiveWorkers = queue.active_workers && queue.active_workers.length > 0;
+          const hasConsumers = queue.consumers > 0;
+          // Detect syncing state: workers exist but no consumers (startup lag)
+          return hasActiveWorkers && !hasConsumers;
+        });
+        
+        if (hasSyncIssues && !syncBoostActive) {
+          activateSyncBoost();
+        }
+      }
+    }
+    
+    function activateSyncBoost() {
+      if (syncBoostActive) return;
+      
+      syncBoostActive = true;
+      console.log('🔥 [Sync Boost] Detected sync lag - activating ultra-fast refresh (50ms)');
+      
+      // Temporarily stop normal refresh
+      stopUnifiedRefresh();
+      
+      // Start ultra-fast refresh
+      const boostInterval = setInterval(performUnifiedRefresh, 50); // 50ms ultra-fast
+      
+      // Reset to normal after 3 seconds
+      syncBoostTimeout = setTimeout(() => {
+        clearInterval(boostInterval);
+        syncBoostActive = false;
+        console.log('🔥 [Sync Boost] Returning to normal refresh rate');
+        startUnifiedRefresh(); // Resume normal refresh
+      }, 3000);
+    }
+
+    function startUnifiedRefresh() {
+      console.log('🚀 [Unified Refresh] Starting synchronized updates every', UNIFIED_REFRESH_INTERVAL_MS, 'ms');
+      
+      // Initial refresh immediately
+      performUnifiedRefresh();
+      
+      // Then start regular unified updates
+      unifiedRefreshInterval = setInterval(performUnifiedRefresh, UNIFIED_REFRESH_INTERVAL_MS);
+    }
+
+    function stopUnifiedRefresh() {
+      if (unifiedRefreshInterval) {
+        clearInterval(unifiedRefreshInterval);
+        unifiedRefreshInterval = null;
+        console.log('🛑 [Unified Refresh] Stopped synchronized updates');
+      }
+    }
+
+    // 🚀 IMMEDIATE REFRESH TRIGGER: For UI actions that impact RabbitMQ
+    async function triggerImmediateRefresh(actionDescription = 'UI action') {
+      console.log(`⚡ [Immediate Refresh] Triggered by: ${actionDescription}`);
+      await performUnifiedRefresh();
+    }
+
+    // ⚡ ULTRA IMMEDIATE REFRESH: No delays, direct RabbitMQ polling
+    async function triggerUltraImmediateRefresh(actionDescription = 'RabbitMQ action') {
+      console.log(`🔥 [Ultra Immediate Refresh] Triggered by: ${actionDescription}`);
+      // Skip any delays and refresh immediately
+      await performUnifiedRefresh();
+      // Also trigger a follow-up refresh after a tiny delay to catch any state changes
+      setTimeout(async () => {
+        await performUnifiedRefresh();
+        console.log(`🔥 [Ultra Immediate Refresh] Follow-up refresh completed`);
+      }, 50); // 50ms follow-up
+    }
+
+    // Legacy function for backward compatibility
     function startDLQAutoRefresh() {
-      setInterval(refreshDLQData, 3000); // Refresh every 3 seconds for real-time updates
+      // This is now handled by the unified refresh system
+      console.log('⚠️ [DLQ] Legacy startDLQAutoRefresh called - using unified refresh instead');
     }
     
     // Real-time RabbitMQ-driven quest state system
@@ -3084,13 +3204,8 @@
                   const reissueCategory = capturedStatus === 'failed' ? 'retry' : 'reissued';
                   addQuestCardDLQEntry(capturedQuestId, reissueCategory);
                   
-                  // Force immediate DLQ refresh to update KPIs from RabbitMQ after reissue
-                  // Also trigger quest card state update to ensure accuracy
-                  setTimeout(() => {
-                    console.log('🔄 [DLQ Refresh] Forcing KPI refresh and quest state update after reissue');
-                    refreshDLQData();
-                    updateQuestCardsFromRabbitMQ(); // Ensure quest card states are accurate
-                  }, 1000); // Wait 1s for RabbitMQ to process the reissue
+                            // 🔥 Ultra immediate refresh after DLQ reissue
+          await triggerUltraImmediateRefresh(`DLQ reissue ${capturedQuestId} from ${queue}`);
                 } else {
                   // No messages to reissue or failed
                   console.warn(`⚠️ [DLQ Refresh] Failed to reissue from ${queue}: ${result.data.reissued_count} messages reissued`);
@@ -3210,8 +3325,8 @@
       // First, create any missing quest cards from RabbitMQ data
       createQuestCardsFromRabbitMQ();
       
-      // Then start regular updates every 2 seconds
-      questStateUpdateInterval = setInterval(updateQuestCardsFromRabbitMQ, 2000);
+      // Note: Regular updates are now handled by the unified refresh system
+      console.log('🔄 [Quest Updates] Initial load complete - using unified refresh for updates');
     }
     
     function stopRabbitMQQuestUpdates() {
@@ -3303,8 +3418,8 @@
       // First update immediately
       updateRosterFromWorkers();
       
-      // Then start regular updates every 3 seconds
-      rosterUpdateInterval = setInterval(updateRosterFromWorkers, 3000);
+      // Note: Regular updates are now handled by the unified refresh system
+      console.log('🔄 [Roster Updates] Initial load complete - using unified refresh for updates');
     }
     
     function stopWorkersRosterUpdates() {
@@ -3482,7 +3597,9 @@
             
             if (result.ok) {
               appendFeed('info', 'DLQ', 'DLQ topology setup completed');
-              setTimeout(refreshDLQData, 1000);
+              
+              // 🚀 Immediate refresh after DLQ setup
+              await triggerImmediateRefresh('DLQ topology setup');
             } else {
               appendFeed('err', 'DLQ', `Setup failed: ${result.error}`);
             }
@@ -3510,7 +3627,9 @@
             
             if (result.ok) {
               appendFeed('info', 'DLQ', `Replayed all DLQ messages`);
-              setTimeout(refreshDLQData, 1000);
+              
+              // 🚀 Immediate refresh after DLQ replay all
+              await triggerImmediateRefresh('DLQ replay all messages');
             } else {
               appendFeed('err', 'DLQ', `Replay failed: ${result.error}`);
             }
@@ -3538,7 +3657,9 @@
             
             if (result.ok) {
               appendFeed('warn', 'DLQ', 'All DLQ messages purged');
-              setTimeout(refreshDLQData, 1000);
+              
+              // 🚀 Immediate refresh after DLQ purge
+              await triggerImmediateRefresh('DLQ purge all messages');
             } else {
               appendFeed('err', 'DLQ', `Purge failed: ${result.error}`);
             }
@@ -3574,9 +3695,8 @@
         };
       }
       
-      // Initial load and start auto-refresh
+      // Initial DLQ load (auto-refresh handled by unified system)
       refreshDLQData();
-      startDLQAutoRefresh();
     }
     // TTL setter
     const ttlBtn = document.getElementById('ttl-set'); if (ttlBtn){ ttlBtn.onclick = async ()=>{
@@ -3696,6 +3816,9 @@
           const d = await r.json();
           if (!d.ok){ appendFeed('err','MASTER',`Send one failed: ${d.error||'unknown'}`); return; }
           appendFeed('info','MASTER',`Sent one: ${t}`);
+          
+          // 🔥 Ultra immediate refresh after sending message  
+          await triggerUltraImmediateRefresh(`Send one ${t} message`);
         } catch (e) {
           appendFeed('err','MASTER',`Send one error`);
         }
@@ -3920,9 +4043,41 @@
       }
       
       const html = queues.map(queue => {
-        const statusColor = queue.consumers > 0 ? '#6fe0a0' : '#e74c3c';
-        const statusIcon = queue.consumers > 0 ? '✅' : '⚠️';
+        // Enhanced sync status logic
+        const hasActiveWorkers = queue.active_workers && queue.active_workers.length > 0;
+        const hasConsumers = queue.consumers > 0;
+        const correlation = queue.worker_correlation;
+        
+        let statusColor, statusIcon, syncStatus = '';
+        
+        if (hasActiveWorkers && hasConsumers) {
+          // Synchronized: active workers and consumers
+          statusColor = '#6fe0a0';
+          statusIcon = '✅';
+          if (correlation && correlation.expected_consumers !== correlation.actual_consumers) {
+            syncStatus = ` <span style="color:#f1c40f; font-size:9px" title="Expected ${correlation.expected_consumers} consumers, found ${correlation.actual_consumers}">⚠️</span>`;
+          }
+        } else if (hasActiveWorkers && !hasConsumers) {
+          // Workers exist but no consumers (sync lag)
+          statusColor = '#f1c40f';
+          statusIcon = '🔄';
+          syncStatus = ` <span style="color:#f1c40f; font-size:9px" title="Workers starting up...">syncing</span>`;
+        } else if (!hasActiveWorkers && hasConsumers) {
+          // Consumers exist but no active workers (stale consumers)
+          statusColor = '#e67e22';
+          statusIcon = '👻';
+          syncStatus = ` <span style="color:#e67e22; font-size:9px" title="Stale consumers detected">stale</span>`;
+        } else {
+          // No workers, no consumers (orphaned queue)
+          statusColor = '#e74c3c';
+          statusIcon = '⚠️';
+          syncStatus = ` <span style="color:#e74c3c; font-size:9px" title="No active workers">orphaned</span>`;
+        }
+        
         const pendingBadge = queue.messages > 0 ? ` <span style="background:#ffd26f; color:#000; padding:1px 4px; border-radius:8px; font-size:9px">${queue.messages}</span>` : '';
+        
+        // Worker names for tooltip
+        const workerNames = hasActiveWorkers ? queue.active_workers.map(w => w.name).join(', ') : 'none';
         
         return `
           <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #1e2a4d">
@@ -3931,9 +4086,10 @@
               <span style="font-weight:bold; color:${statusColor}; font-family:monospace">${queue.skill}</span>
               <span style="font-size:10px; color:#8aa0c7">${queue.name}</span>
               ${pendingBadge}
+              ${syncStatus}
             </div>
             <div style="display:flex; align-items:center; gap:8px; font-size:11px">
-              <span style="color:#ffd26f" title="Active consumers">${queue.consumers} workers</span>
+              <span style="color:#ffd26f" title="RabbitMQ consumers: ${queue.consumers}, Active workers: ${workerNames}">${queue.consumers} consumers</span>
               <span style="color:#8aa0c7" title="Queue state">${queue.state}</span>
             </div>
           </div>
@@ -3944,18 +4100,51 @@
     }
 
     async function refreshSkillQueues() {
-      const queues = await fetchSkillQueues();
-      skillQueueData = { queues, lastUpdate: Date.now() };
-      updateSkillQueueDisplay(queues);
-      console.log('🔄 Skill queues refreshed:', queues);
+      // Fetch both RabbitMQ queues and active workers for correlation
+      const [queues, workersData] = await Promise.all([
+        fetchSkillQueues(),
+        fetchWorkersRosterData()
+      ]);
+
+      // Enhance queue data with worker correlation
+      const enhancedQueues = queues.map(queue => {
+        // Find workers that handle this skill
+        const workersForSkill = [];
+        if (workersData.worker_details) {
+          for (const [workerName, details] of Object.entries(workersData.worker_details)) {
+            if (details.skills && details.skills.includes(queue.skill)) {
+              workersForSkill.push({
+                name: workerName,
+                status: details.status,
+                fail_pct: details.fail_pct,
+                workers: details.workers
+              });
+            }
+          }
+        }
+
+        return {
+          ...queue,
+          active_workers: workersForSkill,
+          worker_correlation: {
+            expected_consumers: workersForSkill.reduce((sum, w) => sum + (w.workers || 1), 0),
+            actual_consumers: queue.consumers,
+            is_synchronized: workersForSkill.length > 0 && queue.consumers > 0
+          }
+        };
+      });
+
+      skillQueueData = { queues: enhancedQueues, lastUpdate: Date.now() };
+      updateSkillQueueDisplay(enhancedQueues);
+      console.log('🔄 [Skill Queue Monitor] Queues refreshed with worker correlation:', enhancedQueues);
     }
 
     function startSkillQueueMonitoring() {
       // Initial load
       refreshSkillQueues();
       
-      // Update every 5 seconds
-      skillQueueUpdateInterval = setInterval(refreshSkillQueues, 5000);
+      // Note: Regular updates are now handled by the unified refresh system
+      console.log('🔄 [Skill Queue Monitor] Initial load complete - using unified refresh for updates');
     }
 
     function stopSkillQueueMonitoring() {
@@ -4099,18 +4288,26 @@
 
 
     
-    // Initialize the new DLQ Management System
+    // Initialize the new DLQ Management System with unified refresh
     setTimeout(() => {
       initializeDLQManagement();
-      // Start real-time RabbitMQ quest state updates
-      startRabbitMQQuestUpdates();
-      // Start real-time workers roster updates
-      startWorkersRosterUpdates();
+      
+      // Initialize individual systems (no intervals started)
+      startRabbitMQQuestUpdates();   // Initial quest card setup
+      startWorkersRosterUpdates();   // Initial roster load
+      startSkillQueueMonitoring();   // Initial skill queue load
+      
       // Initialize queue KPIs
       updateQueueKPIs();
-      // Start skill queue monitoring
-      startSkillQueueMonitoring();
+      
+      // 🎯 Start unified refresh system for synchronized updates
+      startUnifiedRefresh();
     }, 1000);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopUnifiedRefresh();
+    });
   </script>
 </body>
 </html>

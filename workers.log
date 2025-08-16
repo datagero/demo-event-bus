@@ -1,68 +1,18 @@
-
-  __    _   ___  
- / /\  | | | |_) 
-/_/--\ |_| |_| \_ v1.62.0, built with Go go1.24.1
-
-watching .
-watching broker
-watching chaos
-watching consumer
-watching tests
-watching tests/integration
-watching tests/unit
-!exclude tmp
-building...
-running...
-2025/08/16 17:09:42 🚀 [Go Server] Starting on port 8001
-2025/08/16 17:09:42 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
-2025/08/16 17:09:42 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
-2025/08/16 17:09:57 🚀 [Go Worker] morning-shift started with 1 workers, skills: [escort]
-2025/08/16 17:09:57 🎭 [Chaos] Registered worker: morning-shift
-2025/08/16 17:09:57 ✅ [Server] Started worker: morning-shift
-2025/08/16 17:09:57 🏃 [Go Worker] morning-shift-worker-0 started on queue game.skill.escort.q
-2025/08/16 17:09:57 🔄 [Go Consumer] Waiting for messages on queue: game.skill.escort.q
-2025/08/16 17:10:00 📬 [Go Worker Debug] morning-shift received raw message: {"id":"q-1755357000-558460000","payload":{"case_id":"single-escort-1755357000557240000","difficulty":1,"points":5,"quest_type":"escort","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755357000,"type":"game.quest.escort"}
-2025/08/16 17:10:00 ✅ [Go Worker Debug] morning-shift parsed message: {CaseID:single-escort-1755357000557240000 EventStage: Status: Source:frontend_send_one QuestType:escort Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/16 17:10:00 ℹ️ [Go Worker Debug] morning-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:02 📬 [Go Worker Debug] morning-shift received raw message: {"id":"q-1755357000-559579000","payload":{"case_id":"single-escort-1755357000558813000","difficulty":1,"points":5,"quest_type":"escort","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755357000,"type":"game.quest.escort"}
-2025/08/16 17:10:02 ✅ [Go Worker Debug] morning-shift parsed message: {CaseID:single-escort-1755357000558813000 EventStage: Status: Source:frontend_send_one QuestType:escort Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/16 17:10:02 ℹ️ [Go Worker Debug] morning-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:04 📬 [Go Worker Debug] morning-shift received raw message: {"id":"q-1755357000-560726000","payload":{"case_id":"single-escort-1755357000559803000","difficulty":1,"points":5,"quest_type":"escort","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755357000,"type":"game.quest.escort"}
-2025/08/16 17:10:04 ✅ [Go Worker Debug] morning-shift parsed message: {CaseID:single-escort-1755357000559803000 EventStage: Status: Source:frontend_send_one QuestType:escort Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/16 17:10:04 ℹ️ [Go Worker Debug] morning-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:06 📬 [Go Worker Debug] morning-shift received raw message: {"case_id":"single-escort-1755357000557240000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:morning-shift","quest_type":"escort","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"morning-shift","payload":null}
-2025/08/16 17:10:06 ✅ [Go Worker Debug] morning-shift parsed message: {CaseID:single-escort-1755357000557240000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:morning-shift QuestType:escort Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:morning-shift Payload:map[]}
-2025/08/16 17:10:06 ℹ️ [Go Worker Debug] morning-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:06 📄 [Go Worker] morning-shift ignoring completion message single-escort-1755357000557240000 (EventStage: QUEST_COMPLETED)
-2025/08/16 17:10:06 📬 [Go Worker Debug] morning-shift received raw message: {"case_id":"single-escort-1755357000558813000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:morning-shift","quest_type":"escort","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"morning-shift","payload":null}
-2025/08/16 17:10:06 ✅ [Go Worker Debug] morning-shift parsed message: {CaseID:single-escort-1755357000558813000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:morning-shift QuestType:escort Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:morning-shift Payload:map[]}
-2025/08/16 17:10:06 ℹ️ [Go Worker Debug] morning-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:06 📄 [Go Worker] morning-shift ignoring completion message single-escort-1755357000558813000 (EventStage: QUEST_COMPLETED)
-2025/08/16 17:10:06 📬 [Go Worker Debug] morning-shift received raw message: {"case_id":"single-escort-1755357000559803000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:morning-shift","quest_type":"escort","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"morning-shift","payload":null}
-2025/08/16 17:10:06 ✅ [Go Worker Debug] morning-shift parsed message: {CaseID:single-escort-1755357000559803000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:morning-shift QuestType:escort Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:morning-shift Payload:map[]}
-2025/08/16 17:10:06 ℹ️ [Go Worker Debug] morning-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:06 📄 [Go Worker] morning-shift ignoring completion message single-escort-1755357000559803000 (EventStage: QUEST_COMPLETED)
-2025/08/16 17:10:08 🛑 [Go Worker] Stopping morning-shift...
-2025/08/16 17:10:08 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.escort.q
-2025/08/16 17:10:08 ✅ [Go Worker] morning-shift stopped
-2025/08/16 17:10:08 🎭 [Chaos] Unregistered worker: morning-shift
-2025/08/16 17:10:08 🛑 [Server] Stopped worker: morning-shift
-2025/08/16 17:10:18 🚀 [Go Worker] afternoon-shift started with 1 workers, skills: [escort]
-2025/08/16 17:10:18 🎭 [Chaos] Registered worker: afternoon-shift
-2025/08/16 17:10:18 ✅ [Server] Started worker: afternoon-shift
-2025/08/16 17:10:18 🏃 [Go Worker] afternoon-shift-worker-0 started on queue game.skill.escort.q
-2025/08/16 17:10:18 🔄 [Go Consumer] Waiting for messages on queue: game.skill.escort.q
-2025/08/16 17:10:18 📬 [Go Worker Debug] afternoon-shift received raw message: {"id":"q-1755357008-571053000","payload":{"case_id":"single-escort-1755357008570151000","difficulty":1,"points":5,"quest_type":"escort","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755357008,"type":"game.quest.escort"}
-2025/08/16 17:10:18 ✅ [Go Worker Debug] afternoon-shift parsed message: {CaseID:single-escort-1755357008570151000 EventStage: Status: Source:frontend_send_one QuestType:escort Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/16 17:10:18 ℹ️ [Go Worker Debug] afternoon-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:20 📬 [Go Worker Debug] afternoon-shift received raw message: {"id":"q-1755357008-572107000","payload":{"case_id":"single-escort-1755357008571257000","difficulty":1,"points":5,"quest_type":"escort","source":"frontend_send_one","work_sec":2},"points":5,"timestamp":1755357008,"type":"game.quest.escort"}
-2025/08/16 17:10:20 ✅ [Go Worker Debug] afternoon-shift parsed message: {CaseID:single-escort-1755357008571257000 EventStage: Status: Source:frontend_send_one QuestType:escort Difficulty:1 WorkSec:2 Points:5 Weight:0 Player: Payload:map[]}
-2025/08/16 17:10:20 ℹ️ [Go Worker Debug] afternoon-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:22 📬 [Go Worker Debug] afternoon-shift received raw message: {"case_id":"single-escort-1755357008570151000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:afternoon-shift","quest_type":"escort","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"afternoon-shift","payload":null}
-2025/08/16 17:10:22 ✅ [Go Worker Debug] afternoon-shift parsed message: {CaseID:single-escort-1755357008570151000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:afternoon-shift QuestType:escort Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:afternoon-shift Payload:map[]}
-2025/08/16 17:10:22 ℹ️ [Go Worker Debug] afternoon-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:22 📄 [Go Worker] afternoon-shift ignoring completion message single-escort-1755357008570151000 (EventStage: QUEST_COMPLETED)
-2025/08/16 17:10:22 📬 [Go Worker Debug] afternoon-shift received raw message: {"case_id":"single-escort-1755357008571257000","event_stage":"QUEST_COMPLETED","status":"SUCCESS","source":"go-worker:afternoon-shift","quest_type":"escort","difficulty":1,"work_sec":0,"points":5,"weight":0,"player":"afternoon-shift","payload":null}
-2025/08/16 17:10:22 ✅ [Go Worker Debug] afternoon-shift parsed message: {CaseID:single-escort-1755357008571257000 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:afternoon-shift QuestType:escort Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:afternoon-shift Payload:map[]}
-2025/08/16 17:10:22 ℹ️ [Go Worker Debug] afternoon-shift checking for skill 'escort' in [escort]
-2025/08/16 17:10:22 📄 [Go Worker] afternoon-shift ignoring completion message single-escort-1755357008571257000 (EventStage: QUEST_COMPLETED)
+2025/08/16 17:31:53 🚀 [Go Server] Starting on port 8001
+2025/08/16 17:31:53 🐰 [Go Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+2025/08/16 17:31:53 🔗 [Go Server] Webhook: http://localhost:9000/api/go-workers/webhook/events
+2025/08/16 17:32:12 🚀 [Go Worker] responsive-test started with 1 workers, skills: [gather]
+2025/08/16 17:32:12 🎭 [Chaos] Registered worker: responsive-test
+2025/08/16 17:32:12 ✅ [Server] Started worker: responsive-test
+2025/08/16 17:32:12 🏃 [Go Worker] responsive-test-worker-0 started on queue game.skill.gather.q
+2025/08/16 17:32:12 🔄 [Go Consumer] Waiting for messages on queue: game.skill.gather.q
+2025/08/16 17:32:36 🛑 [Go Worker] Stopping responsive-test...
+2025/08/16 17:32:36 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+2025/08/16 17:32:36 ✅ [Go Worker] responsive-test stopped
+2025/08/16 17:32:36 🎭 [Chaos] Unregistered worker: responsive-test
+2025/08/16 17:32:36 🛑 [Server] Stopped worker: responsive-test
+2025/08/16 17:32:46 🚀 [Go Worker] morning-shift started with 1 workers, skills: [escort]
+2025/08/16 17:32:46 🎭 [Chaos] Registered worker: morning-shift
+2025/08/16 17:32:46 ✅ [Server] Started worker: morning-shift
+2025/08/16 17:32:46 🏃 [Go Worker] morning-shift-worker-0 started on queue game.skill.escort.q
+2025/08/16 17:32:46 🔄 [Go Consumer] Waiting for messages on queue: game.skill.escort.q
