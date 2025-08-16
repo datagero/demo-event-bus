@@ -1,0 +1,1224 @@
+2025/08/16 14:50:28 🚀 [API Server] Starting on port 9000
+2025/08/16 14:50:28 🐍 [API Server] Python service: http://localhost:8080
+2025/08/16 14:50:28 ⚡ [API Server] Workers service: http://localhost:8001
+2025/08/16 14:50:28 🐰 [API Server] RabbitMQ: amqp://guest:guest@localhost:5672/
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+2025/08/16 14:50:28 🐰 [RabbitMQ] Connected and exchange declared
+[GIN-debug] GET    /ws                       --> demo-event-bus-api/internal/api.SetupRoutes.HandleWebSocket.func4 (4 handlers)
+[GIN-debug] GET    /health                   --> demo-event-bus-api/internal/api/handlers.(*Handlers).Health-fm (4 handlers)
+[GIN-debug] GET    /api/health               --> demo-event-bus-api/internal/api/handlers.(*Handlers).Health-fm (4 handlers)
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] GET    /                         --> demo-event-bus-api/internal/api.SetupRoutes.func1 (4 handlers)
+[GIN-debug] POST   /api/go-workers/webhook/events --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReceiveWorkerEvents-fm (4 handlers)
+[GIN-debug] GET    /api/state                --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetGameState-fm (4 handlers)
+[GIN-debug] POST   /api/reset                --> demo-event-bus-api/internal/api/handlers.(*Handlers).ResetGame-fm (4 handlers)
+[GIN-debug] POST   /api/players/quickstart   --> demo-event-bus-api/internal/api/handlers.(*Handlers).QuickstartPlayers-fm (4 handlers)
+[GIN-debug] POST   /api/players/start        --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartPlayer-fm (4 handlers)
+[GIN-debug] POST   /api/players/delete       --> demo-event-bus-api/internal/api/handlers.(*Handlers).DeletePlayer-fm (4 handlers)
+[GIN-debug] POST   /api/players/control      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ControlPlayer-fm (4 handlers)
+[GIN-debug] POST   /api/player/start         --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartPlayer-fm (4 handlers)
+[GIN-debug] POST   /api/player/delete        --> demo-event-bus-api/internal/api/handlers.(*Handlers).DeletePlayer-fm (4 handlers)
+[GIN-debug] POST   /api/player/control       --> demo-event-bus-api/internal/api/handlers.(*Handlers).ControlPlayer-fm (4 handlers)
+[GIN-debug] GET    /api/workers/status       --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetWorkersStatus-fm (4 handlers)
+[GIN-debug] POST   /api/workers/start        --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartWorker-fm (4 handlers)
+[GIN-debug] POST   /api/workers/stop         --> demo-event-bus-api/internal/api/handlers.(*Handlers).StopWorker-fm (4 handlers)
+[GIN-debug] POST   /api/workers/control      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ControlWorker-fm (4 handlers)
+[GIN-debug] POST   /api/publish              --> demo-event-bus-api/internal/api/handlers.(*Handlers).PublishMessage-fm (4 handlers)
+[GIN-debug] POST   /api/publish/wave         --> demo-event-bus-api/internal/api/handlers.(*Handlers).PublishWave-fm (4 handlers)
+[GIN-debug] POST   /api/master/start         --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartMaster-fm (4 handlers)
+[GIN-debug] POST   /api/master/one           --> demo-event-bus-api/internal/api/handlers.(*Handlers).SendOne-fm (4 handlers)
+[GIN-debug] GET    /api/pending/list         --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListPendingMessages-fm (4 handlers)
+[GIN-debug] POST   /api/pending/reissue      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissuePendingMessages-fm (4 handlers)
+[GIN-debug] POST   /api/pending/reissue/all  --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllPendingMessages-fm (4 handlers)
+[GIN-debug] GET    /api/failed/list          --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListFailedMessages-fm (4 handlers)
+[GIN-debug] POST   /api/failed/reissue       --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueFailedMessages-fm (4 handlers)
+[GIN-debug] POST   /api/failed/reissue/all   --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllFailedMessages-fm (4 handlers)
+[GIN-debug] POST   /api/dlq/setup            --> demo-event-bus-api/internal/api/handlers.(*Handlers).SetupDLQ-fm (4 handlers)
+[GIN-debug] GET    /api/dlq/list             --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListDLQMessages-fm (4 handlers)
+[GIN-debug] POST   /api/dlq/reissue          --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueDLQMessages-fm (4 handlers)
+[GIN-debug] POST   /api/dlq/reissue/all      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllDLQMessages-fm (4 handlers)
+[GIN-debug] GET    /api/unroutable/list      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListUnroutableMessages-fm (4 handlers)
+[GIN-debug] POST   /api/unroutable/reissue   --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueUnroutableMessages-fm (4 handlers)
+[GIN-debug] POST   /api/unroutable/reissue/all --> demo-event-bus-api/internal/api/handlers.(*Handlers).ReissueAllUnroutableMessages-fm (4 handlers)
+[GIN-debug] GET    /api/chaos/status         --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetChaosStatus-fm (4 handlers)
+[GIN-debug] POST   /api/chaos/arm            --> demo-event-bus-api/internal/api/handlers.(*Handlers).ArmChaos-fm (4 handlers)
+[GIN-debug] POST   /api/chaos/disarm         --> demo-event-bus-api/internal/api/handlers.(*Handlers).DisarmChaos-fm (4 handlers)
+[GIN-debug] POST   /api/chaos/config         --> demo-event-bus-api/internal/api/handlers.(*Handlers).SetChaosConfig-fm (4 handlers)
+[GIN-debug] GET    /api/scenario-tests/      --> demo-event-bus-api/internal/api/handlers.(*Handlers).ListAvailableScenarioTests-fm (4 handlers)
+[GIN-debug] POST   /api/scenario-tests/run   --> demo-event-bus-api/internal/api/handlers.(*Handlers).RunScenarioTest-fm (4 handlers)
+[GIN-debug] GET    /api/cardgame/enabled     --> demo-event-bus-api/internal/api/handlers.(*Handlers).IsCardGameEnabled-fm (4 handlers)
+[GIN-debug] GET    /api/cardgame/status      --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetCardGameStatus-fm (4 handlers)
+[GIN-debug] POST   /api/cardgame/start       --> demo-event-bus-api/internal/api/handlers.(*Handlers).StartCardGame-fm (4 handlers)
+[GIN-debug] POST   /api/cardgame/stop        --> demo-event-bus-api/internal/api/handlers.(*Handlers).StopCardGame-fm (4 handlers)
+[GIN-debug] GET    /api/broker/routes        --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetBrokerRoutes-fm (4 handlers)
+[GIN-debug] GET    /api/broker/queues        --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetBrokerQueues-fm (4 handlers)
+[GIN-debug] GET    /api/metrics              --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetMetrics-fm (4 handlers)
+[GIN-debug] GET    /api/player_stats         --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetPlayerStats-fm (4 handlers)
+[GIN-debug] GET    /api/rabbitmq/metrics     --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetRabbitMQMetrics-fm (4 handlers)
+[GIN-debug] GET    /api/rabbitmq/queues      --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetRabbitMQQueues-fm (4 handlers)
+[GIN-debug] GET    /api/rabbitmq/consumers   --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetRabbitMQConsumers-fm (4 handlers)
+[GIN-debug] GET    /api/rabbitmq/exchanges   --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetRabbitMQExchanges-fm (4 handlers)
+[GIN-debug] GET    /api/rabbitmq/messages/:queue --> demo-event-bus-api/internal/api/handlers.(*Handlers).PeekQueueMessages-fm (4 handlers)
+[GIN-debug] GET    /api/rabbitmq/derived/metrics --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetRabbitMQMetrics-fm (4 handlers)
+[GIN-debug] GET    /api/rabbitmq/derived/scoreboard --> demo-event-bus-api/internal/api/handlers.(*Handlers).GetRabbitMQScoreboard-fm (4 handlers)
+[GIN-debug] GET    /api/dlq/inspect          --> demo-event-bus-api/internal/api/handlers.(*Handlers).InspectDLQ-fm (4 handlers)
+[GIN-debug] GET    /ws/rabbitmq              --> demo-event-bus-api/internal/api.SetupRoutes.func2 (4 handlers)
+2025/08/16 14:50:28 ✅ [API Server] Server ready on http://localhost:9000
+[GIN] 2025/08/16 - 14:50:28 | 500 |     618.292µs |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/16 - 14:50:28 | 200 |    2.385459ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:28 | 200 |    9.229667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:28 | 200 |    2.092667ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:28 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:28 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:28 | 200 |     9.19925ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:30 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:30 | 200 |     955.417µs |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:30 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:30 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:30 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:30 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:30 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:30 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:30 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:30 | 200 |    7.903583ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:50:31 | 500 |         929µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:31 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:31 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:31 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:31 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:31 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:31 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:31 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:31 | 200 |    12.00975ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:31 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:31 | 200 |      2.4205ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:32 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:32 | 200 |    1.689292ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:50:32 | 200 |     2.17275ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:32 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:32 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:32 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:32 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:32 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:32 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:32 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:32 | 200 |   11.560708ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:34 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:50:34 | 500 |       850.5µs |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/16 - 14:50:34 | 200 |     1.74825ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:34 | 200 |    8.529333ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:34 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:34 | 200 |    1.676209ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:34 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:34 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:34 | 200 |    7.292333ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:50:35 | 304 |     125.583µs |             ::1 | GET      "/"
+[GIN] 2025/08/16 - 14:50:35 | 200 |      20.584µs |             ::1 | GET      "/api/cardgame/enabled"
+[GIN] 2025/08/16 - 14:50:35 | 200 |      19.917µs |             ::1 | GET      "/api/chaos/status"
+[GIN] 2025/08/16 - 14:50:35 | 200 |     107.042µs |             ::1 | GET      "/ws"
+2025/08/16 14:50:35 🔗 [WebSocket] Client connected (total: 1)
+2025/08/16 14:50:36 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:36 | 500 |      1.5585ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:50:36 | 200 |    2.892834ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:50:36 | 200 |    4.550083ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:50:36 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:36 | 200 |    5.826375ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:36 | 200 |   16.355583ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:36 | 200 |    2.089792ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:36 | 200 |     9.90575ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:50:36 | 200 |    2.185209ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:36 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:36 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:36 | 200 |   13.271625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:38 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:38 | 200 |    4.036375ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:38 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:38 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:38 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:38 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:38 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:38 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:38 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:38 | 200 |   13.924542ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:50:39 | 500 |    1.073708ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:39 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:39 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:39 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:39 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:39 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:39 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:39 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:39 | 200 |   15.291208ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:39 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:39 | 200 |    3.402333ms |             ::1 | GET      "/api/rabbitmq/metrics"
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+2025/08/16 14:50:39 🔄 [ResetGame] Starting comprehensive reset...
+2025/08/16 14:50:39 ⚠️ [ResetGame] Workers service not accessible: get workers status failed: Get "http://localhost:8001/status": dial tcp [::1]:8001: connect: connection refused
+2025/08/16 14:50:39 🔌 [ResetGame] Attempting to close RabbitMQ connections as fallback...
+2025/08/16 14:50:39 🔌 [forceCloseGameConnections] Using fallback connection cleanup...
+2025/08/16 14:50:39 🔌 [forceCloseGameConnections] Closed 0 connections
+2025/08/16 14:50:39 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.expired.q
+2025/08/16 14:50:39 🗑️ [ResetGame] Deleted queue: game.dlq.expired.q
+2025/08/16 14:50:39 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.failed.q
+2025/08/16 14:50:39 🗑️ [ResetGame] Deleted queue: game.dlq.failed.q
+2025/08/16 14:50:39 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.retry.q
+2025/08/16 14:50:39 🗑️ [ResetGame] Deleted queue: game.dlq.retry.q
+2025/08/16 14:50:39 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.unroutable.q
+2025/08/16 14:50:39 🗑️ [ResetGame] Deleted queue: game.dlq.unroutable.q
+2025/08/16 14:50:39 🗑️ [RabbitMQ] Successfully deleted exchange game.dlx
+2025/08/16 14:50:39 🗑️ [ResetGame] Deleted exchange: game.dlx
+2025/08/16 14:50:39 🗑️ [RabbitMQ] Successfully deleted exchange game.skill
+2025/08/16 14:50:39 🗑️ [ResetGame] Deleted exchange: game.skill
+2025/08/16 14:50:39 🗑️ [RabbitMQ] Successfully deleted exchange game.unroutable
+2025/08/16 14:50:39 🗑️ [ResetGame] Deleted exchange: game.unroutable
+2025/08/16 14:50:39 🔌 [ResetGame] Closed 0 RabbitMQ connections
+2025/08/16 14:50:39 📊 [ResetGame] Cleared player stats
+2025/08/16 14:50:39 📡 [ResetGame] Broadcast reset message to UI
+2025/08/16 14:50:39 📡 [ResetGame] Broadcast empty roster to clear UI consumers
+2025/08/16 14:50:40 📊 [RabbitMQ-Go] Derived metrics: 0 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:40 | 200 |    1.145834ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:40 📋 [DLQ] No DLQ queues found, auto-setting up DLQ topology...
+2025/08/16 14:50:40 🔄 [RabbitMQ] Successfully created exchange game.dlx (topic)
+2025/08/16 14:50:40 🔄 [RabbitMQ] Successfully created exchange game.unroutable (fanout)
+2025/08/16 14:50:40 📦 [RabbitMQ] Successfully created queue game.dlq.failed.q
+2025/08/16 14:50:40 🔗 [RabbitMQ] Successfully bound queue game.dlq.failed.q to exchange game.dlx with routing key dlq.failed
+2025/08/16 14:50:40 📦 [RabbitMQ] Successfully created queue game.dlq.unroutable.q
+2025/08/16 14:50:40 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.dlx with routing key dlq.unroutable
+2025/08/16 14:50:40 📦 [RabbitMQ] Successfully created queue game.dlq.expired.q
+2025/08/16 14:50:40 🔗 [RabbitMQ] Successfully bound queue game.dlq.expired.q to exchange game.dlx with routing key dlq.expired
+2025/08/16 14:50:40 📦 [RabbitMQ] Successfully created queue game.dlq.retry.q
+2025/08/16 14:50:40 🔗 [RabbitMQ] Successfully bound queue game.dlq.retry.q to exchange game.dlx with routing key dlq.retry
+2025/08/16 14:50:40 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.unroutable with routing key 
+2025/08/16 14:50:40 🗑️ [RabbitMQ] Exchange game.skill already doesn't exist
+2025/08/16 14:50:40 🔄 [RabbitMQ] Successfully created exchange game.skill (topic)
+Warning: Could not rebind queue game.skill.gather.q: failed to bind queue game.skill.gather.q to exchange game.skill: status 404, body: {"error":"not_found","reason":"no queue 'game.skill.gather.q' in vhost '/'"}
+Warning: Could not rebind queue game.skill.slay.q: failed to bind queue game.skill.slay.q to exchange game.skill: status 404, body: {"error":"not_found","reason":"no queue 'game.skill.slay.q' in vhost '/'"}
+2025/08/16 14:50:40 ✅ [DLQ] Auto-setup completed successfully
+[GIN] 2025/08/16 - 14:50:40 | 200 |   30.165833ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:40 📡 [ResetGame] Final empty roster broadcast after cleanup
+2025/08/16 14:50:41 ⚠️ [ResetGame] Reset completed with warnings: [Workers service unavailable: get workers status failed: Get "http://localhost:8001/status": dial tcp [::1]:8001: connect: connection refused]
+2025/08/16 14:50:41 📡 [ResetGame] Reset flag cleared - normal ticker resumed
+[GIN] 2025/08/16 - 14:50:41 | 200 |    2.065917ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:50:42 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:50:42 | 500 |    4.134209ms |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/16 - 14:50:42 | 200 |       5.819ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:50:42 | 200 |   19.279375ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:42 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:42 | 200 |    2.706125ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:42 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:50:42 | 200 |   13.799209ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:43 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+2025/08/16 14:50:44 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/16 14:50:44 📨 [RabbitMQ] Published message to game.quest.escort: q-1755348644-251426000
+2025/08/16 14:50:44 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/16 - 14:50:44 | 200 |    4.491875ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:44 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 1 messages
+2025/08/16 14:50:44 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:44 | 200 |    13.56675ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:50:45 | 500 |    1.316542ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:45 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 1 messages
+2025/08/16 14:50:45 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:45 | 200 |    20.63975ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:45 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:45 | 200 |    3.765708ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:46 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:46 | 200 |    4.698167ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:50:46 | 200 |    5.407166ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:46 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 1 messages
+2025/08/16 14:50:46 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:46 | 200 |   12.007834ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:48 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+2025/08/16 14:50:48 📨 [RabbitMQ] Published message to game.quest.escort: q-1755348648-257741000
+2025/08/16 14:50:48 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/16 14:50:48 📨 [RabbitMQ] Published message to game.quest.escort: q-1755348648-258406000
+2025/08/16 14:50:48 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/16 14:50:48 📨 [RabbitMQ] Published message to game.quest.escort: q-1755348648-259033000
+2025/08/16 14:50:48 ⚠️  [WebSocket] Broadcast channel full, dropping message
+[GIN] 2025/08/16 - 14:50:48 | 500 |    1.076542ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:50:48 | 200 |    3.290333ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 4 messages
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:48 | 200 |   15.698834ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:48 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:48 | 200 |    3.998791ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:48 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 4 messages
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:48 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:48 | 200 |   11.461125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:50 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 1 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:50 | 200 |    3.363875ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:50 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 4 messages
+2025/08/16 14:50:50 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:50 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:50 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:50 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:50 | 200 |   11.833792ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:50:51 | 500 |    1.135334ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:50:51 | 200 |    3.105042ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:51 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 4 messages
+2025/08/16 14:50:51 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:51 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:51 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:51 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:51 | 200 |   13.149292ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:51 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 1 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:51 | 200 |    3.036834ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:52 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 1 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:52 | 200 |      2.7375ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:52 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 4 messages
+2025/08/16 14:50:52 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:52 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:52 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:52 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:52 | 200 |   12.401709ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:53 📨 [RabbitMQ] Published message to game.quest.escort: q-1755348653-273302000
+2025/08/16 14:50:53 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/16 14:50:53 📨 [RabbitMQ] Published message to game.quest.escort: q-1755348653-274333000
+2025/08/16 14:50:53 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/16 14:50:54 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 4 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:54 | 500 |     951.917µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:50:54 | 200 |    3.284583ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:54 | 200 |   16.196291ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:54 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 4 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:54 | 200 |    3.226417ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:54 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:54 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:54 | 200 |   14.040125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:56 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 4 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:56 | 200 |     2.78525ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:50:56 | 200 |    2.771459ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:56 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:56 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:56 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:56 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:56 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:56 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:56 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:56 | 200 |   11.038083ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:50:57 | 500 |    1.901875ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:57 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:57 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:57 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:57 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:57 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:57 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:57 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:57 | 200 |   13.377333ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:50:57 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 4 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:57 | 200 |     2.33825ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:50:58 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 4 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:50:58 | 200 |    2.571959ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:50:58 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:50:58 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:58 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:58 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:58 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:58 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:50:58 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:50:58 | 200 |   11.868667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:00 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:00 | 200 | 20.584023125s |             ::1 | POST     "/api/scenario-tests/run"
+[GIN] 2025/08/16 - 14:51:00 | 500 |       515.5µs |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/16 - 14:51:00 | 200 |    1.740416ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:00 | 200 |   10.292792ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:00 | 200 |    2.273625ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:00 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:00 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:00 | 200 |    9.193333ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:01 | 200 |    3.311166ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:02 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:02 | 200 |    2.650875ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:02 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:02 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:02 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:02 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:02 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:02 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:02 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:02 | 200 |   11.998792ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:03 | 500 |      1.0255ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:03 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:03 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:03 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:03 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:03 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:03 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:03 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:03 | 200 |    14.71125ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:03 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:03 | 200 |    2.722375ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:04 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:04 | 200 |    2.944125ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:04 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:04 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:04 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:04 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:04 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:04 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:04 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:04 | 200 |   14.833542ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:06 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:06 | 500 |     1.11325ms |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/16 - 14:51:06 | 200 |    3.455792ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:06 | 200 |    4.877167ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:06 | 200 |   14.016625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:06 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:06 | 200 |    2.253583ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:06 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:06 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:06 | 200 |   10.292625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:08 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:08 | 200 |    3.229083ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:08 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:08 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:08 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:08 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:08 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:08 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:08 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:08 | 200 |   11.436875ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:09 | 500 |    1.444916ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:09 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:09 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:09 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:09 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:09 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:09 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:09 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:09 | 200 |   13.785208ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:09 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:09 | 200 |    3.088291ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:10 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:10 | 200 |    2.698917ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:10 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:10 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:10 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:10 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:10 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:10 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:10 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:10 | 200 |   14.299042ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:11 | 200 |    3.738167ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:12 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:12 | 500 |     966.042µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:12 | 200 |    3.325375ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:12 | 200 |   14.657084ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:12 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:12 | 200 |    3.665209ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:12 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:12 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:12 | 200 |   12.086667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:14 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:14 | 200 |    2.206125ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:14 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:14 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:14 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:14 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:14 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:14 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:14 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:14 | 200 |   11.134584ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:15 | 500 |     703.917µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:15 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:15 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:15 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:15 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:15 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:15 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:15 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:15 | 200 |   10.638083ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:15 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:15 | 200 |    2.353958ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:16 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:16 | 200 |    2.478708ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:51:16 | 200 |    2.497625ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:16 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:16 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:16 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:16 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:16 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:16 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:16 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:16 | 200 |    8.696417ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:18 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:18 | 500 |     809.333µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:18 | 200 |       2.678ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:18 | 200 |    12.14575ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:18 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:18 | 200 |    2.265917ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:18 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:18 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:18 | 200 |   10.358833ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:20 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:20 | 200 |    1.958542ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:20 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:20 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:20 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:20 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:20 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:20 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:20 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:20 | 200 |   10.283458ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:21 | 500 |     694.542µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:21 | 200 |    2.893375ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:21 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:21 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:21 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:21 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:21 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:21 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:21 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:21 | 200 |   13.941375ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:21 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:21 | 200 |    2.566375ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:22 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:22 | 200 |    3.755833ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:22 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:22 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:22 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:22 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:22 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:22 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:22 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:22 | 200 |   12.971375ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:24 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:24 | 500 |    1.007625ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:24 | 200 |    2.744375ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:24 | 200 |   14.409375ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:24 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:24 | 200 |    2.879959ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:24 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:24 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:24 | 200 |   11.270042ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:26 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 6 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:26 | 200 |    2.056666ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:51:26 | 200 |     1.56125ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:26 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 6 messages
+2025/08/16 14:51:26 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:26 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:26 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:26 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:26 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+2025/08/16 14:51:26 🔍 [DLQ Categorize] Queue: game.dlq.unroutable.q
+[GIN] 2025/08/16 - 14:51:26 | 200 |     7.34875ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:27 🔄 [ResetGame] Starting comprehensive reset...
+2025/08/16 14:51:27 ⚠️ [ResetGame] Workers service not accessible: get workers status failed: Get "http://localhost:8001/status": dial tcp [::1]:8001: connect: connection refused
+2025/08/16 14:51:27 🔌 [ResetGame] Attempting to close RabbitMQ connections as fallback...
+2025/08/16 14:51:27 🔌 [forceCloseGameConnections] Using fallback connection cleanup...
+[GIN] 2025/08/16 - 14:51:27 | 500 |     494.334µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:27 🔌 [forceCloseGameConnections] Closed 0 connections
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:27 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.expired.q
+2025/08/16 14:51:27 🗑️ [ResetGame] Deleted queue: game.dlq.expired.q
+2025/08/16 14:51:27 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.failed.q
+2025/08/16 14:51:27 🗑️ [ResetGame] Deleted queue: game.dlq.failed.q
+2025/08/16 14:51:27 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.retry.q
+2025/08/16 14:51:27 🗑️ [ResetGame] Deleted queue: game.dlq.retry.q
+2025/08/16 14:51:27 🗑️ [RabbitMQ] Successfully deleted queue game.dlq.unroutable.q
+2025/08/16 14:51:27 🗑️ [ResetGame] Deleted queue: game.dlq.unroutable.q
+2025/08/16 14:51:27 🗑️ [RabbitMQ] Successfully deleted exchange game.dlx
+2025/08/16 14:51:27 🗑️ [ResetGame] Deleted exchange: game.dlx
+2025/08/16 14:51:27 🗑️ [RabbitMQ] Successfully deleted exchange game.skill
+2025/08/16 14:51:27 🗑️ [ResetGame] Deleted exchange: game.skill
+2025/08/16 14:51:27 🗑️ [RabbitMQ] Successfully deleted exchange game.unroutable
+2025/08/16 14:51:27 🗑️ [ResetGame] Deleted exchange: game.unroutable
+2025/08/16 14:51:27 🔌 [ResetGame] Closed 0 RabbitMQ connections
+2025/08/16 14:51:27 📊 [ResetGame] Cleared player stats
+2025/08/16 14:51:27 📡 [ResetGame] Broadcast reset message to UI
+2025/08/16 14:51:27 ⚠️  [WebSocket] Broadcast channel full, dropping message
+2025/08/16 14:51:27 📡 [ResetGame] Broadcast empty roster to clear UI consumers
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:27 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:27 | 200 |   44.498625ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:27 📊 [RabbitMQ-Go] Derived metrics: 0 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:27 | 200 |    2.156458ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:28 📊 [RabbitMQ-Go] Derived metrics: 0 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:28 | 200 |    1.004208ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:28 📋 [DLQ] No DLQ queues found, auto-setting up DLQ topology...
+2025/08/16 14:51:28 🔄 [RabbitMQ] Successfully created exchange game.dlx (topic)
+2025/08/16 14:51:28 🔄 [RabbitMQ] Successfully created exchange game.unroutable (fanout)
+2025/08/16 14:51:28 📦 [RabbitMQ] Successfully created queue game.dlq.failed.q
+2025/08/16 14:51:28 🔗 [RabbitMQ] Successfully bound queue game.dlq.failed.q to exchange game.dlx with routing key dlq.failed
+2025/08/16 14:51:28 📦 [RabbitMQ] Successfully created queue game.dlq.unroutable.q
+2025/08/16 14:51:28 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.dlx with routing key dlq.unroutable
+2025/08/16 14:51:28 📦 [RabbitMQ] Successfully created queue game.dlq.expired.q
+2025/08/16 14:51:28 🔗 [RabbitMQ] Successfully bound queue game.dlq.expired.q to exchange game.dlx with routing key dlq.expired
+2025/08/16 14:51:28 📦 [RabbitMQ] Successfully created queue game.dlq.retry.q
+2025/08/16 14:51:28 🔗 [RabbitMQ] Successfully bound queue game.dlq.retry.q to exchange game.dlx with routing key dlq.retry
+2025/08/16 14:51:28 🔗 [RabbitMQ] Successfully bound queue game.dlq.unroutable.q to exchange game.unroutable with routing key 
+2025/08/16 14:51:28 🗑️ [RabbitMQ] Exchange game.skill already doesn't exist
+2025/08/16 14:51:28 🔄 [RabbitMQ] Successfully created exchange game.skill (topic)
+Warning: Could not rebind queue game.skill.gather.q: failed to bind queue game.skill.gather.q to exchange game.skill: status 404, body: {"error":"not_found","reason":"no queue 'game.skill.gather.q' in vhost '/'"}
+Warning: Could not rebind queue game.skill.slay.q: failed to bind queue game.skill.slay.q to exchange game.skill: status 404, body: {"error":"not_found","reason":"no queue 'game.skill.slay.q' in vhost '/'"}
+2025/08/16 14:51:28 ✅ [DLQ] Auto-setup completed successfully
+[GIN] 2025/08/16 - 14:51:28 | 200 |   22.823417ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:28 | 200 |    2.432625ms |             ::1 | GET      "/"
+2025/08/16 14:51:28 🔌 [WebSocket] Client disconnected (total: 0)
+2025/08/16 14:51:28 📡 [ResetGame] Final empty roster broadcast after cleanup
+[GIN] 2025/08/16 - 14:51:28 | 200 |      43.875µs |             ::1 | GET      "/ws"
+2025/08/16 14:51:28 🔗 [WebSocket] Client connected (total: 1)
+[GIN] 2025/08/16 - 14:51:28 | 200 |       13.75µs |             ::1 | GET      "/api/chaos/status"
+[GIN] 2025/08/16 - 14:51:28 | 200 |       5.125µs |             ::1 | GET      "/api/cardgame/enabled"
+2025/08/16 14:51:29 ⚠️ [ResetGame] Reset completed with warnings: [Workers service unavailable: get workers status failed: Get "http://localhost:8001/status": dial tcp [::1]:8001: connect: connection refused]
+2025/08/16 14:51:29 📡 [ResetGame] Reset flag cleared - normal ticker resumed
+[GIN] 2025/08/16 - 14:51:29 | 206 |  1.528161292s |             ::1 | POST     "/api/reset"
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:29 | 500 |    1.086209ms |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/16 - 14:51:29 | 200 |    1.866167ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:51:29 | 200 |    2.609458ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:29 | 200 |      3.4315ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:29 | 200 |    8.649167ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:29 | 200 |    2.817208ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:29 | 200 |    9.213125ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:29 | 200 |    1.152583ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:29 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:29 | 200 |     6.51575ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:30 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:31 | 200 |    1.483166ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:31 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:31 | 200 |     6.61775ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:32 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:32 | 500 |    1.388958ms |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:32 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:32 | 200 |    6.988042ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:32 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:32 | 200 |    1.573833ms |             ::1 | GET      "/api/rabbitmq/metrics"
+[GIN] 2025/08/16 - 14:51:33 | 200 |    1.737625ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:33 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:33 | 200 |    9.807667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:34 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:34 | 200 |     1.47325ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:35 | 500 |    1.343167ms |             ::1 | GET      "/api/workers/status"
+[GIN] 2025/08/16 - 14:51:35 | 200 |    2.079458ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:35 | 200 |    7.418958ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:35 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:35 | 200 |    1.484792ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:35 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:35 | 200 |     6.08975ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:36 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:37 | 200 |    3.028792ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:37 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:37 | 200 |     6.37775ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:38 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:38 | 500 |     598.084µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:38 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:38 | 200 |   10.136458ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:38 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:38 | 200 |    2.316709ms |             ::1 | GET      "/api/rabbitmq/metrics"
+[GIN] 2025/08/16 - 14:51:39 | 304 |          73µs |             ::1 | GET      "/"
+2025/08/16 14:51:39 🔌 [WebSocket] Client disconnected (total: 0)
+[GIN] 2025/08/16 - 14:51:39 | 200 |      16.958µs |             ::1 | GET      "/api/chaos/status"
+2025/08/16 14:51:39 🔗 [WebSocket] Client connected (total: 1)
+[GIN] 2025/08/16 - 14:51:39 | 200 |          34µs |             ::1 | GET      "/ws"
+[GIN] 2025/08/16 - 14:51:39 | 200 |       3.625µs |             ::1 | GET      "/api/cardgame/enabled"
+[GIN] 2025/08/16 - 14:51:40 | 304 |      91.084µs |             ::1 | GET      "/"
+2025/08/16 14:51:40 🔌 [WebSocket] Client disconnected (total: 0)
+[GIN] 2025/08/16 - 14:51:40 | 200 |      35.208µs |             ::1 | GET      "/ws"
+2025/08/16 14:51:40 🔗 [WebSocket] Client connected (total: 1)
+[GIN] 2025/08/16 - 14:51:40 | 200 |       16.75µs |             ::1 | GET      "/api/chaos/status"
+[GIN] 2025/08/16 - 14:51:40 | 200 |       5.792µs |             ::1 | GET      "/api/cardgame/enabled"
+2025/08/16 14:51:40 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:41 | 500 |         922µs |             ::1 | GET      "/api/workers/status"
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+[GIN] 2025/08/16 - 14:51:41 | 200 |    3.638625ms |             ::1 | GET      "/api/pending/list"
+[GIN] 2025/08/16 - 14:51:41 | 200 |    3.465041ms |             ::1 | GET      "/api/rabbitmq/queues"
+2025/08/16 14:51:41 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:41 | 200 |    4.220333ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:41 | 200 |    8.781458ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📊 [RabbitMQ-Go] Derived metrics: 4 queues, 0 total pending, 0 consumers
+[GIN] 2025/08/16 - 14:51:41 | 200 |    2.243125ms |             ::1 | GET      "/api/rabbitmq/metrics"
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:41 | 200 |    7.960542ms |             ::1 | GET      "/api/dlq/list"
+[GIN] 2025/08/16 - 14:51:41 | 200 |       1.226ms |             ::1 | GET      "/api/pending/list"
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.expired.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.expired.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.failed.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.failed.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.retry.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.retry.q: retrieved 0 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.unroutable.q: attempting to peek up to 1000 messages
+2025/08/16 14:51:41 📋 [DLQ] Queue game.dlq.unroutable.q: retrieved 0 messages
+[GIN] 2025/08/16 - 14:51:41 | 200 |    6.550667ms |             ::1 | GET      "/api/dlq/list"
+2025/08/16 14:51:42 🛑 [API Server] Shutting down...
+2025/08/16 14:51:42 ✅ [API Server] Graceful shutdown completed

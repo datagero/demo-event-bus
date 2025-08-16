@@ -7,8 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RunScenario is now implemented in scenarios.go
-
 // Card game handlers
 func (h *Handlers) IsCardGameEnabled(c *gin.Context) {
 	// For now, return a simple response

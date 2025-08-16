@@ -1569,6 +1569,17 @@
         if (window.refreshDLQData) {
           setTimeout(() => window.refreshDLQData(), 1000);
         }
+      } else if (msg.type === 'quest_log') {
+        // 🎯 NEW: Handle scenario Quest Log messages from scenarios
+        const p = msg.payload;
+        const message = p.message || 'Unknown scenario message';
+        const source = p.source || 'SCENARIO';
+        
+        // Add scenario message to Quest Log
+        appendFeed('info', source, message);
+        
+        console.log('📋 [DEBUG] Scenario Quest Log:', message);
+        saveToDebugLog('scenario', `Quest Log: ${message}`);
       } else if (msg.type === 'quest_dlq') {
         // Quest Log entry for messages going to DLQ
         const p = msg.payload;
@@ -1672,6 +1683,14 @@
       } else if (msg.type === 'chaos_triggered') {
         const p = msg.payload;
         appendFeed('warn', 'CHAOS', `Triggered: ${p.action} on ${p.player} (${p.quest_type} ${p.quest_id})`);
+        
+        // Refresh roster for worker-affecting chaos actions
+        const workerAffectingActions = ['rmq_delete_queue', 'rmq_block_connection', 'disconnect', 'drop'];
+        if (workerAffectingActions.includes(p.action)) {
+          setTimeout(() => updateRosterFromWorkers(), 1000);
+          console.log(`🌪️ Chaos action ${p.action} may affect worker ${p.player}, roster will refresh`);
+        }
+        
         // Disarm after trigger
         chaosConfig.enabled = false;
         updateChaosUI();
@@ -1689,16 +1708,25 @@
         appendFeed('warn', 'CHAOS', `⚠️ ${p.player} disconnected: ${p.description}`);
         // Add disconnect event to quest timeline if we have a current quest
         addChaosTimelineEvent(p.player, 'disconnect', p.description);
+        // Refresh roster to reflect worker disconnect status
+        setTimeout(() => updateRosterFromWorkers(), 1000);
+        console.log(`🌪️ Chaos disconnect for ${p.player}, roster will refresh`);
       } else if (msg.type === 'chaos_reconnect') {
         const p = msg.payload;
         appendFeed('ok', 'CHAOS', `🔄 ${p.player} reconnected: ${p.description}`);
         // Add reconnect event to quest timeline if we have a current quest
         addChaosTimelineEvent(p.player, 'reconnect', p.description);
+        // Refresh roster to reflect worker reconnect status
+        setTimeout(() => updateRosterFromWorkers(), 1000);
+        console.log(`🌪️ Chaos reconnect for ${p.player}, roster will refresh`);
       } else if (msg.type === 'chaos_reconnect_failed') {
         const p = msg.payload;
         appendFeed('err', 'CHAOS', `❌ ${p.player} reconnect failed: ${p.description}`);
         // Add failed reconnect event to quest timeline if we have a current quest
         addChaosTimelineEvent(p.player, 'reconnect_failed', p.description);
+        // Refresh roster to reflect worker failed reconnect status
+        setTimeout(() => updateRosterFromWorkers(), 1000);
+        console.log(`🌪️ Chaos reconnect failed for ${p.player}, roster will refresh`);
       }
     };
 
@@ -1795,13 +1823,49 @@
       appendFeed('info','PLAYERS',`Started ${name} (${sk})`);
     };
     document.getElementById('sc-routing').onclick = async () => {
-      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'routing_comparison'})});
+      // Legacy scenario - keeping for compatibility
+      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({scenario:'quest-wave'})});
       appendFeed('info','SCENARIO','Routing comparison: skill vs player-based routing behavior');
     };
     const scLate = document.getElementById('sc-late-bind');
     if (scLate){ scLate.onclick = async () => {
-      await fetch('/api/scenario/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:'late_bind_escort'})});
-      appendFeed('info','SCENARIO','Late-bind escort: backlog handoff demo');
+      appendFeed('info','SCENARIO','🚀 Running Late-bind Escort scenario test...');
+      try {
+        const response = await fetch('/api/scenario-tests/run', { 
+          method:'POST', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify({
+            scenario: 'late-bind-escort',
+            parameters: { message_count: 3 }
+          })
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data.success) {
+          appendFeed('success','SCENARIO',`✅ Late-bind Escort completed successfully in ${result.data.execution_time}ms`);
+          appendFeed('info','SCENARIO',`📊 ${result.data.summary}`);
+          
+          // Log test steps
+          if (result.data.test_steps && result.data.test_steps.length > 0) {
+            result.data.test_steps.forEach(step => {
+              const icon = step.status === 'success' ? '✅' : step.status === 'warning' ? '⚠️' : '❌';
+              appendFeed('info','SCENARIO',`${icon} Step ${step.step}: ${step.name} - ${step.description}`);
+            });
+          }
+          
+          // Log key results
+          const results = result.data.results;
+          if (results) {
+            appendFeed('info','SCENARIO',`📈 Results: ${results.total_messages_sent} total messages, ${results.processed_messages} processed, ${results.backlog_messages} backlog`);
+            appendFeed('info','SCENARIO',`🔍 Unreachable message ID: ${results.unreachable_message_id}`);
+          }
+        } else {
+          const errorMsg = result.data?.summary || result.data?.error || result.error || 'Unknown error';
+          appendFeed('error','SCENARIO',`❌ Scenario failed: ${errorMsg}`);
+        }
+      } catch (error) {
+        appendFeed('error','SCENARIO',`❌ Error running scenario: ${error.message}`);
+      }
     }; }
 
 
@@ -1815,14 +1879,46 @@
       const act = e.target.closest('.player-action');
       if (act){
         const name = act.getAttribute('data-name'); const action = act.getAttribute('data-action');
-        if (name && action){ fetch('/api/player/control', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player:name, action})}); }
+        if (name && action){ 
+          fetch('/api/player/control', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify({player:name, action})
+          })
+          .then(response => {
+            if (response.ok) {
+              // Refresh roster after player control actions to update status immediately
+              setTimeout(() => updateRosterFromWorkers(), 500);
+              console.log(`🎮 Player control ${action} applied to ${name}, roster will refresh`);
+            }
+          })
+          .catch(error => {
+            console.error('Failed to control worker:', error);
+          });
+        }
         // do NOT change selection when clicking control buttons
         e.stopPropagation(); return;
       }
         const del = e.target.closest('.player-delete');
         if (del){
           const name = del.getAttribute('data-name');
-          if (name){ fetch('/api/player/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player:name})}); }
+          if (name){ 
+            fetch('/api/player/delete', { 
+              method:'POST', 
+              headers:{'Content-Type':'application/json'}, 
+              body: JSON.stringify({player:name})
+            })
+            .then(response => {
+              if (response.ok) {
+                // Immediately refresh roster to remove deleted worker from display
+                updateRosterFromWorkers();
+                console.log(`🗑️ Worker ${name} deleted, roster refreshed`);
+              }
+            })
+            .catch(error => {
+              console.error('Failed to delete worker:', error);
+            });
+          }
           e.stopPropagation(); return;
         }
       const pill = e.target.closest('.pill'); if (!pill) return;
@@ -3165,7 +3261,7 @@
             skills: workerDetails.skills || ['gather'], // Real skills from worker config
             workers: workerDetails.workers || 1,
             speed_multiplier: workerDetails.speed_multiplier || 1.0,
-            fail_pct: workerDetails.fail_pct || 0.1,
+            fail_pct: workerDetails.fail_pct != null ? workerDetails.fail_pct : 0.0,
             routing_mode: workerDetails.routing_mode || 'skill'
           }];
         } else {
@@ -3176,7 +3272,7 @@
             skills: ['gather'], // Conservative fallback
             workers: 1,
             speed_multiplier: 1.0,
-            fail_pct: 0.1
+            fail_pct: 0.0
           };
           return [name, { ...meta, status: 'online', worker_type: 'go' }];
         }

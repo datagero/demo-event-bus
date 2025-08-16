@@ -384,9 +384,7 @@ func (h *Handlers) QuickstartPlayers(c *gin.Context) {
 		}
 
 		failPct, _ := p["fail_pct"].(float64)
-		if failPct == 0 {
-			failPct = 0.2
-		}
+		// Note: 0.0 is a valid failure rate, so don't override it
 
 		speedMultiplier, _ := p["speed_multiplier"].(float64)
 		if speedMultiplier == 0 {
@@ -474,10 +472,8 @@ func (h *Handlers) StartPlayer(c *gin.Context) {
 		}
 	}
 
-	// Set defaults
-	if req.FailPct == 0 {
-		req.FailPct = 0.2
-	}
+	// Set defaults (only if not explicitly set)
+	// Note: 0.0 is a valid failure rate, so don't override it
 	if req.SpeedMultiplier == 0 {
 		req.SpeedMultiplier = 1.0
 	}

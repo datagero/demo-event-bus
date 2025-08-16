@@ -43,10 +43,8 @@ func (h *Handlers) StartWorker(c *gin.Context) {
 		return
 	}
 
-	// Set defaults
-	if req.FailPct == 0 {
-		req.FailPct = 0.2
-	}
+	// Set defaults (only if not explicitly set)
+	// Note: 0.0 is a valid failure rate, so don't override it
 	if req.SpeedMultiplier == 0 {
 		req.SpeedMultiplier = 1.0
 	}

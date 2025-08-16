@@ -120,10 +120,11 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config, wsHub *websocket.Hub) {
 			chaos.POST("/config", h.SetChaosConfig)
 		}
 
-		// Scenarios
-		scenario := api.Group("/scenario")
+		// Scenario Tests
+		scenarioTests := api.Group("/scenario-tests")
 		{
-			scenario.POST("/run", h.RunScenario)
+			scenarioTests.GET("/", h.ListAvailableScenarioTests)
+			scenarioTests.POST("/run", h.RunScenarioTest)
 		}
 
 		// Card game
