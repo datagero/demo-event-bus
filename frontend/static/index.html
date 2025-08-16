@@ -3767,18 +3767,22 @@
 
     async function fetchSkillQueues() {
       try {
-        const response = await fetch('http://localhost:15672/api/queues', {
-          headers: { 'Authorization': 'Basic ' + btoa('guest:guest') }
-        });
+        // Use backend API instead of direct RabbitMQ access to avoid CORS issues
+        const response = await fetch('/api/rabbitmq/queues');
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
-        const allQueues = await response.json();
+        const result = await response.json();
+        if (!result.ok) throw new Error(result.error || 'API returned error');
+        
+        const allQueues = result.data || [];
         
         // Filter for skill queues
         const skillQueues = allQueues.filter(queue => 
-          queue.name.startsWith('game.skill.') && queue.name.endsWith('.q')
+          queue.name && queue.name.startsWith('game.skill.') && queue.name.endsWith('.q')
         );
+        
+        console.log('🔄 Skill queues refreshed via backend API:', skillQueues);
         
         return skillQueues.map(queue => ({
           name: queue.name,
@@ -3792,7 +3796,7 @@
         }));
         
       } catch (error) {
-        console.error('Failed to fetch skill queues:', error);
+        console.error('Failed to fetch skill queues via backend:', error);
         return [];
       }
     }

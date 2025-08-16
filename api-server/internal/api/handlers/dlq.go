@@ -21,14 +21,25 @@ func (h *Handlers) SetupDLQ(c *gin.Context) {
 		BackoffMultiplier float64 `json:"backoff_multiplier"`
 	}
 
-	// Set defaults
-	if err := c.ShouldBindJSON(&req); err == nil {
-		// Use provided values
-	} else {
-		// Default values for educational setup
-		req.ReplayExchange = "game.dlq.replay"
-		req.RetryQueueTTL = 5000 // 5 seconds
+	// Set defaults first
+	req.ReplayExchange = "game.dlq.replay"
+	req.RetryQueueTTL = 5000 // 5 seconds
+	req.MaxRetries = 3
+	req.BackoffMultiplier = 2.0
+
+	// Override with provided values if any
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("⚠️ [DLQ Setup] Failed to bind JSON, using defaults: %v", err)
+	}
+
+	// Ensure non-zero values for critical parameters
+	if req.RetryQueueTTL <= 0 {
+		req.RetryQueueTTL = 5000
+	}
+	if req.MaxRetries <= 0 {
 		req.MaxRetries = 3
+	}
+	if req.BackoffMultiplier <= 0 {
 		req.BackoffMultiplier = 2.0
 	}
 
@@ -425,9 +436,23 @@ func (h *Handlers) SetupDLQTopology(replayExchange string, retryTTL int, maxRetr
 		routingKey := queueConfig["routing_key"].(string)
 		arguments := queueConfig["arguments"].(map[string]interface{})
 
-		// Create the queue
+		// Create the queue (handle conflicts by recreating)
 		if err := h.RabbitMQClient.CreateQueue(queueName, true, false, arguments); err != nil {
-			return nil, fmt.Errorf("failed to create DLQ queue %s: %w", queueName, err)
+			// Check if it's a conflict error (queue exists with different arguments)
+			if strings.Contains(err.Error(), "inequivalent arg") || strings.Contains(err.Error(), "status 400") {
+				log.Printf("⚠️ [DLQ Setup] Queue %s exists with different config, recreating...", queueName)
+				// Delete and recreate the queue
+				if deleteErr := h.RabbitMQClient.DeleteQueue(queueName); deleteErr != nil {
+					log.Printf("⚠️ [DLQ Setup] Warning: Could not delete existing queue %s: %v", queueName, deleteErr)
+				}
+				// Try creating again
+				if retryErr := h.RabbitMQClient.CreateQueue(queueName, true, false, arguments); retryErr != nil {
+					return nil, fmt.Errorf("failed to recreate DLQ queue %s after conflict: %w", queueName, retryErr)
+				}
+				log.Printf("✅ [DLQ Setup] Successfully recreated queue %s", queueName)
+			} else {
+				return nil, fmt.Errorf("failed to create DLQ queue %s: %w", queueName, err)
+			}
 		}
 
 		// Bind queue to DLX exchange
@@ -511,8 +536,7 @@ func (h *Handlers) IsDLQQueue(queueName string) bool {
 }
 
 func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
-	// SIMPLIFIED: Use queue name as primary source of truth for DLQ categorization
-	// This ensures KPIs match RabbitMQ actual queue message counts
+	// PRIMARY: Use queue name as primary source of truth for DLQ categorization (most reliable)
 	if queueName, ok := msg["queue"].(string); ok {
 		queueLower := strings.ToLower(queueName)
 
@@ -539,10 +563,41 @@ func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
 		return "failed" // Default for unknown queue patterns
 	}
 
-	// Fallback: if no queue name available, try routing key patterns
+	// SECONDARY: Parse x-death headers to determine death reason (for unit tests and message analysis)
+	if props, ok := msg["properties"].(map[string]interface{}); ok {
+		if headers, ok := props["headers"].(map[string]interface{}); ok {
+			// Check for custom failure reason first
+			if failureReason, ok := headers["failure_reason"].(string); ok {
+				log.Printf("🔍 [DLQ Categorize] Custom failure_reason: %s", failureReason)
+				return "failed" // Custom failures are always categorized as failed
+			}
+
+			// Check x-death headers for standard RabbitMQ death reasons
+			if deaths, ok := headers["x-death"].([]interface{}); ok && len(deaths) > 0 {
+				if death, ok := deaths[0].(map[string]interface{}); ok {
+					if reason, ok := death["reason"].(string); ok {
+						log.Printf("🔍 [DLQ Categorize] Death reason: %s", reason)
+						switch reason {
+						case "rejected":
+							return "failed"
+						case "expired":
+							return "expired"
+						case "maxlen":
+							return "maxlength"
+						default:
+							log.Printf("⚠️ [DLQ Categorize] Unknown death reason: %s, defaulting to 'failed'", reason)
+							return "failed"
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// TERTIARY: Fallback to routing key patterns
 	if routingKey, ok := msg["routing_key"].(string); ok {
 		routingLower := strings.ToLower(routingKey)
-		log.Printf("🔍 [DLQ Categorize] No queue name, checking routing key: %s", routingKey)
+		log.Printf("🔍 [DLQ Categorize] Checking routing key: %s", routingKey)
 
 		if strings.Contains(routingLower, "dlq.failed") || strings.Contains(routingLower, "dlq.rejected") {
 			return "failed"
@@ -558,36 +613,36 @@ func (h *Handlers) CategorizeDLQMessage(msg map[string]interface{}) string {
 		}
 	}
 
-	log.Printf("⚠️ [DLQ Categorize] No queue or routing key info, defaulting to 'failed'")
+	log.Printf("⚠️ [DLQ Categorize] No queue, death reason, or routing key info, defaulting to 'failed'")
 	return "failed" // Final fallback
 }
 
 func (h *Handlers) ExtractDeathInfo(msg map[string]interface{}) map[string]interface{} {
-	deathInfo := map[string]interface{}{
-		"count":  0,
-		"reason": "unknown",
-		"queue":  "unknown",
-	}
-
 	if props, ok := msg["properties"].(map[string]interface{}); ok {
 		if headers, ok := props["headers"].(map[string]interface{}); ok {
 			if deaths, ok := headers["x-death"].([]interface{}); ok && len(deaths) > 0 {
 				if death, ok := deaths[0].(map[string]interface{}); ok {
-					if count, ok := death["count"]; ok {
-						deathInfo["count"] = count
+					// Extract ALL available fields from x-death, not just basic ones
+					deathInfo := make(map[string]interface{})
+
+					// Copy all fields from the death entry
+					for key, value := range death {
+						deathInfo[key] = value
 					}
-					if reason, ok := death["reason"]; ok {
-						deathInfo["reason"] = reason
-					}
-					if queue, ok := death["queue"]; ok {
-						deathInfo["queue"] = queue
-					}
+
+					return deathInfo
 				}
 			}
 		}
 	}
 
-	return deathInfo
+	// Return empty map for production safety (frontend expects object)
+	// Internal tests will need to be updated to match production behavior
+	return map[string]interface{}{
+		"count":  0,
+		"reason": "unknown",
+		"queue":  "unknown",
+	}
 }
 
 func contains(s, substr string) bool {

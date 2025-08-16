@@ -26,7 +26,7 @@ func TestMessageProcessingFlow(t *testing.T) {
 	}
 
 	cfg := &config.Config{
-		RabbitMQURL: "http://localhost:15672",
+		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		WorkersURL:  "http://localhost:8001",
 	}
 
@@ -216,7 +216,7 @@ func TestMessageFailureScenarios(t *testing.T) {
 	}
 
 	cfg := &config.Config{
-		RabbitMQURL: "http://localhost:15672",
+		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		WorkersURL:  "http://localhost:8001",
 	}
 
@@ -317,7 +317,7 @@ func TestQueueManagement(t *testing.T) {
 	}
 
 	cfg := &config.Config{
-		RabbitMQURL: "http://localhost:15672",
+		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		WorkersURL:  "http://localhost:8001",
 	}
 

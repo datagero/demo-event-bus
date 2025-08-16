@@ -25,7 +25,8 @@ func TestResetPublicAPI(t *testing.T) {
 		resp := tc.MakeRequest("POST", "/reset", nil)
 
 		// Should respond with success or handle gracefully
-		assert.True(t, resp.Code == http.StatusOK || resp.Code >= 500,
+		// 200 = full success, 206 = partial success (with warnings), 500+ = error
+		assert.True(t, resp.Code == http.StatusOK || resp.Code == http.StatusPartialContent || resp.Code >= 500,
 			"Reset should succeed or fail gracefully, got: %d", resp.Code)
 
 		if resp.Code == http.StatusOK {
@@ -68,7 +69,7 @@ func TestResetPublicAPI(t *testing.T) {
 		// At least one should succeed (others may conflict)
 		hasSuccess := false
 		for _, code := range statusCodes {
-			if code == http.StatusOK {
+			if code == http.StatusOK || code == http.StatusPartialContent {
 				hasSuccess = true
 				break
 			}

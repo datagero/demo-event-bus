@@ -172,8 +172,14 @@ func TestDLQMessageFlowEndToEnd(t *testing.T) {
 		// 3. Verify DLQ topology inspection
 		if data, ok := inspectResponse.Data.(map[string]interface{}); ok {
 			// Should contain topology information
-			assert.Contains(t, data, "dlq_exchanges", "Should include DLQ exchanges info")
-			assert.Contains(t, data, "dlq_queues", "Should include DLQ queues info")
+			assert.Contains(t, data, "dlq_inspection", "Should include DLQ inspection info")
+			assert.Contains(t, data, "source", "Should include source info")
+
+			// Verify DLQ inspection structure
+			if dlqInspection, ok := data["dlq_inspection"].(map[string]interface{}); ok {
+				assert.Contains(t, dlqInspection, "dlq_queues", "Should include DLQ queues")
+				assert.Contains(t, dlqInspection, "total_dlq_messages", "Should include total messages count")
+			}
 		}
 	})
 

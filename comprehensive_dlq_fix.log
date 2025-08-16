@@ -242,3 +242,17 @@
 [0;37m15:35:41[0m [0;32m[WORKERS][0m 2025/08/15 15:35:41 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755264921848242000-2 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
 [0;37m15:35:41[0m [0;32m[WORKERS][0m 2025/08/15 15:35:41 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755264922051921000-4 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
 [0;37m15:35:41[0m [0;32m[WORKERS][0m 2025/08/15 15:35:41 ✅ [Go Worker Debug] alice parsed message: {CaseID:wave-slay-1755264922358051000-7 EventStage:QUEST_COMPLETED Status:SUCCESS Source:go-worker:alice QuestType:slay Difficulty:1 WorkSec:0 Points:5 Weight:0 Player:alice Payload:map[]}
+[0;37m15:37:53[0m [0;34m[API_SERVER][0m 2025/08/15 15:37:53 🛑 [API Server] Shutting down...
+[0;37m15:37:53[0m [0;34m[API_SERVER][0m 2025/08/15 15:37:53 ✅ [API Server] Graceful shutdown completed
+[0;37m15:37:55[0m [0;35m[SYSTEM][0m 2025/08/15 15:37:55 🛑 [Go Server] Shutting down...
+[0;37m15:37:55[0m [0;32m[WORKERS][0m 2025/08/15 15:37:55 🛑 [Go Server] Stopping worker: alice
+[0;37m15:37:55[0m [0;32m[WORKERS][0m 2025/08/15 15:37:55 🛑 [Go Worker] Stopping alice...
+[0;37m15:37:55[0m [0;35m[SYSTEM][0m 2025/08/15 15:37:55 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.gather.q
+[0;37m15:37:55[0m [0;35m[SYSTEM][0m 2025/08/15 15:37:55 🛑 [Go Consumer] Context cancelled, stopping consumer for queue: game.skill.slay.q
+[0;37m15:37:55[0m [0;32m[WORKERS][0m 2025/08/15 15:37:55 ✅ [Go Worker] alice stopped
+[0;37m15:37:55[0m [0;35m[SYSTEM][0m 2025/08/15 15:37:55 ✅ [Go Server] Shutdown complete
+
+[1;33m🛑 Shutting down services...[0m
+[0;34mStopping Go Workers (PID: 43158)...[0m
+[0;34mStopping Go API Server (PID: 43121)...[0m
+[0;32m✅ All services stopped[0m

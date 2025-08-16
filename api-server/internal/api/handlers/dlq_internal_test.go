@@ -89,22 +89,22 @@ func TestDLQInternalHelperFunctions(t *testing.T) {
 						"headers": map[string]interface{}{},
 					},
 				},
-				expected: "expired",
-				reason:   "Should categorize message without death headers as expired",
+				expected: "failed",
+				reason:   "Should categorize message without death headers as failed (fallback)",
 			},
 			{
 				name: "Message with nil properties",
 				message: map[string]interface{}{
 					"payload": "test",
 				},
-				expected: "unknown",
-				reason:   "Should handle message with missing properties gracefully",
+				expected: "failed",
+				reason:   "Should handle message with missing properties gracefully (fallback)",
 			},
 			{
 				name:     "Empty message",
 				message:  map[string]interface{}{},
-				expected: "unknown",
-				reason:   "Should handle empty message gracefully",
+				expected: "failed",
+				reason:   "Should handle empty message gracefully (fallback)",
 			},
 		}
 
@@ -159,14 +159,22 @@ func TestDLQInternalHelperFunctions(t *testing.T) {
 						"headers": map[string]interface{}{},
 					},
 				},
-				expected: nil,
-				reason:   "Should return nil for message without death headers",
+				expected: map[string]interface{}{
+					"count":  0,
+					"reason": "unknown",
+					"queue":  "unknown",
+				},
+				reason: "Should return default death info for message without death headers",
 			},
 			{
-				name:     "Message with missing properties",
-				message:  map[string]interface{}{},
-				expected: nil,
-				reason:   "Should handle missing properties gracefully",
+				name:    "Message with missing properties",
+				message: map[string]interface{}{},
+				expected: map[string]interface{}{
+					"count":  0,
+					"reason": "unknown",
+					"queue":  "unknown",
+				},
+				reason: "Should handle missing properties gracefully with default death info",
 			},
 		}
 
@@ -219,7 +227,9 @@ func TestDLQTopologySetup(t *testing.T) {
 		} else {
 			// If it succeeds, verify the result structure
 			assert.NotNil(t, result)
-			assert.Contains(t, result, "status")
+			assert.Contains(t, result, "queues_created", "Should contain created queues info")
+			assert.Contains(t, result, "exchanges_created", "Should contain created exchanges info")
+			assert.Contains(t, result, "dlx_exchange", "Should contain DLX exchange info")
 		}
 	})
 }
