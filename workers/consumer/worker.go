@@ -25,7 +25,7 @@ type WorkerConfig struct {
 	WorkerCount     int      `json:"workers"`
 	RoutingMode     string   `json:"routing_mode"` // "player" or "skill"
 	RabbitURL       string   `json:"rabbit_url"`
-	WebhookURL      string   `json:"webhook_url"` // Python server callback
+	WebhookURL      string   `json:"webhook_url"` // API server callback
 }
 
 // Worker represents a Go-based message worker
@@ -90,7 +90,7 @@ func (w *Worker) Start() error {
 		}
 	}
 
-	// Notify Python server that worker is online
+	// Notify API server that worker is online
 	w.notifyStatus("online")
 
 	log.Printf("🚀 [Go Worker] %s started with %d workers, skills: %v",
@@ -110,7 +110,7 @@ func (w *Worker) Stop() error {
 		w.client.Close()
 	}
 
-	// Notify Python server that worker is offline
+	// Notify API server that worker is offline
 	w.notifyStatus("offline")
 
 	log.Printf("✅ [Go Worker] %s stopped", w.Config.PlayerName)
@@ -243,7 +243,7 @@ func (w *Worker) processMessage(delivery amqp.Delivery) bool {
 	// log.Printf("📨 [Go Worker] %s accepted %s (%s)",
 	//	w.Config.PlayerName, msg.CaseID, msg.QuestType)
 
-	// Notify Python server about message acceptance
+	// Notify API server about message acceptance
 	w.notifyMessageEvent("accept", msg)
 
 	// Simulate work (scaled by speed multiplier)
@@ -291,7 +291,7 @@ func (w *Worker) processMessage(delivery amqp.Delivery) bool {
 			return false // Nack to retry
 		}
 
-		// Notify Python server about failure
+		// Notify API server about failure
 		w.notifyMessageEvent("failed", failedMsg)
 
 		// Return a special value to indicate DLQ (we'll modify the handler)
@@ -323,7 +323,7 @@ func (w *Worker) processMessage(delivery amqp.Delivery) bool {
 	// log.Printf("✅ [Go Worker] %s completed %s (+%d pts)",
 	//	w.Config.PlayerName, msg.CaseID, resultMsg.Points)
 
-	// Notify Python server about completion
+	// Notify API server about completion
 	w.notifyMessageEvent("completed", resultMsg)
 
 	return true // Ack the message
@@ -339,7 +339,7 @@ func (w *Worker) hasSkill(questType string) bool {
 	return false
 }
 
-// notifyStatus sends status updates to the Python server
+// notifyStatus sends status updates to the API server
 func (w *Worker) notifyStatus(status string) {
 	if w.Config.WebhookURL == "" {
 		return
@@ -355,7 +355,7 @@ func (w *Worker) notifyStatus(status string) {
 	w.sendWebhook(payload)
 }
 
-// notifyMessageEvent sends message events to the Python server
+// notifyMessageEvent sends message events to the API server
 func (w *Worker) notifyMessageEvent(eventType string, msg broker.Message) {
 	if w.Config.WebhookURL == "" {
 		return
@@ -372,7 +372,7 @@ func (w *Worker) notifyMessageEvent(eventType string, msg broker.Message) {
 	w.sendWebhook(payload)
 }
 
-// sendWebhook sends a webhook to the Python server
+// sendWebhook sends a webhook to the API server
 func (w *Worker) sendWebhook(payload map[string]interface{}) {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {

@@ -20,21 +20,18 @@ func main() {
 	// Command line flags
 	var (
 		port        = flag.String("port", "9000", "API server port")
-		pythonURL   = flag.String("python", "http://localhost:8080", "Python service URL")
 		workersURL  = flag.String("workers", "http://localhost:8001", "Go workers URL")
 		rabbitMQURL = flag.String("rabbitmq", "amqp://guest:guest@localhost:5672/", "RabbitMQ URL")
 	)
 	flag.Parse()
 
 	log.Printf("🚀 [API Server] Starting on port %s", *port)
-	log.Printf("🐍 [API Server] Python service: %s", *pythonURL)
 	log.Printf("⚡ [API Server] Workers service: %s", *workersURL)
 	log.Printf("🐰 [API Server] RabbitMQ: %s", *rabbitMQURL)
 
 	// Load configuration
 	cfg := &config.Config{
 		Port:        *port,
-		PythonURL:   *pythonURL,
 		WorkersURL:  *workersURL,
 		RabbitMQURL: *rabbitMQURL,
 	}
@@ -101,4 +98,5 @@ func main() {
 		log.Println("✅ [API Server] Graceful shutdown completed")
 	}
 }
+
 // Test comment for development workflow

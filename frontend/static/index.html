@@ -37,7 +37,7 @@
     .pill { padding: 8px 10px; border: 1px solid #2a3863; background: #0e162b; border-radius: 12px; margin: 4px; display: block; cursor: pointer; }
     .pill.selected { border-color: #6fe0a0; box-shadow: 0 0 0 1px #6fe0a0 inset; }
     .pill.go-worker { border-left: 3px solid #00d4ff; }
-    .pill.python-worker { border-left: 3px solid #ffd43b; }  /* Kept for future Python support */
+    /* Python worker CSS removed - pure Go implementation */
     .type-badge { font-size: 12px; margin-left: 4px; }
     .dot { width:10px; height:10px; border-radius:50%; background:#4b4b4b; display:inline-block; }
     .dot.online { background:#2ecc71; }
@@ -803,7 +803,7 @@
         
         <!-- Queue Management Actions -->
         <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap">
-          <button id="refresh-skill-queues" class="action-btn info" title="Refresh skill queue data">🔄 Refresh</button>
+          <!-- <button id="refresh-skill-queues" class="action-btn info" title="Refresh skill queue data">🔄 Refresh</button> -->
           <button id="cleanup-orphaned" class="action-btn warning" title="Clean up queues with no consumers">🧹 Cleanup Orphaned</button>
           <button id="view-all-queues" class="action-btn setup" title="View all RabbitMQ queues">📋 All Queues</button>
         </div>
@@ -814,7 +814,7 @@
             💡 <strong>Skill Queue Lifecycle:</strong> Created when workers start, may persist after worker deletion
           </div>
           <div style="color:var(--muted); margin-bottom:6px">
-            🔍 <strong>Monitoring:</strong> Track which skills have active consumers vs. orphaned queues requiring cleanup
+            🔍 <strong>Real-Time Monitoring:</strong> Auto-refreshes every 100ms to track active consumers vs. orphaned queues
           </div>
           <div style="color:var(--muted); font-size:10px">
             <strong>Queue Pattern:</strong> <code>game.skill.{skill_name}.q</code> (e.g., <code>game.skill.gather.q</code>)
@@ -1100,11 +1100,11 @@
         const failTxt = (meta.fail_pct!=null ? meta.fail_pct : 0).toFixed(2);
         const workerType = meta.type || 'go';  // Default to Go workers in Go-only system
         const typeIcon = workerType === 'go' ? '🚀' : '🐍';
-        const typeLabel = workerType === 'go' ? 'Go' : 'Python';
+                    const typeLabel = 'Go'; // Only Go workers supported
         const tip = `${name} — ${status} (${typeLabel})\nskills: ${(meta.skills||[]).join(',')}\nworkers: ${String(wrk).padStart(2,' ')}  speed: ${spdTxt}\naccepted: ${String(ps.accepted).padStart(3,' ')}  completed: ${String(ps.completed).padStart(3,' ')}  failed: ${String(ps.failed).padStart(3,' ')}\ninflight (unacked): ${String(ps.inflight).padStart(2,' ')}`;
         const skills = (meta.skills||[]).map(s=>`<span class='skill'>${s}</span>`).join(' ');
         const sel = (name===activePlayer)?' selected':'';
-        const typeClass = workerType === 'go' ? 'go-worker' : 'python-worker';
+                    const typeClass = 'go-worker'; // Only Go workers supported
         return `<span class="pill ${typeClass}${sel}" data-name="${name}" title="${tip}">
           <div class="line1"><span class="dot ${dotClass}"></span><span class="name">${name}</span><span>&nbsp;·&nbsp;</span><button class="roster-details-btn" onclick="showWorkerDetails('${name}')" title="View worker details">🔍</button><span class="type-badge">${typeIcon}</span><span>&nbsp;·&nbsp;</span><span class="skills">${skills}</span></div>
           <div class="line2"><span class="stats">w${String(wrk).padStart(2,' ')} · s${spdTxt} · f${failTxt}</span>
@@ -1168,20 +1168,140 @@
     // activity sparkline
     const act = { ts: [], online: [] };
     const thr = { ts: [], perPlayer: {}, colors: {} };
+    
+    // 🔥 Activity data collection is now synchronized with Throughput (via WebSocket ticks)
+    // This function only refreshes the rendering, data collection happens in tick events
+    async function updateActivityFromRabbitMQ() {
+      // Data collection moved to WebSocket tick events for consistent X-axis timing with Throughput
+      // This function now only triggers redraws - actual data comes from tick events every 2 seconds
+      console.log(`📊 [Activity] Rendering current data (${act.online.length} points)`);
+    }
+    
+    // 🔥 Throughput uses WebSocket tick data (until player stats API is implemented)
+    // This function is called from the unified refresh, but the actual data comes from WebSocket ticks
+    async function updateThroughputFromWorkers() {
+      try {
+        const workersData = await fetch('/api/workers/status').then(r => r.json());
+        
+        if (workersData.ok && workersData.data.worker_details) {
+          const activeWorkers = workersData.data.worker_details || {};
+          
+          // Initialize throughput tracking if needed
+          if (!thr.lastCompleted) thr.lastCompleted = {};
+          
+          // 🔥 CLEANUP: Remove data for players that no longer exist
+          const activePlayerNames = Object.keys(activeWorkers);
+          Object.keys(thr.perPlayer).forEach(playerName => {
+            if (!activePlayerNames.includes(playerName)) {
+              delete thr.perPlayer[playerName];
+              delete thr.lastCompleted[playerName];
+              delete thr.colors[playerName];
+            }
+          });
+          
+          // Ensure all active workers have initialized series (data comes from WebSocket ticks)
+          Object.keys(activeWorkers).forEach(workerName => {
+            if (!thr.perPlayer[workerName]) {
+              thr.perPlayer[workerName] = [];
+            }
+          });
+          
+          console.log(`📈 [Throughput] Cleaned series for ${activePlayerNames.length} active workers`);
+        }
+      } catch (error) {
+        console.error('❌ [Throughput] Failed to clean worker series:', error);
+      }
+    }
+    
     function drawActivity(){
       const canvas = document.getElementById('activity');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0,0,canvas.width, canvas.height);
-      if (act.ts.length < 2) return;
-      const maxOnline = Math.max(1, ...act.online);
+      if (act.ts.length < 2) {
+        console.log('📊 [Activity] Not enough data to draw (need 2+ points, have ' + act.ts.length + ')');
+        return;
+      }
+      console.log('📊 [Activity] Drawing graph with', act.ts.length, 'data points');
+      
       const w = canvas.width, h = canvas.height, n = act.ts.length;
-      ctx.strokeStyle = '#6fe0a0'; ctx.beginPath();
-      act.online.forEach((v,i) => {
-        const x = (i/(n-1))*w;
-        const y = h - (v/maxOnline)*h;
-        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      
+      // 🔥 FULL HISTORY: Show all available data points (like Throughput graph)
+      // Use full dataset for consistent X-axis timeline with Throughput graph
+      const fullOnline = act.online;
+      const fullTs = act.ts;
+      
+      // Use all data for scaling to show meaningful variation over full history
+      const minOnline = Math.min(...fullOnline);
+      const maxOnline = Math.max(...fullOnline);
+      const currentOnline = fullOnline[fullOnline.length - 1] || 0;
+      
+      // 🔥 ADAPTIVE SCALING: Show relative changes more clearly
+      let yMin, yMax;
+      if (maxOnline === minOnline) {
+        // If no variation, show a meaningful range around current value
+        yMin = Math.max(0, currentOnline - Math.max(2, currentOnline * 0.2));
+        yMax = currentOnline + Math.max(2, currentOnline * 0.2);
+      } else {
+        // Add smart padding based on range magnitude
+        const range = maxOnline - minOnline;
+        const padding = Math.max(1, range * 0.15); // 15% padding minimum 1
+        yMin = Math.max(0, minOnline - padding);
+        yMax = maxOnline + padding;
+      }
+      
+      const yRange = Math.max(1, yMax - yMin); // Avoid division by zero
+      
+      // 🔥 FULL HISTORY VISUALIZATION: Draw complete activity timeline (like Throughput graph)
+      ctx.strokeStyle = '#6fe0a0'; 
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      
+      // Draw the full activity history (up to 60 data points)
+      fullOnline.forEach((v, i) => {
+        const x = (i / Math.max(1, fullOnline.length - 1)) * w;
+        const y = h - ((v - yMin) / yRange) * h;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       });
       ctx.stroke();
+      
+      // 🔥 ENHANCED LABELS: Show relative context
+      ctx.fillStyle = '#888';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'right';
+      
+      // Show range context (recent max/min)
+      ctx.fillText(`${Math.round(yMax)}`, w - 2, 12);
+      if (yMax !== yMin) {
+        ctx.fillText(`${Math.round(yMin)}`, w - 2, h - 2);
+      }
+      
+      // Show current value prominently
+      ctx.fillStyle = '#6fe0a0';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(`${currentOnline}`, 2, 12);
+      
+      // Add context labels
+      ctx.fillStyle = '#666';
+      ctx.font = '9px monospace';
+      ctx.fillText('workers', 2, 24);
+      
+      // 🔥 FULL HISTORY INDICATOR: Show total data points available
+      ctx.fillStyle = '#999';
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${fullOnline.length} pts`, 2, h - 2);
+      
+      // 🔥 TREND INDICATOR: Show if activity is increasing/decreasing
+      if (fullOnline.length >= 2) {
+        const trend = fullOnline[fullOnline.length - 1] - fullOnline[fullOnline.length - 2];
+        if (Math.abs(trend) > 0) {
+          ctx.fillStyle = trend > 0 ? '#4ade80' : '#f87171'; // Green up, red down
+          ctx.font = 'bold 10px monospace';
+          ctx.textAlign = 'left';
+          const trendSymbol = trend > 0 ? '↗' : '↘';
+          ctx.fillText(`${trendSymbol}${Math.abs(trend)}`, 2, 36);
+        }
+      }
     }
 
     function drawThroughput(){
@@ -1189,23 +1309,44 @@
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0,0,canvas.width, canvas.height);
       const colors = ['#6fe0a0','#8ec6ff','#ffd26f','#ff9b9b','#9b59b6','#f39c12','#1abc9c'];
-      const players = Object.keys(thr.perPlayer);
+      
+      // 🔥 IMPROVED: Only show players with recent data (non-empty series)
+      const allPlayers = Object.keys(thr.perPlayer);
+      console.log('📊 [Throughput] Drawing graph for', allPlayers.length, 'total players:', allPlayers);
+      const activePlayers = allPlayers.filter(p => {
+        const series = thr.perPlayer[p] || [];
+        return series.length > 0 && series.some(v => v > 0); // Has data and some recent activity
+      });
+      
+      // If no active players, fall back to all players for visualization
+      const players = activePlayers.length > 0 ? activePlayers : allPlayers;
+      
       const maxY = Math.max(1, ...players.flatMap(p=>thr.perPlayer[p]||[0]));
+      
       players.forEach((p,idx)=>{
         thr.colors[p] = thr.colors[p] || colors[idx % colors.length];
-        ctx.strokeStyle = thr.colors[p]; ctx.beginPath();
-        const series = thr.perPlayer[p]||[]; const n = series.length;
+        ctx.strokeStyle = thr.colors[p]; 
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        series.forEach((v,i)=>{
-          const x = (i/(Math.max(1,n-1)))*canvas.width;
-          const y = canvas.height - (v/maxY)*canvas.height;
-          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        });
-        ctx.stroke();
+        const series = thr.perPlayer[p]||[]; 
+        const n = series.length;
+        if (n > 0) {
+          series.forEach((v,i)=>{
+            const x = (i/(Math.max(1,n-1)))*canvas.width;
+            const y = canvas.height - (v/maxY)*canvas.height;
+            if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+          });
+          ctx.stroke();
+        }
       });
-      // legend
+      
+      // 🔥 IMPROVED: Legend only shows players with current data
       const legend = document.getElementById('throughput-legend');
-      legend.innerHTML = players.map(p=>`<span style="display:inline-flex; align-items:center; gap:6px; margin-right:10px"><span style="width:10px; height:10px; background:${thr.colors[p]}; display:inline-block; border-radius:2px"></span>${p}</span>`).join('');
+      if (players.length > 0) {
+        legend.innerHTML = players.map(p=>`<span style="display:inline-flex; align-items:center; gap:6px; margin-right:10px"><span style="width:10px; height:10px; background:${thr.colors[p]}; display:inline-block; border-radius:2px"></span>${p}</span>`).join('');
+      } else {
+        legend.innerHTML = '<span style="color:#888; font-style:italic">No active workers</span>';
+      }
     }
 
     function setStatus(el, label, cls){ const st=el.querySelector('.status'); if(st){ st.textContent=label; st.className = `status tag ${cls}`; } }
@@ -1385,13 +1526,28 @@
           }
       }
 
-      // activity: count truly online players (not disconnected, reconnecting, etc.)
-      const onlineCount = Object.values(msg.roster||{}).filter(r => r.status === 'online').length;
+      // activity: count actual RabbitMQ consumers for accuracy
       if (msg.type==='tick'){
-        act.ts.push(msg.payload.ts); act.online.push(onlineCount);
-        while (act.ts.length > 60) { act.ts.shift(); act.online.shift(); }
-        drawActivity();
-        // throughput: rate of completion (delta per tick) by player
+        console.log('🔄 [WebSocket] Tick message received:', msg.payload?.ts);
+        // 🔥 SYNCHRONIZED: Activity data collection matches Throughput timing (both every 2s via ticks)
+        // Get real consumer count from RabbitMQ during tick events for consistent X-axis with Throughput
+        fetch('/api/rabbitmq/queues').then(r => r.json()).then(data => {
+          if (data.ok) {
+            const skillQueues = data.data.filter(q => 
+              q.name.startsWith('game.skill.') && q.name.endsWith('.q')
+            );
+            const totalConsumers = skillQueues.reduce((sum, q) => sum + (q.consumers || 0), 0);
+            
+            act.ts.push(msg.payload.ts); 
+            act.online.push(totalConsumers);
+            while (act.ts.length > 60) { act.ts.shift(); act.online.shift(); }
+            
+            console.log(`📊 [Activity] Tick data collected: ${totalConsumers} consumers (${act.online.length} pts)`);
+          }
+        }).catch(err => console.error('❌ [Activity] Failed to fetch consumers during tick:', err));
+        // Note: drawActivity() is called from unified refresh every 100ms for smooth rendering
+        
+        // 🔥 RE-ENABLED: Throughput data comes from WebSocket ticks (player stats API not implemented yet)
         const ps = msg.player_stats || {};
         Object.keys(ps).forEach(p=>{ 
           if (!thr.perPlayer[p]) thr.perPlayer[p] = [];
@@ -1405,7 +1561,9 @@
           thr.lastCompleted[p] = completed;
           if (thr.perPlayer[p].length > 60) thr.perPlayer[p].shift();
         });
-        drawThroughput();
+        // Note: drawThroughput() is called from unified refresh every 100ms
+        
+        console.log(`📊 [Tick] Activity disabled (using RabbitMQ), Throughput enabled (no API yet). Tick workers: ${Object.keys(ps).length}`);
         // Update card game UI from tick
         if (msg.payload.game_active !== undefined) {
           updateCardGameUI({
@@ -1468,11 +1626,13 @@
           const qobj = quests[id]; if (qobj){ qobj.start = Date.now(); qobj.dur = Math.max(500, Math.round((p.work_sec||1)*1000)); }
         }
       } else if (msg.type === 'player_online') {
-        // DISABLED: Roster now sourced from real-time workers service
-        // These WebSocket events can cause phantom workers to reappear
-        // const p = msg.payload; rosterState[p.player] = {...(rosterState[p.player]||{}), status:'online'}; renderRoster({roster: rosterState});
+        // ENHANCED: Trigger immediate roster refresh for real-time UI updates
         const p = msg.payload;
         appendFeed('info', 'PLAYER', `${p.player} online`);
+        
+        // Trigger immediate roster update to show new player
+        console.log(`🎮 [ROSTER] Player online event for ${p.player} - triggering immediate roster refresh`);
+        triggerUltraImmediateRefresh(`Player ${p.player} came online`);
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_reconnecting') {
         // DISABLED: Roster now sourced from real-time workers service  
@@ -1481,12 +1641,7 @@
         appendFeed('warn', 'PLAYER', `${p.player} reconnecting`);
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_disconnected') {
-        // DISABLED: Roster now sourced from real-time workers service
-        // This WebSocket event would cause phantom workers to reappear
-        // const p = msg.payload; 
-        // rosterState[p.player] = {...(rosterState[p.player]||{}), status:'disconnected'}; 
-        // renderRoster({roster: rosterState});
-        
+        // ENHANCED: Trigger immediate roster refresh for real-time UI updates
         const p = msg.payload;
         // More accurate disconnect message - could be delete, crash, or pause
         if (p.reason === 'deleted' || p.reason === 'stopped') {
@@ -1496,6 +1651,10 @@
         } else {
           appendFeed('warn', 'PLAYER', `${p.player} disconnected`);
         }
+        
+        // Trigger immediate roster update to reflect player state change
+        console.log(`🎮 [ROSTER] Player disconnected event for ${p.player} (${p.reason}) - triggering immediate roster refresh`);
+        triggerUltraImmediateRefresh(`Player ${p.player} disconnected (${p.reason})`);
         // Activity updates only on tick events for proper pacing
       } else if (msg.type === 'player_accept') {
         console.log('🎯 [DEBUG] player_accept handler called!', msg.payload);
@@ -1624,24 +1783,59 @@
         setRoutingActive(mode);
       } else if (msg.type === 'reset') {
         // Clear UI state completely
-        document.getElementById('type-metrics').textContent = '';
-        document.getElementById('status-pending').textContent = '0';
-        document.getElementById('status-expired').textContent = '0';
-        document.getElementById('scores').innerHTML = '';
-        document.getElementById('roster').innerHTML = '<div class="muted">No players yet</div>';
+        const typeMetrics = document.getElementById('type-metrics');
+        if (typeMetrics) typeMetrics.textContent = '';
+        
+        const statusPending = document.getElementById('status-pending');
+        if (statusPending) statusPending.textContent = '0';
+        
+        const statusExpired = document.getElementById('status-expired');
+        if (statusExpired) statusExpired.textContent = '0';
+        
+        const scores = document.getElementById('scores');
+        if (scores) scores.innerHTML = '';
+        
+        const roster = document.getElementById('roster');
+        if (roster) roster.innerHTML = '<div class="muted">No players yet</div>';
         
         // Clear all quest elements
         Object.values(quests).forEach(q=>{ if(q.el && q.el.parentNode){ q.el.parentNode.removeChild(q.el); } });
         for (const k in quests) delete quests[k];
-        document.getElementById('quest-list').innerHTML = '';
+        
+        // Clear Quest Board containers
+        document.getElementById('quests-gather').innerHTML = '';
+        document.getElementById('quests-slay').innerHTML = '';
+        document.getElementById('quests-escort').innerHTML = '';
+        
+        // Clear Quest Log/Feed
+        const feedEl = document.getElementById('feed');
+        if (feedEl) feedEl.innerHTML = '';
+        if (typeof seenSkips !== 'undefined') seenSkips.clear();
+        
+        // Clear quest list (if it exists)
+        const questListEl = document.getElementById('quest-list');
+        if (questListEl) questListEl.innerHTML = '';
         
         // Clear RabbitMQ quest data including completed states
         rabbitMQQuestData = { pending: [], dlq: [], completed: {} };
+        
+        // Clear quest timeline cache
+        try {
+          localStorage.removeItem('quest_timelines');
+        } catch (e) {
+          console.warn('Failed to clear timeline cache:', e);
+        }
+        
+        // Clear debug logs
+        if (typeof clearDebugLogs === 'function') {
+          clearDebugLogs();
+        }
         
         // Reset unified refresh system to reflect clean state
         stopUnifiedRefresh();
         setTimeout(() => {
           // Re-initialize individual systems
+          startRabbitMQQuestUpdates();   // Initial quest card setup from RabbitMQ
           startWorkersRosterUpdates();   // Initial roster load
           startSkillQueueMonitoring();   // Initial skill queue load
           // Restart unified refresh
@@ -1729,6 +1923,30 @@
         // Refresh roster to reflect worker failed reconnect status
         setTimeout(() => updateRosterFromWorkers(), 1000);
         console.log(`🌪️ Chaos reconnect failed for ${p.player}, roster will refresh`);
+      } else if (msg.type === 'worker_created') {
+        // ENHANCED: Handle worker creation events for immediate roster updates
+        const p = msg.payload;
+        appendFeed('ok', 'WORKER', `${p.name} worker created (${p.type})`);
+        
+        // Trigger immediate roster update to show new worker
+        console.log(`🎮 [ROSTER] Worker created event for ${p.name} - triggering immediate roster refresh`);
+        triggerUltraImmediateRefresh(`Worker ${p.name} created`);
+      } else if (msg.type === 'worker_deleted') {
+        // ENHANCED: Handle worker deletion events for immediate roster updates
+        const p = msg.payload;
+        appendFeed('info', 'WORKER', `${p.name} worker deleted (${p.type})`);
+        
+        // Trigger immediate roster update to remove deleted worker
+        console.log(`🎮 [ROSTER] Worker deleted event for ${p.name} - triggering immediate roster refresh`);
+        triggerUltraImmediateRefresh(`Worker ${p.name} deleted`);
+      } else if (msg.type === 'worker_control') {
+        // ENHANCED: Handle worker control events (pause/resume/crash) for immediate roster updates
+        const p = msg.payload;
+        appendFeed('info', 'WORKER', `${p.name} ${p.action} (${p.type})`);
+        
+        // Trigger immediate roster update to reflect worker state change
+        console.log(`🎮 [ROSTER] Worker control event for ${p.name} (${p.action}) - triggering immediate roster refresh`);
+        triggerUltraImmediateRefresh(`Worker ${p.name} ${p.action}`);
       }
     };
 
@@ -2731,7 +2949,7 @@
     
     // 🎯 ULTRA REAL-TIME REFRESH SYSTEM: Immediate RabbitMQ synchronization
     let unifiedRefreshInterval = null;
-    const UNIFIED_REFRESH_INTERVAL_MS = 100; // 0.1 seconds for ultra real-time updates
+    const UNIFIED_REFRESH_INTERVAL_MS = 500; // 0.5 seconds as requested
 
     async function performUnifiedRefresh() {
       console.log('🔄 [Unified Refresh] Starting synchronized data update...');
@@ -2745,9 +2963,9 @@
         updateQueueKPIs()           // Queue KPIs (Pending & Unacked)
       ];
       
-      // 🔥 Also update Activity and Throughput graphs (synchronous, no promises needed)
-      drawActivity();
-      drawThroughput();
+      // 🔥 Redraw Activity and Throughput graphs (data comes from WebSocket ticks)
+      drawActivity(); // Render activity graph
+      drawThroughput(); // Render throughput graph
 
       try {
         await Promise.all(refreshPromises);
@@ -2804,11 +3022,14 @@
     function startUnifiedRefresh() {
       console.log('🚀 [Unified Refresh] Starting synchronized updates every', UNIFIED_REFRESH_INTERVAL_MS, 'ms');
       
-      // Initial refresh immediately
-      performUnifiedRefresh();
-      
-      // Then start regular unified updates
-      unifiedRefreshInterval = setInterval(performUnifiedRefresh, UNIFIED_REFRESH_INTERVAL_MS);
+      // 🔥 FIRST: Create quest cards from RabbitMQ (essential for page refresh)
+      createQuestCardsFromRabbitMQ().then(() => {
+        // Initial refresh immediately after quest cards are created
+        performUnifiedRefresh();
+        
+        // Then start regular unified updates
+        unifiedRefreshInterval = setInterval(performUnifiedRefresh, UNIFIED_REFRESH_INTERVAL_MS);
+      });
     }
 
     function stopUnifiedRefresh() {
@@ -3254,9 +3475,17 @@
     
     // Create quest cards from RabbitMQ data (for page refresh)
     async function createQuestCardsFromRabbitMQ() {
+      console.log('🔄 [Page Refresh] Starting quest card creation from RabbitMQ...');
       const rabbitMQData = await fetchRabbitMQQuestStates();
       
-      // Track which quest IDs we've seen
+      console.log('🔄 [Page Refresh] RabbitMQ data fetched:', {
+        pending: rabbitMQData.pending.length,
+        dlq: rabbitMQData.dlq.length,
+        pendingMessages: rabbitMQData.pending,
+        dlqMessages: rabbitMQData.dlq
+      });
+      
+      // Track which quest IDs we've seen in current data
       const seenQuestIds = new Set();
       
       // Create quest cards from pending messages
@@ -3316,6 +3545,48 @@
           ensureQuestCard(questData);
         }
       });
+      
+      // 🔥 CLEANUP: Remove DOM cards that are no longer in current data source
+      const existingCards = document.querySelectorAll('[data-quest-id]');
+      console.log(`🔍 [Debug] Found ${existingCards.length} existing cards in DOM`);
+      console.log(`🔍 [Debug] Current seenQuestIds:`, Array.from(seenQuestIds));
+      console.log(`🔍 [Debug] Current quests object keys:`, Object.keys(quests));
+      
+      existingCards.forEach(card => {
+        const questId = card.getAttribute('data-quest-id');
+        console.log(`🔍 [Debug] Checking card: ${questId}, in seenQuestIds: ${seenQuestIds.has(questId)}`);
+        
+        if (questId && !seenQuestIds.has(questId)) {
+          console.log(`🗑️ [Cleanup] Removing quest card no longer in data: ${questId}`);
+          // Remove from DOM
+          if (card.parentNode) {
+            card.parentNode.removeChild(card);
+            console.log(`✅ [Cleanup] Removed card ${questId} from DOM`);
+          }
+          // Remove from JavaScript state
+          if (quests[questId]) {
+            delete quests[questId];
+            console.log(`✅ [Cleanup] Removed ${questId} from quests object`);
+          }
+        } else if (questId) {
+          console.log(`👀 [Debug] Keeping card ${questId} (found in current data)`);
+        }
+      });
+      
+      console.log(`✅ [Page Refresh] Quest sync complete: ${seenQuestIds.size} cards active, cleanup performed`);
+      
+      // Debug: Check if cards are recreated after cleanup
+      setTimeout(() => {
+        const cardsAfterCleanup = document.querySelectorAll('[data-quest-id]');
+        console.log(`🔍 [Debug] Cards in DOM after cleanup: ${cardsAfterCleanup.length}`);
+        if (cardsAfterCleanup.length > seenQuestIds.size) {
+          console.warn(`⚠️ [Debug] Cards were recreated after cleanup! Expected: ${seenQuestIds.size}, Found: ${cardsAfterCleanup.length}`);
+          cardsAfterCleanup.forEach(card => {
+            const questId = card.getAttribute('data-quest-id');
+            console.log(`🔍 [Debug] Card found: ${questId}, classes: ${card.className}`);
+          });
+        }
+      }, 100);
       
       // Now update all quest cards with their current states
       updateQuestCardsFromRabbitMQ();
@@ -3827,42 +4098,56 @@
     // Reset app - Hard Reset
     document.getElementById('reset-app').onclick = async () => {
       if (confirm('Hard Reset: Stop all workers, clear cache, and reload UI?')) {
-        const response = await fetch('/api/reset', { method:'POST' });
-        const result = await response.json();
-        appendFeed('warn','RESET', result.message || 'Hard reset completed');
-        
-        // Clear local UI state
-        quests = {};
-        rosterState = {};
-        act.ts = []; act.online = [];
-        thr.ts = []; thr.perPlayer = {}; thr.colors = {};
-        
-        // Clear browser storage and cache
         try {
-          localStorage.clear();
-          sessionStorage.clear();
-          if ('caches' in window) {
-            caches.keys().then(names => names.forEach(name => caches.delete(name)));
+          // 1. Clear backend data sources
+          const response = await fetch('/api/reset', { method:'POST' });
+          const result = await response.json();
+          appendFeed('warn','RESET', result.message || 'Hard reset completed');
+          console.log('✅ [Reset] Backend reset completed:', result.message);
+          
+          // 2. Stop all refresh activities to prevent interference
+          if (unifiedRefreshInterval) {
+            clearInterval(unifiedRefreshInterval);
+            unifiedRefreshInterval = null;
           }
-        } catch (e) {
-          console.log('Cache clearing failed (expected in some browsers):', e);
+          
+          // 3. Clear all UI state and cache completely
+          // Clear const objects by deleting all properties
+          Object.keys(quests).forEach(key => delete quests[key]);
+          Object.keys(rosterState).forEach(key => delete rosterState[key]);
+          act.ts.length = 0; act.online.length = 0;
+          thr.ts.length = 0; 
+          Object.keys(thr.perPlayer).forEach(key => delete thr.perPlayer[key]);
+          Object.keys(thr.colors).forEach(key => delete thr.colors[key]);
+          
+          // Clear browser storage and cache
+          try {
+            localStorage.clear();
+            sessionStorage.clear();
+            if ('caches' in window) {
+              caches.keys().then(names => names.forEach(name => caches.delete(name)));
+            }
+          } catch (e) {
+            console.log('Cache clearing failed (expected in some browsers):', e);
+          }
+          
+          // 4. Rebuild from empty sources - refresh functions now handle cleanup automatically
+          console.log('🔄 [Reset] Rebuilding UI from empty data sources...');
+          
+          await createQuestCardsFromRabbitMQ(); // Will remove all cards (empty data) and show empty board
+          await refreshDLQData();               // Should find no DLQ data  
+          await updateRosterFromWorkers();      // Should find no workers
+          await updateQueueKPIs();              // Should show all zeros
+          
+          // 5. Restart unified refresh system
+          startUnifiedRefresh();
+          
+          console.log('✅ [Reset] Complete - UI rebuilt from empty sources');
+          
+        } catch (error) {
+          console.error('❌ [Reset] Error during reset:', error);
+          appendFeed('err', 'RESET', 'Reset failed: ' + error.message);
         }
-        
-        // Clear displays
-        document.getElementById('quest-list').innerHTML = '';
-        document.getElementById('roster').innerHTML = '<div class="muted">No players yet</div>';
-        document.getElementById('type-metrics').textContent = '';
-        document.getElementById('status-pending').textContent = '0';
-        document.getElementById('scores').innerHTML = '';
-        
-        // Clear charts
-        const ac = document.getElementById('activity').getContext('2d'); ac.clearRect(0,0,300,80);
-        const thrc = document.getElementById('throughput').getContext('2d'); thrc.clearRect(0,0,300,100);
-        
-        // Force reload with cache busting
-        setTimeout(() => {
-          window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
-        }, 1000);
       }
     };
     // Enhanced Chaos System
@@ -4153,11 +4438,6 @@
         skillQueueUpdateInterval = null;
       }
     }
-
-    // Setup skill queue monitor event handlers
-    document.getElementById('refresh-skill-queues').onclick = () => {
-      refreshSkillQueues();
-    };
 
     document.getElementById('cleanup-orphaned').onclick = async () => {
       const orphaned = skillQueueData.queues.filter(q => q.consumers === 0);

@@ -13,13 +13,11 @@ import (
 // SetupRoutes configures all API routes
 func SetupRoutes(router *gin.Engine, cfg *config.Config, wsHub *websocket.Hub) {
 	// Initialize clients
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
 	rabbitMQClient := clients.NewRabbitMQClient(cfg.RabbitMQURL)
 
 	// Create handlers
 	h := &handlers.Handlers{
-		PythonClient:   pythonClient,
 		WorkersClient:  workersClient,
 		WSHub:          wsHub,
 		Config:         cfg,

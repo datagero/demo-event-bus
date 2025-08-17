@@ -13,18 +13,37 @@ import (
 
 // GetGameState retrieves the current game state
 func (h *Handlers) GetGameState(c *gin.Context) {
-	state, err := h.PythonClient.GetGameState()
+	// Native Go implementation - derive state from RabbitMQ and workers
+	metrics, err := h.RabbitMQClient.DeriveMetricsFromRabbitMQ()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse{
 			Success: false,
-			Error:   err.Error(),
+			Error:   "Failed to derive game state: " + err.Error(),
 		})
 		return
+	}
+
+	// Get worker status
+	workersStatus, err := h.WorkersClient.GetStatus()
+	if err != nil {
+		log.Printf("⚠️ [GetGameState] Could not get workers status: %v", err)
+		workersStatus = map[string]interface{}{"error": err.Error()}
+	}
+
+	// Build comprehensive game state
+	state := map[string]interface{}{
+		"type":           "go_native",
+		"status":         "running",
+		"message_broker": metrics,
+		"workers":        workersStatus,
+		"player_stats":   h.getPlayerStatsSnapshot(),
+		"timestamp":      time.Now().Unix(),
 	}
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
 		Data:    state,
+		Message: "Game state derived from native Go implementation",
 	})
 }
 

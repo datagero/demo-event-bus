@@ -14,7 +14,6 @@ import (
 
 // Handlers contains all the API endpoint handlers
 type Handlers struct {
-	PythonClient   *clients.PythonClient
 	WorkersClient  *clients.WorkersClient
 	WSHub          *websocket.Hub
 	Config         *config.Config

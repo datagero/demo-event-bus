@@ -3,6 +3,7 @@ package handlers
 import (
 	"demo-event-bus-api/internal/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,18 +18,18 @@ func (h *Handlers) IsCardGameEnabled(c *gin.Context) {
 }
 
 func (h *Handlers) GetCardGameStatus(c *gin.Context) {
-	status, err := h.PythonClient.GetCardGameStatus()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.APIResponse{
-			Success: false,
-			Error:   err.Error(),
-		})
-		return
+	// Card game is not implemented in the Go version
+	status := map[string]interface{}{
+		"enabled":   false,
+		"status":    "not_implemented",
+		"message":   "Card game feature is not available in Go implementation",
+		"timestamp": time.Now().Unix(),
 	}
 
 	c.JSON(http.StatusOK, models.APIResponse{
 		Success: true,
 		Data:    status,
+		Message: "Card game not implemented in Go version",
 	})
 }
 

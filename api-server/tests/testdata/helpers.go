@@ -35,7 +35,6 @@ func NewTestContext(t *testing.T) *TestContext {
 	cfg := &config.Config{
 		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		Port:        "8000",
-		PythonURL:   "http://localhost:8001",
 		WorkersURL:  "http://localhost:8002",
 	}
 
@@ -46,14 +45,12 @@ func NewTestContext(t *testing.T) *TestContext {
 	wsHub := websocket.NewHub()
 
 	// Create all clients for handlers
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
 
 	// Create handlers - manually instantiate since there's no constructor function
 	h := &handlers.Handlers{
 		RabbitMQClient: rabbitClient,
 		WorkersClient:  workersClient,
-		PythonClient:   pythonClient,
 		WSHub:          wsHub,
 		Config:         cfg,
 	}
@@ -74,6 +71,11 @@ func NewTestContext(t *testing.T) *TestContext {
 // GetHandlers returns the handlers instance for direct access to public methods
 func (tc *TestContext) GetHandlers() *handlers.Handlers {
 	return tc.handlers
+}
+
+// GetRouter returns the gin router instance for direct access
+func (tc *TestContext) GetRouter() *gin.Engine {
+	return tc.router
 }
 
 // SetupRoutes configures the router with API routes

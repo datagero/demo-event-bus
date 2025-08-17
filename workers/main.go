@@ -312,7 +312,7 @@ func main() {
 	var (
 		port       = flag.String("port", "8001", "HTTP server port")
 		rabbitURL  = flag.String("rabbit", "amqp://guest:guest@localhost:5672/", "RabbitMQ URL")
-		webhookURL = flag.String("webhook", "http://localhost:8000/api/go-workers/webhook/events", "Python webhook URL")
+		webhookURL = flag.String("webhook", "http://localhost:8000/api/go-workers/webhook/events", "API server webhook URL")
 	)
 	flag.Parse()
 

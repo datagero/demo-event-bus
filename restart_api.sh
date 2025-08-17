@@ -55,7 +55,7 @@ export RABBITMQ_API_URL="http://localhost:15672/api"
 export RABBITMQ_USER="guest"
 export RABBITMQ_PASS="guest"
 export WORKERS_URL="http://localhost:8001"
-export PYTHON_URL="http://localhost:8080"
+# PYTHON_URL removed - pure Go implementation
 
 # Start the API server and append to the existing log
 ./api-server-complete >> ../api-server.log 2>&1 &

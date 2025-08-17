@@ -25,7 +25,6 @@ func TestDLQMessageFlowEndToEnd(t *testing.T) {
 		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		Port:        "9001", // Test port
 		WorkersURL:  "http://localhost:8001",
-		PythonURL:   "http://localhost:8000",
 	}
 
 	rabbitMQClient := clients.NewRabbitMQClient(cfg.RabbitMQURL)
@@ -34,13 +33,11 @@ func TestDLQMessageFlowEndToEnd(t *testing.T) {
 	}
 
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 	go hub.Run()
 	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
-		PythonClient:   pythonClient,
 		WSHub:          hub,
 		Config:         cfg,
 	}
@@ -282,7 +279,6 @@ func TestDLQMessageReissue(t *testing.T) {
 		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		Port:        "9001", // Test port
 		WorkersURL:  "http://localhost:8001",
-		PythonURL:   "http://localhost:8000",
 	}
 
 	rabbitMQClient := clients.NewRabbitMQClient(cfg.RabbitMQURL)
@@ -291,13 +287,11 @@ func TestDLQMessageReissue(t *testing.T) {
 	}
 
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 	go hub.Run()
 	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
-		PythonClient:   pythonClient,
 		WSHub:          hub,
 		Config:         cfg,
 	}

@@ -221,7 +221,7 @@ func (c *Client) ConsumeWithTagAndContext(ctx context.Context, queueName string,
 // ParseMessage parses a delivery into a Message struct.
 // It is resilient to two formats:
 // 1. New format (flat): { "case_id": "...", "quest_type": "..." }
-// 2. Legacy Python format (nested): { "payload": { "case_id": "...", "quest_type": "..." } }
+// 2. Legacy nested format: { "payload": { "case_id": "...", "quest_type": "..." } }
 func ParseMessage(delivery amqp.Delivery) (Message, error) {
 	var msg Message
 

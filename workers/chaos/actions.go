@@ -178,7 +178,7 @@ func (m *Manager) actionDrop(worker *consumer.Worker) {
 
 	log.Printf("⚠️  [Chaos] DROP: Disconnecting %s for %v", playerName, m.config.AutoReconnectTime)
 
-	// Notify Python server about disconnect
+	// Notify API server about disconnect
 	m.notifyChaosEvent(playerName, "disconnect", fmt.Sprintf("Chaos DROP: disconnected for %v", m.config.AutoReconnectTime))
 
 	// Stop the worker (real disconnect)
@@ -230,7 +230,7 @@ func (m *Manager) actionFail(worker *consumer.Worker) {
 	// This would require modifying the worker's failure rate
 }
 
-// notifyChaosEvent sends chaos events to the Python server via webhook
+// notifyChaosEvent sends chaos events to the API server via webhook
 func (m *Manager) notifyChaosEvent(playerName string, eventType string, description string) {
 	// Use a default webhook URL - we'll need to get this from the main server
 	// For now, use the standard webhook URL
@@ -249,7 +249,7 @@ func (m *Manager) notifyChaosEvent(playerName string, eventType string, descript
 	m.sendWebhook(webhookURL, payload)
 }
 
-// sendWebhook sends a webhook notification to the Python server
+// sendWebhook sends a webhook notification to the API server
 func (m *Manager) sendWebhook(webhookURL string, payload map[string]interface{}) {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {

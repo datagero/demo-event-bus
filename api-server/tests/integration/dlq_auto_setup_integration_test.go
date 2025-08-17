@@ -25,7 +25,6 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		Port:        "9001", // Test port
 		WorkersURL:  "http://localhost:8001",
-		PythonURL:   "http://localhost:8000",
 	}
 
 	// Initialize clients
@@ -36,7 +35,6 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 	}
 
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 	go hub.Run() // Start hub to prevent blocking
 
@@ -44,7 +42,6 @@ func TestDLQAutoSetupFunctionality(t *testing.T) {
 	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
-		PythonClient:   pythonClient,
 		WSHub:          hub,
 		Config:         cfg,
 	}
@@ -186,7 +183,6 @@ func TestDLQResilienceAfterReset(t *testing.T) {
 		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		Port:        "9001", // Test port
 		WorkersURL:  "http://localhost:8001",
-		PythonURL:   "http://localhost:8000",
 	}
 
 	rabbitMQClient := clients.NewRabbitMQClient(cfg.RabbitMQURL)
@@ -195,13 +191,11 @@ func TestDLQResilienceAfterReset(t *testing.T) {
 	}
 
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 	go hub.Run()
 	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
-		PythonClient:   pythonClient,
 		WSHub:          hub,
 		Config:         cfg,
 	}

@@ -17,19 +17,16 @@ func TestDLQHelperFunctions(t *testing.T) {
 		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		Port:        "9001", // Test port
 		WorkersURL:  "http://localhost:8001",
-		PythonURL:   "http://localhost:8000",
 	}
 
 	// Create mock clients (don't need real connections for unit tests)
 	rabbitMQClient := clients.NewRabbitMQClient(cfg.RabbitMQURL)
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
 	hub := websocket.NewHub()
 
 	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
-		PythonClient:   pythonClient,
 		WSHub:          hub,
 		Config:         cfg,
 	}
@@ -251,18 +248,16 @@ func TestDLQTopologyValidation(t *testing.T) {
 		RabbitMQURL: "amqp://guest:guest@localhost:5672/",
 		Port:        "9001", // Test port
 		WorkersURL:  "http://localhost:8001",
-		PythonURL:   "http://localhost:8000",
 	}
 
 	rabbitMQClient := clients.NewRabbitMQClient(cfg.RabbitMQURL)
 	workersClient := clients.NewWorkersClient(cfg.WorkersURL)
-	pythonClient := clients.NewPythonClient(cfg.PythonURL)
+
 	hub := websocket.NewHub()
 
 	h := &handlers.Handlers{
 		RabbitMQClient: rabbitMQClient,
 		WorkersClient:  workersClient,
-		PythonClient:   pythonClient,
 		WSHub:          hub,
 		Config:         cfg,
 	}

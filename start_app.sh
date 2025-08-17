@@ -169,7 +169,7 @@ export RABBITMQ_API_URL="http://localhost:15672/api"
 export RABBITMQ_USER="guest"
 export RABBITMQ_PASS="guest"
 export WORKERS_URL="http://localhost:${GO_WORKERS_PORT}"
-export PYTHON_URL="http://localhost:8080"  # Legacy fallback (not used)
+# PYTHON_URL removed - pure Go implementation
 
 if [ "$WATCH_MODE" = true ]; then
     echo -e "${BLUE}🚀 Starting Go API Server with Air (live reload) on port ${GO_API_PORT}...${NC}"
